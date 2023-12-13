@@ -6,7 +6,7 @@ import { AppComponent } from './app.component';
 import {Component1Component} from "./component1/component1.component";
 import {Component2Component} from "./component2/component2.component";
 import {RouterModule} from '@angular/router';
-import {ChartsModule} from 'ng2-charts';
+import {NgChartsModule} from 'ng2-charts';
 import {MoneyTimeChartComponent} from "./money-time-chart/money-time-chart.component";
 
 @NgModule({
@@ -21,6 +21,7 @@ import {MoneyTimeChartComponent} from "./money-time-chart/money-time-chart.compo
     AppRoutingModule,
     HttpClientModule,
     RouterModule,
+    NgChartsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
