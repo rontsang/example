@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ea8e1269-435e-4b6a-8210-5bd6e3d8d52f" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../..//ngtv_dev/projects/PageCount/PageCount/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//ngtv_dev/projects/PageCount/PageCount/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//ngtv_dev/projects/PageCount/PageCount/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//ngtv_dev/projects/PageCount/PageCount/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//ngtv_dev/projects/PageCount/PageCount/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//ngtv_dev/projects/PageCount/PageCount/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//ngtv_dev/projects/PageCount/PageCount/src/main/java/PdfPageCounter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//ngtv_dev/projects/PdfPageCounter/PdfPageCounter/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//ngtv_dev/projects/PdfPageCounter/PdfPageCounter/src/main/java/org/example/PdfPageCounter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//ngtv_dev/projects/PdfPageCounter/PdfPageCounter/src/main/resources/PdfPageCounter.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/angular.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/app-routing.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/app.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/app.component.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/app.component.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/app.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/app.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/component1/component1.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/component1/component1.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/component1/component1.component.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/component1/component1.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/services/hello.service.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/app/services/hello.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/favicon.ico" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/main.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/src/styles.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/tsconfig.app.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/tsconfig.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../..//tax/demo-client/tsconfig.spec.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//Ascertia Create User Flow.postman_collection.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//Ascertia Signing Flow.postman_collection.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//Auth0.postman_collection.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//Auth0_authorization_for_Ascertia.PNG" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/build.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/build/built-jar.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/build/classes/signhash/SignHash.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/dist/README.TXT" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/dist/SignHash.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/manifest.mf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/nbproject/build-impl.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/nbproject/genfiles.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/nbproject/private/private.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/nbproject/project.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/nbproject/project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/src/signhash/SignHash.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignHash/testTrustStore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//SignTestPlan.jmx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//Tenant setup.docx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/.browserslistrc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/.dockerignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/.editorconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/Dockerfile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/angular.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/api-server.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/e2e/protractor.conf.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/e2e/src/app.e2e-spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/e2e/src/app.po.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/e2e/tsconfig.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/exec.ps1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/exec.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/karma.conf.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/package-lock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/server.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/api.service.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/api.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/app-routing.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/app.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/app.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/app.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/app.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/app.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/footer/footer.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/footer/footer.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/footer/footer.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/footer/footer.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/hero/hero.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/hero/hero.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/hero/hero.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/hero/hero.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/home-content/home-content.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/home-content/home-content.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/home-content/home-content.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/home-content/home-content.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/loading/loading.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/loading/loading.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/loading/loading.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/loading/loading.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/nav-bar/nav-bar.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/nav-bar/nav-bar.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/nav-bar/nav-bar.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/components/nav-bar/nav-bar.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/error/error.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/error/error.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/external-api/external-api.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/external-api/external-api.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/external-api/external-api.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/external-api/external-api.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/home/home.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/home/home.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/home/home.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/home/home.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/profile/profile.component.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/profile/profile.component.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/profile/profile.component.spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/app/pages/profile/profile.component.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/assets/.gitkeep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/assets/loading.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/assets/logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/environments/environment.prod.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/environments/environment.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/favicon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/main.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/polyfills.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/styles.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/src/test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/tsconfig.app.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/tsconfig.base.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/tsconfig.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/tsconfig.spec.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//angular-demo/tslint.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/application-truststore.jks" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/AscertiaUserCreatorApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/WebClientConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/model/AuthResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/model/BaseRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/model/BaseResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/model/CsrResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/model/GenerateKeyPairRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/model/ImportCertificateRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/model/KeyRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/model/RegisterUserRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/model/Response.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/service/AbstractService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/service/GenerateCertificateService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/java/ca/teranet/ascertia/usercreator/service/UserService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/resources/XMLRequestTemplate.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia-user-creator/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//ascertia_action.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//generate-certificate-exe/ADSS-Client-API.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//generate-certificate-exe/ADSS-Client-Samples.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//generate-certificate-exe/AscertiaMSOfficeSDK.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//generate-certificate-exe/Calls.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//generate-certificate-exe/Delete_certificate.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//generate-certificate-exe/DocumentFormat.OpenXml.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//generate-certificate-exe/Generate_certificate.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//generate-certificate-exe/itextsharp.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//generate-certificate-exe/test.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//sign-web-app/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//sign-web-app/src/main/java/ca/teranet/ascertia/sign/AscertiaSignApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//sign-web-app/src/main/java/ca/teranet/ascertia/sign/SignController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//sign-web-app/src/main/java/ca/teranet/ascertia/sign/model/AuthResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//sign-web-app/src/main/java/ca/teranet/ascertia/sign/model/SignRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//sign-web-app/src/main/java/ca/teranet/ascertia/sign/model/SignResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//sign-web-app/src/main/java/ca/teranet/ascertia/sign/service/FixContentTypeInterceptor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//sign-web-app/src/main/java/ca/teranet/ascertia/sign/service/SignService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//sign-web-app/src/main/resources/static/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//sign-web-app/src/main/resources/templates/sign.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/build.gradle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/java/com/auth0/example/DemoApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/java/com/auth0/example/HomeController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/java/com/auth0/example/LogoutHandler.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/java/com/auth0/example/ProfileController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/java/com/auth0/example/SecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/java/com/auth0/example/UserController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/java/com/auth0/example/model/User.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/application.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/public/images/logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/public/login.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/public/mfa.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/public/test.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/templates/fragments/footer.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/templates/fragments/header.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/templates/fragments/navbar.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/templates/fragments/scripts.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/templates/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/templates/layouts/default.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//spring-boot-demo/src/main/resources/templates/profile.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/import_test.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/AbstractService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/AsyncConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/Auth0ClientCredentialsGrantRequestEntityConverter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/AuthenticationLoadTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/AuthenticationService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/ClientSecurityConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/CreateUserFileGenerator.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/UserAuthenticationTester.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/UserCreatorApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/UserService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/WebClientConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/WebClientConfigNew.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/WebClientConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/model/AuthResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/java/ca/teranet/usercreator/model/User.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//user-creator/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../..//users.csv" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../" />
+  </component>
+  <component name="ProjectId" id="2ZUokfmdIzGKzlpYmdSkA9d6Tcu" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "C:/tax/demo-client",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ea8e1269-435e-4b6a-8210-5bd6e3d8d52f" name="Changes" comment="" />
+      <created>1702486163209</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1702486163209</updated>
+      <workItem from="1702486164359" duration="8000" />
+      <workItem from="1702486303164" duration="247000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
