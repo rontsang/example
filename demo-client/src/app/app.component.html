@@ -1,26 +1,29 @@
-<div class="myDiv">
-    <app-money-time-chart></app-money-time-chart>
-    <p>test</p>
-    <p>{{ content }}</p>
-  <ul>
-    <li><a [routerLink]="[{ outlets: { outlet1: ['component1'] } }]">Component 1 Link in outlet 1</a></li>
-    <li><a [routerLink]="[{ outlets: { outlet2: ['component1'] } }]">Component 1 Link in outlet 2</a></li>
-    <li><a routerLink="/component1">Component 1 link</a></li>
-    <li><a routerLink="/component2">Component 2 link</a></li>
-    <li><a [routerLink]="[{ outlets: { outlet1: ['component1','both'], outlet2: ['component2'] } }]">Change Both Routes</a></li>
-  </ul>
-  <a [routerLink]="['component1', 1]">Testing route parameter. Send 1 to component 1 route</a>
-  <div>
-    <b>outlet default:</b>
-    <router-outlet></router-outlet>
-  </div>
-  <div>
-    <b>outlet 1:</b>
-    <router-outlet name='outlet1'></router-outlet>
-  </div>
-  <div>
-    <b>outlet 2:</b>
-  <router-outlet name='outlet2'></router-outlet>
-  </div>
-</div>
-<app-component1></app-component1>
+<div> test </div>
+<app-line-chart></app-line-chart>
+<app-bar-chart></app-bar-chart>
+<!--<div class="myDiv">-->
+<!--    <app-money-time-chart></app-money-time-chart>-->
+<!--    <p>test</p>-->
+<!--    <p>{{ content }}</p>-->
+<!--  <ul>-->
+<!--    <li><a [routerLink]="[{ outlets: { outlet1: ['component1'] } }]">Component 1 Link in outlet 1</a></li>-->
+<!--    <li><a [routerLink]="[{ outlets: { outlet2: ['component1'] } }]">Component 1 Link in outlet 2</a></li>-->
+<!--    <li><a routerLink="/component1">Component 1 link</a></li>-->
+<!--    <li><a routerLink="/component2">Component 2 link</a></li>-->
+<!--    <li><a [routerLink]="[{ outlets: { outlet1: ['component1','both'], outlet2: ['component2'] } }]">Change Both Routes</a></li>-->
+<!--  </ul>-->
+<!--  <a [routerLink]="['component1', 1]">Testing route parameter. Send 1 to component 1 route</a>-->
+<!--  <div>-->
+<!--    <b>outlet default:</b>-->
+<!--    <router-outlet></router-outlet>-->
+<!--  </div>-->
+<!--  <div>-->
+<!--    <b>outlet 1:</b>-->
+<!--    <router-outlet name='outlet1'></router-outlet>-->
+<!--  </div>-->
+<!--  <div>-->
+<!--    <b>outlet 2:</b>-->
+<!--  <router-outlet name='outlet2'></router-outlet>-->
+<!--  </div>-->
+<!--</div>-->
+<!--<app-component1></app-component1>-->

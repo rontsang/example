@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
 import {ChartDataset, ChartOptions } from 'chart.js';
-import {NgChartsModule} from 'ng2-charts';
 // import { Label } from 'ng2-charts';
-
 
 @Component({
   selector: 'app-money-time-chart',
