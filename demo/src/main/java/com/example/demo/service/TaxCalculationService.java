@@ -1,8 +1,6 @@
-package service;
+package com.example.demo.service;
 
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
 
 public class TaxCalculationService {
     private List<TaxBracket> taxBrackets;
@@ -22,8 +20,8 @@ public class TaxCalculationService {
 //        // Calculate after tax amount for MARGIN
 //        // For now average out the extra amounts needed
 //        double taxablePreTax = calculatePreTaxAmount(taxDeferredPreTax, taxablePostTax);
-
-        return new WithdrawalAmounts(taxDeferredPreTax, taxablePreTax);
+        return new WithdrawalAmounts(0, 0);
+//        return new WithdrawalAmounts(taxDeferredPreTax, taxablePreTax);
     }
 
     private double calculatePreTaxAmount(double income, double afterTaxAmount) {
