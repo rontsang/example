@@ -1,79 +1,70 @@
 package com.example.demo.service;
 
+import com.example.demo.model.TaxBracket;
+import com.example.demo.model.WithdrawalAmounts;
+import com.example.demo.repository.TaxBracketRepository;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.List;
 
 public class TaxCalculationService {
     private List<TaxBracket> taxBrackets;
 
-    public WithdrawalAmounts calculateWithdrawalAmounts(double taxDeferredPostTax, double taxablePostTax) {
+    @Autowired
+    private TaxBracketRepository taxBracketRepository;
+    @PostConstruct
+    private void loadTaxBrackets() {
+        taxBrackets = taxBracketRepository.findAll();
+    }
+
+    public static WithdrawalAmounts calculateWithdrawalAmounts(double taxDeferredPostTax, double taxablePostTax) {
         // Sum up how much is needed pre-tax
-        // Pretax total
+        double preTaxTotal = calculatePreTaxAmount(taxDeferredPostTax + taxablePostTax);
+
         // Divide the amounts taken from each account proportionally
-            // Calculate percentage RRSP is from Pretax total
-            // RRSP Post tax total * percentage is the withdrawal amount
-            // MARGIN post tax total * (1-percentage) is the withdrawal amount
+        double taxDeferredPreTax = preTaxTotal * (taxDeferredPostTax/preTaxTotal);
+        double taxablePreTax = preTaxTotal * (taxablePostTax/preTaxTotal);
 
-
-//        // Calculate after tax amount for RRSP
-//        double taxDeferredPreTax = calculatePreTaxAmount(0, taxDeferredPostTax);
-//
-//        // Calculate after tax amount for MARGIN
-//        // For now average out the extra amounts needed
-//        double taxablePreTax = calculatePreTaxAmount(taxDeferredPreTax, taxablePostTax);
-        return new WithdrawalAmounts(0, 0);
-//        return new WithdrawalAmounts(taxDeferredPreTax, taxablePreTax);
+        return new WithdrawalAmounts(taxDeferredPreTax, taxablePreTax);
     }
 
-    private double calculatePreTaxAmount(double income, double afterTaxAmount) {
-        // Computes how much extra money is needed to withdraw from account to satisfy afterTaxAmount
-        // Cycle to current tax bracket
-        // Computer how much more money is needed to ensure we have enough
-        // If amount exceeds upperBound
-            // Recurse
+    // Computes how much pre-tax money to withdraw from account to satisfy afterTaxAmount
+    public double calculatePreTaxAmount(double afterTaxAmount) {
+        int currentTaxBracket = 0;
+        double preTaxAmount = 0;
+        double afterTaxAmountStillNeeded = afterTaxAmount;
 
-        // Return amount
-        return afterTaxAmount;
+        taxBrackets = taxBracketRepository.findAll();
+
+        // Cycle through all tax indexes
+        while(currentTaxBracket < taxBrackets.size() && afterTaxAmountStillNeeded > 0) {
+            // Get current tax bracket
+            TaxBracket bracket = taxBrackets.get(currentTaxBracket);
+
+            // Calculate how much money we can get from current bracket
+            double preTaxAmountFromBracket;
+            double afterTaxAmountFromBracket;
+
+            if(bracket.getUpper_bound() != null){
+                preTaxAmountFromBracket = (bracket.getUpper_bound() - bracket.getLower_bound());
+                afterTaxAmountFromBracket = (bracket.getUpper_bound() - bracket.getLower_bound()) * (1-bracket.getRate());
+            } else {
+                preTaxAmountFromBracket = afterTaxAmountStillNeeded/(1-bracket.getRate());
+                afterTaxAmountFromBracket = afterTaxAmountStillNeeded;
+            }
+
+            // If amount needed is less than afterTaxAmount
+            if(afterTaxAmountFromBracket < afterTaxAmountStillNeeded) {
+                preTaxAmount += preTaxAmountFromBracket;
+                afterTaxAmountStillNeeded -= afterTaxAmountFromBracket;
+                currentTaxBracket++;
+            } else {
+                preTaxAmount += afterTaxAmountStillNeeded/(1-bracket.getRate());
+                afterTaxAmountStillNeeded = 0;
+            }
+        }
+        return preTaxAmount;
     }
 
-    // Main method and other classes (TaxBracket, WithdrawalAmounts, etc.) remain the same
 }
-
-class WithdrawalAmounts {
-    public final double taxDeferred;
-    public final double taxable;
-
-    public WithdrawalAmounts(double taxDeferred, double taxable) {
-        this.taxDeferred = taxDeferred;
-        this.taxable = taxable;
-    }
-}
-
-
-enum AccountType {
-    TAX_FREE, TAX_DEFERRED, TAXABLE
-}
-
-class TaxBracket {
-    private double lowerBound;
-    private double upperBound;
-    private double rate;
-
-    public TaxBracket(double lowerBound, double upperBound, double rate) {
-        this.lowerBound = lowerBound;
-        this.upperBound = upperBound;
-        this.rate = rate;
-    }
-
-    public double getLowerBound() {
-        return lowerBound;
-    }
-
-    public double getUpperBound() {
-        return upperBound;
-    }
-
-    public double getRate() {
-        return rate;
-    }
-}
-
