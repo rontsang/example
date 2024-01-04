@@ -1,8 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.model.WithdrawalAmounts;
-
 import java.util.ArrayList;
+import java.util.List;
 
 public class TaxMinimizationService {
 
@@ -12,85 +11,130 @@ public class TaxMinimizationService {
     }
 
     public void taxMinimization(UserAccounts account){
-        OptimizationBracket optimizationBracket = initOptimizationBracket();
+        ArrayList<OptimizationBracket> optimizationBrackets = new ArrayList<>();
+        for(int i = 0; i < account.accounts.size(); i++){
+            optimizationBrackets.add(initOptimizationBracket());
+        }
+        OptimizationBracket optimalBracket = initOptimizationBracket();
+
         // Optimize i times
         for(int i = 0; i < 3; i++) {
-            optimizationBracket = getOptimalBracket(account, optimizationBracket);
+            optimalBracket = getOptimalBracket(account, optimizationBrackets);
         }
     }
 
-    private OptimizationBracket getOptimalBracket(UserAccounts account, OptimizationBracket optimizationBracket) {
-        // Loop though percentages of TAX_FREE, TAX_DEFERRED, TAXABLE
-        double lowerBoundInnerLoop = optimizationBracket.getTaxDeferredPercentage_lowerBound();
-        double upperBoundInnerLoop = optimizationBracket.getTaxDeferredPercentage_upperBound();
-        double lowerBoundOuterLoop = optimizationBracket.getTaxablePercentage_lowerBound();
-        double upperBoundOuterLoop = optimizationBracket.getTaxDeferredPercentage_upperBound();
+    private OptimizationBracket getOptimalBracket(UserAccounts account, ArrayList<OptimizationBracket> optimizationBrackets) {
+        // Calculate percentages of accounts
+        int numberOfAccounts = account.accounts.size();
+        ArrayList<Double> years = new ArrayList<Double>();
+        List<List<Double>> combinationsMatrix = generateCombinationsMatrix(numberOfAccounts, 5);
 
-        double optimalLowerBoundInnerLoop = 0;
-        double optimalUpperBoundInnerLoop = 0;
-        double optimalLowerBoundOuterLoop = 0;
-        double optimalUpperBoundOuterLoop = 0;
-        double optimalYears = 0;
+        // Loop through combinations and adjust based on optimizationBrackets bounds
+        for(List<Double> combination : combinationsMatrix) {
+            ArrayList<Double> postTaxAmounts = new ArrayList<>();
 
-        double innerLoopInterval = (upperBoundInnerLoop-lowerBoundInnerLoop)/5;
-        double outerLoopInterval = (upperBoundOuterLoop-lowerBoundOuterLoop)/5;
+            // Calculate the adjusted percentages for each account + bracket
+            for(int accountNumber = 0; accountNumber < combination.size(); accountNumber++) {
+                double lowerBound = optimizationBrackets.get(accountNumber).lowerBound;
+                double upperBound = optimizationBrackets.get(accountNumber).upperBound;
+                double interval = (upperBound-lowerBound)/numberOfAccounts;
+                double adjustedPercentage = lowerBound + (combination.get(accountNumber)*interval);
+                combination.set(accountNumber, adjustedPercentage);
 
-        OptimizationBracket optimalBracket = new OptimizationBracket();
+                // Used calculated percentages to calculate how much to withdraw from each account
+                postTaxAmounts.add(account.postTaxAmountNeededPerYear * adjustedPercentage);
+                double year = calculateYearsUntilAccountsAreEmpty(account, postTaxAmounts);
 
-        for(double i = lowerBoundOuterLoop; i <= upperBoundOuterLoop; i += outerLoopInterval) {
-            for(double j = lowerBoundInnerLoop; j <= upperBoundInnerLoop; j += innerLoopInterval) {
-                // Calculate years until accounts are empty
-                double taxableAmountPreTax = account.getTAXABLE() * i;
-                double taxDeferredAmountPreTax = account.getTAX_DEFERRED() * j;
-                WithdrawalAmounts withdrawalAmounts = TaxCalculationService.calculateWithdrawalAmounts(taxableAmountPreTax, taxDeferredAmountPreTax);
-                double years = calculateYearsUntilAccountsAreEmpty(account, withdrawalAmounts.taxable, withdrawalAmounts.taxDeferred);
-
-                // Store percentages and years
-                if(years > optimalYears) {
-                    optimalLowerBoundOuterLoop = (i==lowerBoundOuterLoop) ? lowerBoundOuterLoop : lowerBoundOuterLoop-outerLoopInterval;
-                    optimalUpperBoundOuterLoop = (i==upperBoundOuterLoop) ? upperBoundOuterLoop : upperBoundOuterLoop+outerLoopInterval;
-                    optimalLowerBoundInnerLoop = (j==lowerBoundInnerLoop) ? lowerBoundInnerLoop : lowerBoundInnerLoop-innerLoopInterval;
-                    optimalUpperBoundInnerLoop = (j==upperBoundInnerLoop) ? upperBoundInnerLoop : upperBoundInnerLoop+innerLoopInterval;
-                    optimalYears = years;
-                }
+                // Save years
+                years.add(year);
             }
         }
-        optimalBracket.setTaxDeferredPercentage_lowerBound(optimalLowerBoundInnerLoop);
-        optimalBracket.setTaxDeferredPercentage_upperBound(optimalUpperBoundInnerLoop);
-        optimalBracket.setTaxablePercentage_lowerBound(optimalLowerBoundOuterLoop);
-        optimalBracket.setTaxablePercentage_upperBound(optimalUpperBoundOuterLoop);
-        return optimalBracket;
+        return optimizationBrackets.get(getMaxValueIndex(years));
     }
+
+    private int getMaxValueIndex(ArrayList<Double> arrayList){
+        int maxIndex = 0;
+        double maxValue = arrayList.get(0);
+
+        for (int i = 1; i < arrayList.size(); i++) {
+            if (arrayList.get(i) > maxValue) {
+                maxValue = arrayList.get(i);
+                maxIndex = i;
+            }
+        }
+        return maxIndex;
+    }
+
 
     // Calculate years until accounts are empty, given:
     // 1. Starting amounts
     // 2. Annual withdrawal amount
-    public double calculateYearsUntilAccountsAreEmpty(UserAccounts account, double taxableAmount, double taxDeferredAmount) {
+    public double calculateYearsUntilAccountsAreEmpty(UserAccounts accounts, ArrayList<Double> postTaxAmounts) {
         double years = 0;
-        // If all accounts are empty, return 0
-        if(account.getTAX_FREE() == 0 && account.getTAX_DEFERRED() == 0 && account.getTAXABLE() == 0) {
-            return years;
+        ArrayList<Double> taxableAmounts = new ArrayList<>();
+
+        // Calculate taxable amounts for each account
+        for(int i = 0; i < accounts.accounts.size(); i++){
+            Account account = accounts.accounts.get(i);
+            Double taxableAmount = 0.0;
+            Double accountTotal = account.principalAmount + account.capitalGainsAmount;
+            Double amountFromPrincipal = postTaxAmounts.get(i) * (account.principalAmount/accountTotal);
+            Double amountFromCapitalGains = postTaxAmounts.get(i) * (account.capitalGainsAmount/accountTotal);
+
+            if(account.isAmountTaxable){
+                taxableAmount += amountFromPrincipal;
+            }
+            if(account.isCapitalGainsTaxable){
+                taxableAmount += amountFromCapitalGains * account.capitalGainsTaxablePercentage;
+            }
+            taxableAmounts.add(postTaxAmounts.get(i)/(1-accounts.interestRate));
         }
-        // If one account is empty, return years until other accounts are empty
-        else if(account.getTAX_FREE() == 0) {
-            years = calculateYearsUntilAccountsAreEmpty(account, taxableAmount, taxDeferredAmount);
-            return years;
+
+        // Sum up taxable amounts and calculate pre-tax amounts per account
+        // TaxCalculationService.calculateWithdrawalAmounts(taxableAmounts.get(0), taxableAmounts.get(1));
+
+        if(accounts.accounts.size() == 1){
+            //return FT of single account
         }
-        // Calculate years until TAX_FREE Account is empty
-        // Calculate years until TAX_DEFERRED Account is empty
-        // Calculate years until TAXABLE Account is empty
-        // Take minimum of the three
-        // Run taxMinimization on the remaining two accounts
-        // Calculate future value on last account
+        else {
+            // Calculate FT of each account
+            // Remove the account that drains first
+            // Calculate FV of remaining account (create new account object))
+            // Create new interval object using FV
+            // Calculate optimal bracket for remaining accounts
+        }
+
         return years;
+    }
+
+
+    private List<List<Double>> generateCombinationsMatrix(int size, double intervals) {
+        List<List<Double>> matrix = new ArrayList<>();
+
+        generateMatrix(matrix, new ArrayList<>(), size, 1.0, intervals);
+
+        return matrix;
+    }
+
+    private static void generateMatrix(List<List<Double>> matrix, List<Double> currentRow, int n, double remaining, double intervals) {
+        double increment = 1/intervals;
+        if (n == 1) {
+            currentRow.add(remaining);
+            matrix.add(new ArrayList<>(currentRow));
+            currentRow.remove(currentRow.size() - 1);
+        } else {
+            for (int i = 0; i <= (int) (remaining / increment); i++) {
+                currentRow.add(i * increment);
+                generateMatrix(matrix, currentRow, n - 1, remaining - (i * increment), increment);
+                currentRow.remove(currentRow.size() - 1);
+            }
+        }
     }
 
     public OptimizationBracket initOptimizationBracket() {
         OptimizationBracket optimizationBracket = new OptimizationBracket();
-        optimizationBracket.setTaxDeferredPercentage_lowerBound(0);
-        optimizationBracket.setTaxablePercentage_lowerBound(0);
-        optimizationBracket.setTaxDeferredPercentage_upperBound(1);
-        optimizationBracket.setTaxablePercentage_upperBound(1);
+        optimizationBracket.lowerBound = 0;
+        optimizationBracket.upperBound = 1;
         return optimizationBracket;
     }
 
@@ -122,7 +166,7 @@ class Account{
     boolean isCapitalGainsTaxable = false;
     double principalAmount = 0;
     double capitalGainsAmount = 0;
-    double capitalGainsTaxPercentage = 0;
+    double capitalGainsTaxablePercentage = 0;
 
     public Account(double principal, double capitalGains) {
         principalAmount = principal;
@@ -193,5 +237,8 @@ class TaxDeferredAccount extends Account {
     double taxablePercentage_lowerBound;
     double taxDeferredPercentage_upperBound;
     double taxablePercentage_upperBound;
+
+    double upperBound;
+    double lowerBound;
 }
 
