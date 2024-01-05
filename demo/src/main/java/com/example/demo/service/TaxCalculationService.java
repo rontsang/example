@@ -5,14 +5,21 @@ import com.example.demo.model.WithdrawalAmounts;
 import com.example.demo.repository.TaxBracketRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class TaxCalculationService {
     private static List<TaxBracket> taxBrackets;
 
-    @Autowired
     private static TaxBracketRepository taxBracketRepository;
+
+    @Autowired
+    public TaxCalculationService(TaxBracketRepository taxBracketRepository) {
+        this.taxBracketRepository = taxBracketRepository;
+    }
+
     @PostConstruct
     private void loadTaxBrackets() {
         taxBrackets = taxBracketRepository.findAll();

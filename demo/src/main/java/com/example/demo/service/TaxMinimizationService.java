@@ -1,11 +1,13 @@
 package com.example.demo.service;
 
 import com.example.demo.FinanceUtility;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
 public class TaxMinimizationService {
 
     public static void main(double TAX_FREE, double TAX_DEFERRED, double TAXABLE) {
