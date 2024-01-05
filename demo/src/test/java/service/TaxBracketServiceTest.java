@@ -26,12 +26,7 @@ import java.util.Arrays;
 @ContextConfiguration(classes=TaxBracketService.class)
 public class TaxBracketServiceTest {
     @Autowired
-    private ApplicationContext context;
-    @Autowired
     private TaxBracketService taxBracketService;
-
-    //autowire not working
-    //https://stackoverflow.com/questions/55774891/autowired-not-working-in-spring-boot-test
 
     @Test
     public void testReadTaxBrackets() {

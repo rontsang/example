@@ -1,7 +1,7 @@
 package service;
 
 import com.example.demo.service.TaxBracketService;
-import com.example.demo.service.TaxCalculationService;
+import com.example.demo.service.TaxMinimizationService;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -20,14 +20,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ComponentScan(basePackages = {"com.example.demo"})
 @RunWith(SpringJUnit4ClassRunner.class)
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes=TaxCalculationService.class)
-public class TaxCalculationServiceTest {
-    @Autowired
-    private TaxCalculationService taxCalculationService;
+@ContextConfiguration(classes= TaxMinimizationService.class)
+public class TaxMinimizationServiceTest {
 
     @Test
-    public void testCalculatePreTax() {
-        double afterTaxAmount = taxCalculationService.calculatePreTaxAmount(50000);
-        System.out.println(afterTaxAmount);
+    public void testReadTaxBrackets() {
+        while(true){
+            try{
+                TaxMinimizationService.main(500000,500000,500000);
+            } catch(Exception e){
+                System.out.println(e);
+            }
+        }
     }
 }

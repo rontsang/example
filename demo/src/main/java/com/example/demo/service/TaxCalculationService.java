@@ -9,28 +9,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 public class TaxCalculationService {
-    private List<TaxBracket> taxBrackets;
+    private static List<TaxBracket> taxBrackets;
 
     @Autowired
-    private TaxBracketRepository taxBracketRepository;
+    private static TaxBracketRepository taxBracketRepository;
     @PostConstruct
     private void loadTaxBrackets() {
         taxBrackets = taxBracketRepository.findAll();
     }
 
-    public static WithdrawalAmounts calculateWithdrawalAmounts(double taxDeferredPostTax, double taxablePostTax) {
-        // Sum up how much is needed pre-tax
-        double preTaxTotal = calculatePreTaxAmount(taxDeferredPostTax + taxablePostTax);
-
-        // Divide the amounts taken from each account proportionally
-        double taxDeferredPreTax = preTaxTotal * (taxDeferredPostTax/preTaxTotal);
-        double taxablePreTax = preTaxTotal * (taxablePostTax/preTaxTotal);
-
-        return new WithdrawalAmounts(taxDeferredPreTax, taxablePreTax);
-    }
+//    public static double calculateWithdrawalAmounts(double postTaxTotal) {
+//        // Sum up how much is needed pre-tax
+//        double preTaxTotal = calculatePreTaxAmount(postTaxTotal);
+//
+//        // Divide the amounts taken from each account proportionally
+//        double taxDeferredPreTax = preTaxTotal * (taxDeferredPostTax/preTaxTotal);
+//        double taxablePreTax = preTaxTotal * (taxablePostTax/preTaxTotal);
+//
+//        return new preTaxTotal;
+//    }
 
     // Computes how much pre-tax money to withdraw from account to satisfy afterTaxAmount
-    public double calculatePreTaxAmount(double afterTaxAmount) {
+    public static double calculatePreTaxAmount(double afterTaxAmount) {
         int currentTaxBracket = 0;
         double preTaxAmount = 0;
         double afterTaxAmountStillNeeded = afterTaxAmount;
