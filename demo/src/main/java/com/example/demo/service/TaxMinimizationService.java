@@ -31,15 +31,36 @@ public class TaxMinimizationService {
     }
 
     private static ArrayList<OptimizationBracket> getOptimalBracket(UserAccounts account, ArrayList<OptimizationBracket> optimizationBrackets) {
-        // Calculate percentages of accounts
+        // Step 1. Calculate percentages of accounts
         int numberOfAccounts = account.accounts.size();
         ArrayList<Double> years = new ArrayList<Double>();
+
+        // Step 1 part A
         List<List<Float>> combinationsMatrix = generatePermutations(numberOfAccounts, 5);
 
+        int count = 0;
         // Loop through combinations and adjust based on optimizationBrackets bounds
         for(List<Float> combination : combinationsMatrix) {
+            count++;
             ArrayList<Double> postTaxAmounts = new ArrayList<>(combination.size());
 
+            System.out.println("=============================================");
+
+            if(combination.size() == 3) {
+                System.out.println("Calculating Major Combination: " + count + " of " + combinationsMatrix.size());
+            }
+            else if(combination.size() == 2) {
+                System.out.println("Calculating Minor Combination " + count + " of " + combinationsMatrix.size());
+            }
+
+            // Print name of accounts being calculated
+            for(int accountNumber = 0; accountNumber < combination.size(); accountNumber++) {
+                System.out.println("Account 1 = " + account.accounts.get(accountNumber).accountName);
+            }
+
+            System.out.println(combination);
+
+            // Step 1 part B
             // Calculate the adjusted percentages for each account + bracket
             for(int accountNumber = 0; accountNumber < combination.size(); accountNumber++) {
                 double lowerBound = optimizationBrackets.get(accountNumber).lowerBound;
@@ -51,11 +72,15 @@ public class TaxMinimizationService {
                 // Used calculated percentages to calculate how much to withdraw from each account
                 postTaxAmounts.add(account.postTaxAmountNeededPerYear * adjustedPercentage);
             }
+            System.out.println("Post Tax Amounts for each account: " + postTaxAmounts);
+
             double year = calculateYearsUntilAccountsAreEmpty(account, postTaxAmounts);
 
             // Save years
             years.add(year);
         }
+        System.out.println("=============================================");
+
         return optimizationBrackets; //TODO keep track of optimal brackets to return
     }
 
@@ -83,7 +108,8 @@ public class TaxMinimizationService {
         UserAccounts userAccount = new UserAccounts();
         double afterTaxTotalTaxable = 0;
 
-        // Calculate taxable amounts for each account
+        // Step 2. Calculate taxable amounts for each account
+        // Step 2 part A
         for(int i = 0; i < user.accounts.size(); i++){
             Account account = user.accounts.get(i);
             Double taxableAmount = 0.0;
@@ -91,7 +117,7 @@ public class TaxMinimizationService {
             Double amountFromPrincipal = postTaxAmounts.get(i) * (account.principalAmount/accountTotal);
             Double amountFromCapitalGains = postTaxAmounts.get(i) * (account.capitalGainsAmount/accountTotal);
 
-            if(account.isAmountTaxable){
+            if(account.isAmountTaxable == true){
                 taxableAmount += amountFromPrincipal;
             }
             if(account.isCapitalGainsTaxable){
@@ -101,29 +127,47 @@ public class TaxMinimizationService {
             afterTaxTotalTaxable += taxableAmount;
         }
 
+        // Step 2 Part B
         // Sum up taxable amounts and calculate pre-tax withdrawal amounts per account
         double preTaxTotal = TaxCalculationService.calculatePreTaxAmount(afterTaxTotalTaxable);
 
+        // Step 2 Part C
         // Calculate withdrawal amounts. Withdrawal amounts = (1) + (2)
         // 1. postTaxAmount
         // 2. Distribute the taxes proportionally to all accounts
         ArrayList<Double> withdrawalAmounts = new ArrayList();
         for(int i = 0; i < user.accounts.size(); i++){
-            Double withdrawalAmount = postTaxAmounts.get(i) + (taxableAmounts.get(i)/afterTaxTotalTaxable) * preTaxTotal;
+            Double withdrawalAmount = postTaxAmounts.get(i);
+            // If there are taxes to add
+            if(afterTaxTotalTaxable > 0){
+                withdrawalAmount += (taxableAmounts.get(i)/afterTaxTotalTaxable) * preTaxTotal;
+            }
             withdrawalAmounts.add(withdrawalAmount);
         }
+        System.out.println("Pre Tax Amounts for each account: " + withdrawalAmounts);
 
+        // Step 3
         if(user.accounts.size() == 1){
             //return FT of single account
-            years = getYearsUntilDepletion(user.accounts.get(0), withdrawalAmounts, user.interestRate);
+            years = getYearsUntilDepletion(user.accounts.get(0), withdrawalAmounts.get(0), user.interestRate);
         }
         else {
             // Calculate time to depletion of each account
 
-            double[] yearsToDepletion = calculateYearsUntilFirstAccountDepletes(user, postTaxAmounts);
+            double[] yearsToDepletion = calculateYearsUntilFirstAccountDepletes(user, withdrawalAmounts);
+
+            if(yearsToDepletion[0] == Double.MAX_VALUE){
+                return Double.MAX_VALUE; // You have infinite money glitch
+            }
 
             double yearsToFirstAccountDepletion = yearsToDepletion[0];
-            double indexOfFirstAccountDepletion = yearsToDepletion[1];
+            int indexOfFirstAccountDepletion = (int) yearsToDepletion[1];
+
+            years += yearsToFirstAccountDepletion;
+
+
+            System.out.println("Years until depletion: " + years);
+            System.out.println("Depleted account: " + user.accounts.get(indexOfFirstAccountDepletion).accountName);
 
             // Calculate FV of remaining account (create new account object)
             // Create new interval object using FV
@@ -133,35 +177,39 @@ public class TaxMinimizationService {
             newAccountRecursion.interestRate = user.interestRate;
 
             ArrayList<OptimizationBracket> recursiveOptimization = new ArrayList<OptimizationBracket>();
-            getOptimalBracket(newAccountRecursion, recursiveOptimization);
 
             for (int i = 0; i < user.accounts.size(); i++) {
-                if(i != indexOfFirstAccountDepletion){
-                    // Calculate FT of each account
-                    double futureValue = FinanceUtility.calcFinalValue(user.accounts.get(i).principalAmount, user.interestRate, yearsToFirstAccountDepletion, postTaxAmounts.get(i));
-                    // Remove the account that drains first
-                    recursiveOptimization.add(initOptimizationBracket());
-                    //set flags
-                    newAccountRecursion.accounts.get(i).principalAmount = futureValue;
-                    newAccountRecursion.accounts.get(i).capitalGainsAmount = 0;
-                    newAccountRecursion.accounts.get(i).isAmountTaxable = user.accounts.get(i).isAmountTaxable;
-                    newAccountRecursion.accounts.get(i).isCapitalGainsTaxable = user.accounts.get(i).isCapitalGainsTaxable;
+                if(i != indexOfFirstAccountDepletion && user.accounts.get(i).getTotalValue() > 0){
+                    // Calculate FV of each account
 
-                    newAccountRecursion.accounts.add(new Account(futureValue, 0)); // TODO need to include captial gains amount
+                    Account startingAccount = user.accounts.get(i);
+                    double futureValue = FinanceUtility.calcFinalValue(startingAccount.principalAmount, user.interestRate, yearsToFirstAccountDepletion, withdrawalAmounts.get(i));
+
+                    recursiveOptimization.add(initOptimizationBracket());
+
+                    //set flags
+                    Account endingAccount = new Account(startingAccount.principalAmount, futureValue-startingAccount.principalAmount, startingAccount.accountName);
+                    endingAccount.isAmountTaxable = startingAccount.isAmountTaxable;
+                    endingAccount.isCapitalGainsTaxable = startingAccount.isCapitalGainsTaxable;
+
+                    newAccountRecursion.accounts.add(endingAccount);
                 }
             }
 
+            getOptimalBracket(newAccountRecursion, recursiveOptimization);
         }
-
         return years;
     }
 
-    private static double[] calculateYearsUntilFirstAccountDepletes(UserAccounts user, ArrayList<Double> postTaxAmounts) {
-        double[] yearsToDepletion = new double[2];
+    private static double[] calculateYearsUntilFirstAccountDepletes(UserAccounts user, ArrayList<Double> annualWithdrawalAmounts) {
+        // Array to store
+        // [0] = years until depletion
+        // [1] = index of account that depletes first
+        double[] yearsToDepletion = {Double.MAX_VALUE, 0};
 
         for (int i = 0; i < user.accounts.size(); i++) {
-            double yearsTemp = getYearsUntilDepletion(user.accounts.get(0), postTaxAmounts, user.interestRate);
-            if(yearsTemp > yearsToDepletion[0]){
+            double yearsTemp = getYearsUntilDepletion(user.accounts.get(0), annualWithdrawalAmounts.get(i), user.interestRate);
+            if(yearsTemp < yearsToDepletion[0]){
                 yearsToDepletion[0] = yearsTemp; //yearsToFirstAccountDepletion
                 yearsToDepletion[1] = i; //indexOfFirstAccountDepletion
             }
@@ -169,10 +217,9 @@ public class TaxMinimizationService {
         return yearsToDepletion;
     }
 
-    private static double getYearsUntilDepletion(Account account, ArrayList<Double> postTaxAmounts, Double interestRate) {
+    private static double getYearsUntilDepletion(Account account, Double annualWithdrawal, Double interestRate) {
         double years;
         double accountTotal = account.principalAmount + account.capitalGainsAmount;
-        double annualWithdrawal = postTaxAmounts.get(0);
         years = FinanceUtility.calcYearsUntilDepletion(accountTotal, annualWithdrawal, interestRate);
         return years;
     }
@@ -219,10 +266,10 @@ public class TaxMinimizationService {
         UserAccounts account = new UserAccounts();
 
         account.accounts.add(new TaxFreeAccount(TAX_FREE,0));
-        account.accounts.add(new TaxableAccount(TAX_DEFERRED,0));
-        account.accounts.add(new TaxDeferredAccount(TAXABLE,0));
+        account.accounts.add(new TaxDeferredAccount(TAX_DEFERRED,0));
+        account.accounts.add(new TaxableAccount(TAXABLE,200000));
 
-        account.postTaxAmountNeededPerYear = 50000;
+        account.postTaxAmountNeededPerYear = 100000;
         account.interestRate = 0.05;
         return account;
     }
@@ -244,35 +291,42 @@ class Account{
     double capitalGainsAmount = 0;
     double capitalGainsTaxablePercentage = 0;
 
-    public Account(double principal, double capitalGains) {
+    String accountName;
+
+    public Account(double principal, double capitalGains, String name) {
         principalAmount = principal;
         capitalGainsAmount = capitalGains;
+        accountName = name;
+    }
+
+    public double getTotalValue(){
+        return principalAmount + capitalGainsAmount;
     }
 }
 
 class TaxableAccount extends Account{
-    boolean isAmountTaxable = false;
-    boolean isCapitalGainsTaxable = true;
-    double capitalGainsTaxPercentage = 0.50;
 
     public TaxableAccount(double principal, double capitalGains) {
-        super(principal, capitalGains);
+        super(principal, capitalGains, "MARG");
+        isAmountTaxable = false;
+        isCapitalGainsTaxable = true;
+        capitalGainsTaxablePercentage = 0.50;
     }
 }
 
 class TaxFreeAccount extends Account{
     public TaxFreeAccount(double principal, double capitalGains) {
-        super(principal, capitalGains);
+        super(principal, capitalGains, "TFSA");
     }
 }
 
 class TaxDeferredAccount extends Account {
-    boolean isCapitalGainsTaxable = true;
-    boolean isAmountTaxable = true;
-    double capitalGainsTaxPercentage = 1;
 
     public TaxDeferredAccount(double principal, double capitalGains) {
-        super(principal, capitalGains);
+        super(principal, capitalGains, "RRSP");
+        isAmountTaxable = true;
+        isCapitalGainsTaxable = true;
+        capitalGainsTaxablePercentage = 1.00;
     }
 }
 // Data structure to hold optimization bracket

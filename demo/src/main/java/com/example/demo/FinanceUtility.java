@@ -5,15 +5,18 @@ public class FinanceUtility {
 
     public static double calcYearsUntilDepletion(double balance, double annualWithdrawal, double annualReturnRate) {
         double years = 0;
-        double newBalance = balance;
         while (balance > 0) {
-            newBalance = balance * (1 + annualReturnRate) - annualWithdrawal;
-            if(balance > 0){
-                years++;
-            } else{
-                years += balance/annualWithdrawal;
+            double yearEndBalance = balance * (1 + annualReturnRate) - annualWithdrawal;
+            if (yearEndBalance > balance) {
+                years = Double.MAX_VALUE;
+                break;
             }
-            balance = newBalance;
+            if (yearEndBalance > 0) {
+                years++;
+            } else {
+                years += balance / annualWithdrawal;
+            }
+            balance = yearEndBalance;
         }
         return years;
     }
