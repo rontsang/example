@@ -5,9 +5,10 @@ public class FinanceUtility {
 
     public static double calcYearsUntilDepletion(double balance, double annualWithdrawal, double annualReturnRate) {
         double years = 0;
+        double MAX_YEARS = 50;
         while (balance > 0) {
             double yearEndBalance = balance * (1 + annualReturnRate) - annualWithdrawal;
-            if (yearEndBalance > balance) {
+            if (yearEndBalance >= balance || years > MAX_YEARS) {
                 years = Double.MAX_VALUE;
                 break;
             }
