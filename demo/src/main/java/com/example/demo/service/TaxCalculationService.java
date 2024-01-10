@@ -42,8 +42,6 @@ public class TaxCalculationService {
         double preTaxAmount = 0;
         double afterTaxAmountStillNeeded = afterTaxAmount;
 
-        taxBrackets = taxBracketRepository.findAll();
-
         // Cycle through all tax indexes
         while(currentTaxBracket < taxBrackets.size() && afterTaxAmountStillNeeded > 0) {
             // Get current tax bracket

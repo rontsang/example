@@ -23,7 +23,7 @@ public class FinanceUtility {
     }
 
     public static double calcFinalValue(double balance, double annualReturnRate, double years, double annualWithdrawal) {
-        for (int i = 0; i < years; i++) {
+        for (int i = 1; i < years; i++) {
             balance = balance * (1 + annualReturnRate) - annualWithdrawal;
         }
         //Add final year's return

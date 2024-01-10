@@ -27,7 +27,7 @@ public class TaxMinimizationServiceTest {
     public void testReadTaxBrackets() {
         while(true){
             try{
-                TaxMinimizationService.main(500000,500000,500000);
+                TaxMinimizationService.main(500000,500000,200000);
             } catch(Exception e){
                 System.out.println(e);
             }

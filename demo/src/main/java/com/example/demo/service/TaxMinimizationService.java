@@ -7,13 +7,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// TODO recalculate taxes ever withdrawal based on capital gain differences
+// TODO compute combined taxes for Country and Province
+// TODO Volatility factors
+//      TODO add inflation
+//      TODO Return rate
+
 @Service
 public class TaxMinimizationService {
-    static int majorCombination = 1;
+    static int majorCombination = 0;
     static int minorCombination = 1;
 
+    static int intervalSize = 4;
+    static int tuningIterations = 4;
+
     public static void main(double TAX_FREE, double TAX_DEFERRED, double TAXABLE) {
-        UserAccounts account = initAccount(TAX_FREE, TAX_DEFERRED, TAXABLE);
+        UserAccounts account = initAccount(TAX_FREE, TAX_DEFERRED, TAXABLE, 175000, 0.05);
         taxMinimization(account);
     }
 
@@ -22,68 +31,71 @@ public class TaxMinimizationService {
                 .map(acc -> initOptimizationBracket())
                 .collect(Collectors.toList()));
 
-        ArrayList<OptimizationBracket> optimalBrackets = new ArrayList<OptimizationBracket>(account.accounts.size());
+        ResultsSummary resultsSummary = getOptimalBracketLooper(account, optimizationBrackets);
 
-        Level level = new Level(null);
-
-        // Optimize i times
-        for(int i = 0; i < 3; i++) {
-            level = getOptimalBracket(account, optimizationBrackets);
-        }
-
-        System.out.println(level);
+        System.out.println(resultsSummary);
     }
 
-    private static Level getOptimalBracket(UserAccounts account, ArrayList<OptimizationBracket> optimizationBrackets) {
-        Level level = new Level(null);
-        Results resultMajor = new Results(null, null, null,  null); // Create new results object for this optimization bracket
-        resultMajor.userAccounts = account;
+    private static ResultsSummary getOptimalBracketLooper(UserAccounts account, ArrayList<OptimizationBracket> optimizationBrackets) {
+        ArrayList<Double> optimalPoint = new ArrayList<Double>(account.accounts.size());
+
+        ResultsSummary resultsSummary = new ResultsSummary();
+
+        for(int i = 1; i <= tuningIterations; i++) {
+            System.out.println("Optimization Level: " + i);// graph the square/cube/hypercube and find optimal region
+
+            // Optimize for optimization bounds
+            resultsSummary = getOptimalBracket(account, optimizationBrackets);
+            resultsSummary.userAccounts = account;
+            resultsSummary.accounts = account.accounts.stream().map(acc -> acc.accountName).collect(Collectors.toList());
+
+            // Find optimal bracket with the highest years to depletion
+            int optimalBracketIndex = getMaxValueIndex(resultsSummary.resultsList.stream().map(res -> res.yearsToDepletion).collect(Collectors.toCollection(ArrayList::new)));
+            optimalPoint = resultsSummary.resultsList.get(optimalBracketIndex).calculationPoint;
+
+            // Shrink optimization bounds around optimal bracket to fine tune
+            for (int j = 0; j < account.accounts.size(); j++) {
+                if (account.accounts.size() == 3){
+                    "".getClass();
+                    System.out.println("test");
+                }
+                Double point = optimalPoint.get(j);
+                System.out.println("Optimal Point " + j + " is: " + point);
+                Double intervalShift = 1/(intervalSize*Math.pow(2, j+1));
+                optimizationBrackets.get(j).upperBound = point == 1 ? 1:point + intervalShift;
+                optimizationBrackets.get(j).lowerBound = point == 0 ? 0:point - intervalShift;
+            }
+        }
+        return resultsSummary;
+    }
+
+    private static ResultsSummary getOptimalBracket(UserAccounts account, ArrayList<OptimizationBracket> optimizationBrackets) {
+        ResultsSummary resultsSummary = new ResultsSummary();
 
         // Step 1. Calculate percentages of accounts
         int numberOfAccounts = account.accounts.size();
-        ArrayList<Double> years = new ArrayList<Double>();
+        List<Double> years = new ArrayList<>();
 
         // Step 1 part A
-        List<List<Float>> combinationsMatrix = generatePermutations(numberOfAccounts, 4);
+        List<List<Float>> calculationPermutations = generatePermutations(numberOfAccounts, 4);
 
         // Loop through combinations and adjust based on optimizationBrackets bounds
-        for(List<Float> combination : combinationsMatrix) {
-            Results result = new Results(null, null, null,  null);; // Create new results object for this optimization bracket
-            ArrayList<Double> postTaxAmounts = new ArrayList<>(combination.size());
+        for(List<Float> calculation : calculationPermutations) {
+            Results result = new Results(); // Create new results object for this optimization bracket
 
-            System.out.println("=============================================");
+            ArrayList<Double> postTaxAmounts = new ArrayList<>(calculation.size());
 
-            if(combination.size() == 3) {
-                System.out.println("Calculating Major Combination: " + majorCombination + " of " + combinationsMatrix.size());
-                majorCombination++;
-            }
-            else if(combination.size() == 2) {
-                System.out.println("Major combination: " + majorCombination + " of 15");
-                System.out.println("Calculating Minor Combination " + minorCombination + " of " + combinationsMatrix.size());
-                minorCombination++;
-                if (minorCombination == 6) {
-                    minorCombination = 1;
-                }
-            }
-            if(majorCombination == 6){
-                "".getClass();
-            }
-
-            // Print name of accounts being calculated
-            for(int accountNumber = 0; accountNumber < combination.size(); accountNumber++) {
-                System.out.println("Account 1 = " + account.accounts.get(accountNumber).accountName);
-            }
-
-            System.out.println(combination);
+            systemlog1(account, calculationPermutations, calculation);
 
             // Step 1 part B
             // Calculate the adjusted percentages for each account + bracket
-            for(int accountNumber = 0; accountNumber < combination.size(); accountNumber++) {
+            for(int accountNumber = 0; accountNumber < calculation.size(); accountNumber++) {
                 double lowerBound = optimizationBrackets.get(accountNumber).lowerBound;
                 double upperBound = optimizationBrackets.get(accountNumber).upperBound;
                 double range = upperBound-lowerBound;
-                double adjustedPercentage = lowerBound + (combination.get(accountNumber)*range);
-                combination.set(accountNumber, (float) adjustedPercentage);
+                double adjustedPercentage = lowerBound + (calculation.get(accountNumber)*range);
+                calculation.set(accountNumber, (float) adjustedPercentage);
+                result.calculationPoint.add(adjustedPercentage);
 
                 // Used calculated percentages to calculate how much to withdraw from each account
                 postTaxAmounts.add(account.postTaxAmountNeededPerYear * adjustedPercentage);
@@ -92,20 +104,67 @@ public class TaxMinimizationService {
 
             double year = calculateYearsUntilAccountsAreEmpty(account, postTaxAmounts, result);
 
-            // Save years
-            years.add(year);
 
-//            result = new Results(combination, null, postTaxAmounts, null);
-            result.yearsToFirstAccountDepletion = year;
-            result.yearsToDepletion = year + result.level.yearsToDepletion;
-            resultMajor.resultsList.add(result);
-            level.resultsList.add(result);
+            saveResults(resultsSummary, result, postTaxAmounts, year);
         }
         System.out.println("=============================================");
-        // set level years to depletion to the maximum of level.resultsList.yearsToDepletion
-        level.yearsToDepletion = level.resultsList.stream().mapToDouble(v -> v.yearsToDepletion).max().getAsDouble();
 
-        return level;
+        findMaximumYearsToDepletionFromResults(resultsSummary);
+
+        return resultsSummary;
+    }
+
+    private static void findMaximumYearsToDepletionFromResults(ResultsSummary resultsSummary) {
+        resultsSummary.yearsToDepletion = resultsSummary.resultsList.stream().mapToDouble(v -> v.yearsToDepletion).max().getAsDouble();
+        int optimalBracketIndex = getTheMaxValueIndex(resultsSummary.resultsList.stream().map(res -> res.yearsToDepletion).collect(Collectors.toCollection(ArrayList::new)));
+        resultsSummary.resultsList.get(optimalBracketIndex).calculationPoint = resultsSummary.resultsList.get(optimalBracketIndex).calculationPoint;
+    }
+
+    private static int getTheMaxValueIndex(ArrayList<Double> arrayList){
+        int maxIndex = 0;
+        double maxValue = arrayList.get(0);
+
+        for (int i = 1; i < arrayList.size(); i++) {
+            if (arrayList.get(i) > maxValue) {
+                maxValue = arrayList.get(i);
+                maxIndex = i;
+            }
+        }
+        return maxIndex;
+    }
+
+    private static void saveResults(ResultsSummary resultsSummary, Results result, ArrayList<Double> postTaxAmounts, double year) {
+        result.postTaxAmounts = postTaxAmounts;
+        result.yearsToFirstAccountDepletion = year;
+        result.yearsToDepletion = year + result.resultsSummary.yearsToDepletion;
+        resultsSummary.resultsList.add(result);
+    }
+
+    private static void systemlog1(UserAccounts account, List<List<Float>> combinationsMatrix, List<Float> combination) {
+        System.out.println("=============================================");
+
+        if(combination.size() == 3) {
+            majorCombination++;
+            System.out.println("Calculating Major Combination: " + majorCombination + " of " + combinationsMatrix.size());
+        }
+        else if(combination.size() == 2) {
+            System.out.println("Major combination: " + majorCombination + " of 15");
+            System.out.println("Calculating Minor Combination " + minorCombination + " of " + combinationsMatrix.size());
+            minorCombination++;
+            if (minorCombination == 6) {
+                minorCombination = 1;
+            }
+        }
+        if(majorCombination == 6){
+            "".getClass();
+        }
+
+        // Print name of accounts being calculated
+        for(int accountNumber = 0; accountNumber < combination.size(); accountNumber++) {
+            System.out.println("Account 1 = " + account.accounts.get(accountNumber).accountName);
+        }
+
+        System.out.println(combination);
     }
 
     private static int getMaxValueIndex(ArrayList<Double> arrayList){
@@ -180,7 +239,8 @@ public class TaxMinimizationService {
         if(user.accounts.size() == 1){
             //return FT of single account
             years = getYearsUntilDepletion(user.accounts.get(0), withdrawalAmounts.get(0), user.interestRate);
-            result.level.yearsToDepletion = 0;
+            System.out.println("Years until depletion: " + years);
+            result.resultsSummary.yearsToDepletion = 0; // no need to calculate next level
         }
         else {
             // Calculate time to depletion of each account
@@ -252,7 +312,11 @@ public class TaxMinimizationService {
             System.out.println("End Principal for each remaining account: " + newAccountRecursion.accounts.stream().map(acc -> acc.principalAmount).collect(Collectors.toList()));
             System.out.println("End Capital Gains for each remaining account: " + newAccountRecursion.accounts.stream().map(acc -> acc.capitalGainsAmount).collect(Collectors.toList()));
 
-            result.level = getOptimalBracket(newAccountRecursion, recursiveOptimization); // Add a new level that calculates the optimal bracket for the remaining accounts
+            if(newAccountRecursion.accounts.size() >= 2){
+                result.resultsSummary = getOptimalBracketLooper(newAccountRecursion, recursiveOptimization); // Add a new level that calculates the optimal bracket for the remaining accounts
+            } else {
+                result.resultsSummary = getOptimalBracket(newAccountRecursion, recursiveOptimization);
+            }
         }
         return years;
     }
@@ -288,9 +352,6 @@ public class TaxMinimizationService {
     }
 
     private static void generate(ArrayList<Float> current, int size, float remaining, int intervals, ArrayList<List<Float>> permutations) {
-        if(permutations.size() == 16){
-            "".getClass();
-        }
         if (size == 1) {
             current.add(Math.round(remaining* 100.0f) / 100.0f);
             permutations.add(new ArrayList<>(current));
@@ -323,15 +384,15 @@ public class TaxMinimizationService {
     }
 
     // Intialize account
-    public static UserAccounts initAccount(double TAX_FREE, double TAX_DEFERRED, double TAXABLE) {
+    public static UserAccounts initAccount(double TAX_FREE, double TAX_DEFERRED, double TAXABLE, double postTaxAmountNeededPerYear, double interestRate) {
         UserAccounts account = new UserAccounts();
 
         account.accounts.add(new TaxFreeAccount(TAX_FREE,0));
         account.accounts.add(new TaxDeferredAccount(TAX_DEFERRED,0));
-        account.accounts.add(new TaxableAccount(TAXABLE,200000));
+        account.accounts.add(new TaxableAccount(TAXABLE,500000));
 
-        account.postTaxAmountNeededPerYear = 175000;
-        account.interestRate = 0.05;
+        account.postTaxAmountNeededPerYear = postTaxAmountNeededPerYear;
+        account.interestRate = interestRate;
         return account;
     }
 
