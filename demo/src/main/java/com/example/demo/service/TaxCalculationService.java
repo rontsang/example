@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.model.TaxBracket;
-import com.example.demo.model.WithdrawalAmounts;
 import com.example.demo.repository.TaxBracketRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;

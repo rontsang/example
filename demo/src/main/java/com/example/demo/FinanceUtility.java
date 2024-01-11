@@ -22,13 +22,22 @@ public class FinanceUtility {
         return years;
     }
 
+
+    // Calculates the final value of an account given:
+    // @param balance - The starting amount in the account
+    // @param annualReturnRate - The annual return rate of the account
+    // @param years - The number of years to calculate the final value for
+    // @param annualWithdrawal - The annual withdrawal from the account
     public static double calcFinalValue(double balance, double annualReturnRate, double years, double annualWithdrawal) {
+        // Loop to simulate each year's withdrawal and return
         for (int i = 1; i < years; i++) {
             balance = balance * (1 + annualReturnRate) - annualWithdrawal;
         }
-        //Add final year's return
-        double decimalPortion = years - (int)years;
-        balance = balance * (1 + annualReturnRate*decimalPortion) - annualWithdrawal*decimalPortion;
+
+        // Calculate the final year's return
+        // E.g. if years = 1.5, then the final "year" is only 0.5, calculate only 50% of the annual return and withdrawal
+        double finalYearPercentage = years - (int)years;
+        balance = balance * (1 + annualReturnRate*finalYearPercentage) - annualWithdrawal*finalYearPercentage;
 
         return balance;
     }
