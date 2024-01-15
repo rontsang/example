@@ -12,8 +12,14 @@ public class Results {
     List<Double> preTaxAmounts;
     List<Double> postTaxAmounts;
 
+    List<Integer> debugChain;
+
+    int debugScenario = 0;
+
     // Outputs
     ResultsSummary resultsSummary = new ResultsSummary();
     double yearsToDepletion = 0;
     double yearsToFirstAccountDepletion = Double.MAX_VALUE;
+
+    int indexOfFirstAccountDepletion;
 }

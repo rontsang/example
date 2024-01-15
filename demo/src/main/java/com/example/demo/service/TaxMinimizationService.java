@@ -5,11 +5,13 @@ import com.example.demo.model.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.example.demo.service.ScenarioUtility.generatePermutations;
 
+// TODO Optimize infinite money case
 // TODO recalculate taxes ever withdrawal based on capital gain differences
 // TODO compute combined taxes for Country and Province
 // TODO Volatility factors
@@ -20,7 +22,7 @@ import static com.example.demo.service.ScenarioUtility.generatePermutations;
 public class TaxMinimizationService {
     static int majorCombination = 0;
     static int minorCombination = 1;
-
+    static int debugScenario = 0;
     static int intervalSize = 4;
     static int iterationsPerScenario = 4;
 
@@ -32,21 +34,25 @@ public class TaxMinimizationService {
     public static void taxMinimization(User account){
         ArrayList<OptimizationWindow> optimizationWindows = account.accounts.stream()
                 .map(acc -> OptimizationWindow.init()).collect(Collectors.toCollection(ArrayList::new));
-        ResultsSummary resultsSummary = getOptimalBracketLooper(account, optimizationWindows);
-
+        List<Integer> debugChain = new ArrayList<>();
+        ResultsSummary resultsSummary = getOptimalBracketLooper(account, optimizationWindows, 0, debugChain);
+        resultsSummary.displayResults();
         System.out.println(resultsSummary);
     }
 
-    private static ResultsSummary getOptimalBracketLooper(User account, ArrayList<OptimizationWindow> optimizationWindows) {
+    private static ResultsSummary getOptimalBracketLooper(User account, ArrayList<OptimizationWindow> optimizationWindows, Integer level, List<Integer> debugChain) {
         ArrayList<Double> optimalPoint;
 
         ResultsSummary resultsSummary = new ResultsSummary();
+        resultsSummary.level = level;
+        resultsSummary.debugChain = debugChain;
+        resultsSummary.debugChain.add(debugScenario);
 
         for(int i = 1; i <= iterationsPerScenario; i++) {
             System.out.println("Optimization Level: " + i);
 
             // Optimize: find window with the highest years to depletion
-            resultsSummary = getOptimalBracket(account, optimizationWindows);
+            resultsSummary = getOptimalBracket(account, optimizationWindows, resultsSummary.level++, debugChain);
 
             // Setup next iteration: Take results and shrink optimization window around optimal window for next loop
             // I.e. Fine tune the results to get a more accurate optimal window
@@ -61,13 +67,14 @@ public class TaxMinimizationService {
                 optimizationWindows.get(j).lowerBound = point == 0 ? 0:point - intervalShift;
             }
         }
-        resultsSummary.user = account;
-        resultsSummary.accounts = account.accounts.stream().map(acc -> acc.accountName).collect(Collectors.toList());
         return resultsSummary;
     }
 
-    private static ResultsSummary getOptimalBracket(User account, ArrayList<OptimizationWindow> optimizationWindows) {
+    private static ResultsSummary getOptimalBracket(User account, ArrayList<OptimizationWindow> optimizationWindows, Integer level, List<Integer> debugChain) {
         ResultsSummary resultsSummary = new ResultsSummary();
+        resultsSummary.level = level;
+        resultsSummary.debugChain = debugChain;
+        resultsSummary.debugChain.add(debugScenario);
 
         // Step 1. Calculate percentages of accounts
         int numberOfAccounts = account.accounts.size();
@@ -77,29 +84,48 @@ public class TaxMinimizationService {
 
         // Loop through combinations and adjust based on optimizationBrackets bounds
         for(List<Float> calculation : calculationPermutations) {
+            if(debugScenario == 1962){
+                "".getClass();
+            }
+            System.out.println("Scenario: " + debugScenario++);
+
             Results result = new Results(); // Create new results object for this optimization bracket
+            result.debugScenario = debugScenario;
 
             ArrayList<Double> postTaxAmounts = new ArrayList<>(calculation.size());
 
             syslog1(account, calculationPermutations, calculation);
 
+            List<Float> adjustedCalculation = new ArrayList<>(Collections.nCopies(calculation.size(), (float) 0.0));
             // Step 1 part B
             // Calculate the adjusted percentages for each account + bracket
             for(int accountNumber = 0; accountNumber < calculation.size(); accountNumber++) {
                 double lowerBound = optimizationWindows.get(accountNumber).lowerBound;
                 double upperBound = optimizationWindows.get(accountNumber).upperBound;
                 double range = upperBound-lowerBound;
-                double adjustedPercentage = lowerBound + (calculation.get(accountNumber)*range);
+                double adjustedPercentage = 0;
+
+
+                if(accountNumber == calculation.size()-1) {
+                    adjustedPercentage = 1 - adjustedCalculation.stream().mapToDouble(Float::doubleValue).sum();
+                    adjustedCalculation.set(accountNumber, (float) adjustedPercentage);
+                } else {
+                    adjustedPercentage = lowerBound + (calculation.get(accountNumber)*range);
+                    adjustedCalculation.set(accountNumber, (float) adjustedPercentage);
+                }
+
                 calculation.set(accountNumber, (float) adjustedPercentage);
                 result.calculationPoint.add(adjustedPercentage);
-
                 // Used calculated percentages to calculate how much to withdraw from each account
                 postTaxAmounts.add(account.postTaxAmountNeededPerYear * adjustedPercentage);
             }
+            System.out.println(result.calculationPoint);
             System.out.println("Post Tax Amounts for each account: " + postTaxAmounts);
 
             double year = calculateYearsUntilAccountsAreEmpty(account, postTaxAmounts, result);
 
+            resultsSummary.user = account;
+            resultsSummary.accounts = account.accounts.stream().map(acc -> acc.accountName).collect(Collectors.toList());
             resultsSummary.saveResults(result, postTaxAmounts, year);
         }
         System.out.println("=============================================");
@@ -127,10 +153,9 @@ public class TaxMinimizationService {
 
         // Print name of accounts being calculated
         for(int accountNumber = 0; accountNumber < combination.size(); accountNumber++) {
-            System.out.println("Account 1 = " + account.accounts.get(accountNumber).accountName);
+            System.out.println("Account " + accountNumber + " = " + account.accounts.get(accountNumber).accountName);
         }
-
-        System.out.println(combination);
+//        System.out.println(combination);
     }
 
     // Calculate years until accounts are empty, given:
@@ -204,6 +229,7 @@ public class TaxMinimizationService {
 
             years += yearsToFirstAccountDepletion;
             result.yearsToDepletion = years;
+            result.indexOfFirstAccountDepletion = indexOfFirstAccountDepletion;
 
             System.out.println("Years until depletion: " + years);
             System.out.println("Depleted account: " + user.accounts.get(indexOfFirstAccountDepletion).accountName);
@@ -225,6 +251,9 @@ public class TaxMinimizationService {
                     double startingAmount = startingAccount.principalAmount + startingAccount.capitalGainsAmount;
                     double ratioPrincipal = startingAccount.principalAmount/startingAmount;
                     double ratioCapitalGains = startingAccount.capitalGainsAmount/startingAmount;
+
+                    // TODO calculate capital grains during the period to account for ratio
+                    // Otherwise we can get negative numbers in principal
                     double futureValue = FinanceUtility.calcFinalValue(startingAmount, user.interestRate, yearsToFirstAccountDepletion, withdrawalAmounts.get(i));
 
                     double totalTakenFromPrincipal = withdrawalAmounts.get(i)*ratioPrincipal*yearsToFirstAccountDepletion;
@@ -238,6 +267,12 @@ public class TaxMinimizationService {
                     } else {
                         // Account has shrunk
                         futureValueCapitalGains = startingAccount.capitalGainsAmount - withdrawalAmounts.get(i)*ratioCapitalGains*yearsToFirstAccountDepletion;
+                        if(futureValuePrincipal < 0){
+                            // Account has been depleted
+                            // Take money from capital gains
+                            futureValueCapitalGains -= futureValuePrincipal;
+                            futureValuePrincipal = 0;
+                        }
                     }
 
 
@@ -258,9 +293,9 @@ public class TaxMinimizationService {
             System.out.println("End Capital Gains for each remaining account: " + newAccountRecursion.accounts.stream().map(acc -> acc.capitalGainsAmount).toList());
 
             if(newAccountRecursion.accounts.size() >= 2){
-                result.resultsSummary = getOptimalBracketLooper(newAccountRecursion, recursiveOptimization); // Add a new level that calculates the optimal bracket for the remaining accounts
+                result.resultsSummary = getOptimalBracketLooper(newAccountRecursion, recursiveOptimization, result.resultsSummary.level++, result.resultsSummary.debugChain); // Add a new level that calculates the optimal bracket for the remaining accounts
             } else {
-                result.resultsSummary = getOptimalBracket(newAccountRecursion, recursiveOptimization);
+                result.resultsSummary = getOptimalBracket(newAccountRecursion, recursiveOptimization, result.resultsSummary.level++, result.resultsSummary.debugChain);
             }
         }
         return years;

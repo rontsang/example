@@ -10,12 +10,17 @@ public class ResultsSummary {
     // INPUTS
     public User user;
     List<String> accounts;
+    Integer level = 0;
+
+    List<Integer> debugChain = new ArrayList<>();
 
     // OUTPUTS
     ArrayList<Results> resultsList;
     double yearsToDepletion = Double.MAX_VALUE;
     List<Double> optimalWindow;
     int optimalIndex;
+
+    int debugScenario = 0;
 
     public ResultsSummary() {
         this.resultsList = new ArrayList<>();
@@ -25,6 +30,7 @@ public class ResultsSummary {
         int optimalBracketIndex = getMaxValueIndex();
         this.optimalWindow = this.resultsList.get(optimalBracketIndex).calculationPoint;
         this.optimalIndex = optimalBracketIndex;
+        this.debugScenario = this.resultsList.get(optimalBracketIndex).debugScenario;
     }
     int getMaxValueIndex(){
         List<Double> list = this.resultsList.stream().map(res -> res.yearsToDepletion).collect(Collectors.toCollection(ArrayList::new));
@@ -45,5 +51,46 @@ public class ResultsSummary {
         result.yearsToFirstAccountDepletion = year;
         result.yearsToDepletion = year + result.resultsSummary.yearsToDepletion;
         this.resultsList.add(result);
+    }
+
+    void displayResults() {
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println("====================================");
+        System.out.println("Results Summary");
+        System.out.println("Years to Depletion: " + this.yearsToDepletion);
+
+        ResultsSummary printResults = this;
+
+        Integer index;
+        Integer depletedAccountIndex = 0;
+        int count = 1;
+        try {
+            do {
+                index = printResults.optimalIndex;
+
+                System.out.println("Starting Amounts in Loop: " + count++);
+                System.out.println(printResults.accounts);
+                // print account totals at the start
+                for (int i = 0; i < printResults.accounts.size(); i++) {
+                    System.out.print("Account: " + printResults.accounts.get(i));
+                    System.out.print(" has " + (int) printResults.user.accounts.get(i).getTotalValue());
+                    System.out.println(" Withdraw " + (Math.round(printResults.resultsList.get(index).preTaxAmounts.get(i))));
+                }
+
+                depletedAccountIndex = printResults.resultsList.get(index).indexOfFirstAccountDepletion;
+                System.out.print("Until account: " + accounts.get(depletedAccountIndex));
+                System.out.println(" is depleted in " + printResults.resultsList.get(depletedAccountIndex).yearsToFirstAccountDepletion + " years");
+                System.out.println("====================================");
+
+                if (printResults.resultsList.get(index).resultsSummary != null) {
+                    printResults = printResults.resultsList.get(index).resultsSummary;
+                }
+            } while (printResults.accounts != null);
+        }
+        catch (Exception e) {
+            System.out.println("Error: " + e);
+        }
     }
 }
