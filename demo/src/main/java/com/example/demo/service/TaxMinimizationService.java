@@ -23,10 +23,11 @@ public class TaxMinimizationService {
     static int intervalSize = 2;
     static int iterationsPerScenario = 2;
 
-    public static void main(AccountState user) {
+    public static void main(AccountState startingState) {
         ScenarioNode root = new ScenarioNode.Builder()
-                .setStartingAccountState(user)
-                .setAccounts(user.getAccountsList()) //TODO delete
+                .setStartingAccountState(startingState)
+                .setEndingAccountState(startingState)
+                .setAccounts(startingState.getAccountsList()) //TODO delete
                 .setLevel(1)
                 .setScenario(new Scenario())
                 .build();
@@ -130,7 +131,7 @@ public class TaxMinimizationService {
             System.out.println("Scenario: " + debugScenario++);
 
             ScenarioNode child = new ScenarioNode.Builder()
-                    .setStartingAccountState(parent.startingAccountState)
+                    .setStartingAccountState(parent.endingAccountState)
                     .setAccounts(parent.accounts)
                     .setLevel(parent.level + 1)
                     .setDebugScenario(debugScenario)
@@ -257,24 +258,24 @@ public class TaxMinimizationService {
         return afterTaxTotalTaxable;
     }
 
-    private static void calculateYearsUntilFirstAccountDepletes(ScenarioNode parent) {
+    private static void calculateYearsUntilFirstAccountDepletes(ScenarioNode node) {
         // Calculate time to depletion of each account
-        if (parent.startingAccountState.accounts.size() == 1) {
+        if (node.startingAccountState.accounts.size() == 1) {
             //return time to depletion of single/last-remaining account
             "".getClass();
-            parent.result.yearsToDepletion = ScenarioUtility.getYearsUntilDepletion(parent.startingAccountState.accounts.get(0), parent.result.preTaxAmounts.get(0), parent.startingAccountState.interestRate);
-            System.out.println("Years until depletion for last remaining account: " + parent.result.yearsToDepletion);
+            node.result.yearsToDepletion = ScenarioUtility.getYearsUntilDepletion(node.startingAccountState.accounts.get(0), node.result.preTaxAmounts.get(0), node.startingAccountState.interestRate);
+            System.out.println("Years until depletion for last remaining account: " + node.result.yearsToDepletion);
         } else {
             // Calculate time to depletion of each account and find first account that depletes
-            ScenarioUtility.calculateYearsUntilFirstAccountDepletes(parent);
+            ScenarioUtility.calculateYearsUntilFirstAccountDepletes(node);
 
-            if (parent.result.yearsToDepletion == Double.MAX_VALUE) {
+            if (node.result.yearsToDepletion == Double.MAX_VALUE) {
                 //TODO code infinite money case
-                parent.result.yearsToDepletion = Double.MAX_VALUE; // You have infinite money glitch
+                node.result.yearsToDepletion = Double.MAX_VALUE; // You have infinite money glitch
             }
 
-            System.out.println("Years until depletion: " + parent.result.yearsToFirstAccountDepletion);
-            System.out.println("Depleted account: " + parent.startingAccountState.accounts.get(parent.result.indexOfFirstAccountDepletion).accountName);
+            System.out.println("Years until depletion: " + node.result.yearsToFirstAccountDepletion);
+            System.out.println("Depleted account: " + node.startingAccountState.accounts.get(node.result.indexOfFirstAccountDepletion).accountName);
         }
     }
 

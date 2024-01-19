@@ -208,6 +208,7 @@ public class ScenarioNode {
         public ScenarioNode build() {
             ScenarioNode scenarioNode = new ScenarioNode();
             scenarioNode.startingAccountState = this.startingAccountState;
+            scenarioNode.endingAccountState = this.endingAccountState;
             scenarioNode.accounts = this.accounts;
             scenarioNode.level = this.level;
             scenarioNode.result = this.scenario;
