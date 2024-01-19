@@ -11,8 +11,8 @@ public class DemoApplication {
 
     public static void main(String[] args) {
         System.setProperty("javax.net.ssl.trustStore", "path/to/your/certificate.crt");
-        TaxCalculationService.calculatePreTaxAmount(50000);
-        TaxMinimizationService.main(50000,50000,50000);
+//        TaxCalculationService.calculatePreTaxAmount(50000);
+//        TaxMinimizationService.main();
         SpringApplication.run(DemoApplication.class, args);
     }
 

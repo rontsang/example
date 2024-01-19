@@ -8,20 +8,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScenarioUtility {
-    static double[] calculateYearsUntilFirstAccountDepletes(User user, ArrayList<Double> annualWithdrawalAmounts) {
-        // Array to store
-        // [0] = years until depletion
-        // [1] = index of account that depletes first
-        double[] yearsToDepletion = {Double.MAX_VALUE, 0};
+    static void calculateYearsUntilFirstAccountDepletes(ScenarioNode parent) {
+        double minYearsToDepletion = Double.MAX_VALUE;
 
-        for (int i = 0; i < user.accounts.size(); i++) {
-            double yearsTemp = getYearsUntilDepletion(user.accounts.get(i), annualWithdrawalAmounts.get(i), user.interestRate);
-            if(yearsTemp < yearsToDepletion[0]){
-                yearsToDepletion[0] = yearsTemp; //yearsToFirstAccountDepletion
-                yearsToDepletion[1] = i; //indexOfFirstAccountDepletion
+        for (int i = 0; i < parent.user.accounts.size(); i++) {
+
+            double yearsUntilAccountDepletes = getYearsUntilDepletion(parent.user.accounts.get(i), parent.result.preTaxAmounts.get(i), parent.user.interestRate);
+
+            if(yearsUntilAccountDepletes < minYearsToDepletion){
+                minYearsToDepletion = yearsUntilAccountDepletes;
+                parent.result.yearsToFirstAccountDepletion = yearsUntilAccountDepletes;
+                parent.result.indexOfFirstAccountDepletion = i;
             }
         }
-        return yearsToDepletion;
     }
     static double getYearsUntilDepletion(Account account, Double annualWithdrawal, Double interestRate) {
         double years;

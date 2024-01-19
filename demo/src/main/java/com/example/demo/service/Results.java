@@ -9,15 +9,17 @@ public class Results {
     ArrayList<Double> calculationPoint = new ArrayList<>();
 
     // Intermediate Calculations
-    List<Double> preTaxAmounts;
-    List<Double> postTaxAmounts;
+    List<Double> preTaxAmounts = new ArrayList<>();
+    List<Double> postTaxAmounts = new ArrayList<>();
+
+    List<Double> taxableAmounts = new ArrayList<>();
 
     List<Integer> debugChain;
 
     int debugScenario = 0;
 
     // Outputs
-    ResultsSummary resultsSummary = new ResultsSummary();
+//    ScenarioNode resultsSummary = new ScenarioNode();
     double yearsToDepletion = 0;
     double yearsToFirstAccountDepletion = Double.MAX_VALUE;
 
