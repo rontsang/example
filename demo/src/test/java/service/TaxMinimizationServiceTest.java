@@ -1,8 +1,7 @@
 package service;
 
 import com.example.demo.model.TaxDeferredAccount;
-import com.example.demo.model.TaxableAccount;
-import com.example.demo.model.User;
+import com.example.demo.model.AccountState;
 import com.example.demo.model.TaxFreeAccount;
 import com.example.demo.service.TaxMinimizationService;
 import org.junit.Test;
@@ -28,7 +27,7 @@ public class TaxMinimizationServiceTest {
     public void testReadTaxBrackets() {
         while(true){
             try{
-                User user = new User.Builder()
+                AccountState user = new AccountState.Builder()
                         .withPostTaxAmountNeededPerYear(175000)
                         .withInterestRate(0.05)
                         .addAccount(new TaxFreeAccount(500000, 0))

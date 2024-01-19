@@ -2,7 +2,6 @@ package com.example.demo.service;
 
 import com.example.demo.FinanceUtility;
 import com.example.demo.model.Account;
-import com.example.demo.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,9 +10,9 @@ public class ScenarioUtility {
     static void calculateYearsUntilFirstAccountDepletes(ScenarioNode parent) {
         double minYearsToDepletion = Double.MAX_VALUE;
 
-        for (int i = 0; i < parent.user.accounts.size(); i++) {
+        for (int i = 0; i < parent.startingAccountState.accounts.size(); i++) {
 
-            double yearsUntilAccountDepletes = getYearsUntilDepletion(parent.user.accounts.get(i), parent.result.preTaxAmounts.get(i), parent.user.interestRate);
+            double yearsUntilAccountDepletes = getYearsUntilDepletion(parent.startingAccountState.accounts.get(i), parent.result.preTaxAmounts.get(i), parent.startingAccountState.interestRate);
 
             if(yearsUntilAccountDepletes < minYearsToDepletion){
                 minYearsToDepletion = yearsUntilAccountDepletes;

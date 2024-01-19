@@ -3,7 +3,7 @@ package com.example.demo.service;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Results {
+public class Scenario {
 
     // Inputs
     ArrayList<Double> calculationPoint = new ArrayList<>();

@@ -1,19 +1,17 @@
 package com.example.demo.model;
 
-import com.example.demo.service.ScenarioNode;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 // Data structure to hold account amounts and capital gains
-public class User {
+public class AccountState {
     public double postTaxAmountNeededPerYear;
     public double interestRate;
     public ArrayList<Account> accounts = new ArrayList<>();
 
-    public User(){}
-    public User(double TAX_FREE, double TAX_DEFERRED, double TAXABLE, double postTaxAmountNeededPerYear, double interestRate) {
+    public AccountState(){}
+    public AccountState(double TAX_FREE, double TAX_DEFERRED, double TAXABLE, double postTaxAmountNeededPerYear, double interestRate) {
         this.accounts.add(new TaxFreeAccount(TAX_FREE,0));
         this.accounts.add(new TaxDeferredAccount(TAX_DEFERRED,0));
         this.accounts.add(new TaxableAccount(TAXABLE,500000));
@@ -62,8 +60,8 @@ public class User {
             return this;
         }
 
-        public User build() {
-            User user = new User();
+        public AccountState build() {
+            AccountState user = new AccountState();
             user.postTaxAmountNeededPerYear = this.postTaxAmountNeededPerYear;
             user.interestRate = this.interestRate;
             user.accounts.addAll(this.accounts);

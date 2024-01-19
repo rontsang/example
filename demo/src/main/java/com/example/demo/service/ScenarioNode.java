@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
-import ch.qos.logback.core.BasicStatusManager;
-import com.example.demo.model.User;
+import com.example.demo.model.AccountState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +20,12 @@ public class ScenarioNode {
     List<List<ScenarioNode>> children = new ArrayList<>();
 
     // INPUTS
-    User user;
+    AccountState startingAccountState;
+    AccountState endingAccountState = new AccountState();
     List<String> accounts;
     Integer level = 0;
 
-    Results result = new Results(); // calculate current node, top parent node has no calculation
+    Scenario result = new Scenario(); // calculate current node, top parent node has no calculation
     // use to generate children
 
     public void addChild(ScenarioNode child) {
@@ -38,7 +38,7 @@ public class ScenarioNode {
     }
 
     public ScenarioNode getChild(int index) {
-        return this.children.get(index).get(0);
+        return this.children.isEmpty() ? null: this.children.get(index).get(0);
     }
 
     public ScenarioNode getOptimizedChild(int index) {
@@ -115,7 +115,7 @@ public class ScenarioNode {
                 // print account totals at the start
                 for (int i = 0; i < printResults.accounts.size(); i++) {
                     System.out.print("Account: " + printResults.accounts.get(i));
-                    System.out.print(" has " + (int) printResults.user.accounts.get(i).getTotalValue());
+                    System.out.print(" has " + (int) printResults.startingAccountState.accounts.get(i).getTotalValue());
                     System.out.println(" Withdraw " + (Math.round(printResults.result.preTaxAmounts.get(i))));
                 }
 
@@ -167,15 +167,21 @@ public class ScenarioNode {
      */
 
     public static class Builder {
-        private User user;
+        private AccountState startingAccountState;
+        private AccountState endingAccountState;
         private List<String> accounts;
         private Integer level;
-        private Results result;
+        private Scenario scenario;
         private List<List<ScenarioNode>> children = new ArrayList<>();
         private int debugScenario;
 
-        public Builder setUser(User user) {
-            this.user = user;
+        public Builder setStartingAccountState(AccountState state) {
+            this.startingAccountState = state;
+            return this;
+        }
+
+        public Builder setEndingAccountState(AccountState state) {
+            this.endingAccountState = state;
             return this;
         }
 
@@ -189,8 +195,8 @@ public class ScenarioNode {
             return this;
         }
 
-        public Builder setResult(Results result) {
-            this.result = result;
+        public Builder setScenario(Scenario scenario) {
+            this.scenario = scenario;
             return this;
         }
 
@@ -201,10 +207,10 @@ public class ScenarioNode {
 
         public ScenarioNode build() {
             ScenarioNode scenarioNode = new ScenarioNode();
-            scenarioNode.user = this.user;
+            scenarioNode.startingAccountState = this.startingAccountState;
             scenarioNode.accounts = this.accounts;
             scenarioNode.level = this.level;
-            scenarioNode.result = this.result;
+            scenarioNode.result = this.scenario;
             scenarioNode.children = this.children;
             scenarioNode.debugScenario = this.debugScenario;
             return scenarioNode;
@@ -218,7 +224,7 @@ public class ScenarioNode {
 
     public ScenarioNode cloneNodeWithoutChildren(){
         return new ScenarioNode.Builder()
-                .setUser(this.user)
+                .setStartingAccountState(this.startingAccountState)
                 .setAccounts(this.accounts)
                 .setLevel(this.level)
                 .setDebugScenario(this.debugScenario)
