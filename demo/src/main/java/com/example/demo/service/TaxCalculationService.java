@@ -97,7 +97,9 @@ public class TaxCalculationService {
         }
         return afterTaxTotalTaxable;
     }
-    static void calculatePostTaxAmounts(ScenarioNode parent, ArrayList<OptimizationWindow> optimizationWindows, List<Float> scenario) {
+    static void calculatePostTaxAmounts(ScenarioNode parent, List<Float> scenario) {
+        ArrayList<OptimizationWindow> optimizationWindows = parent.getOptimizationWindows();
+
         ArrayList<Double> postTaxAmounts = new ArrayList<>(parent.startingAccountState.accounts.size());
 
         List<Float> adjustedCalculation = new ArrayList<>(Collections.nCopies(parent.startingAccountState.accounts.size(), (float) 0.0));

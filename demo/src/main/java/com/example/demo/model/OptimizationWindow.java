@@ -7,7 +7,7 @@ public class OptimizationWindow {
     public double upperBound;
     public double lowerBound;
 
-    private OptimizationWindow(double lowerBound, double upperBound) {
+    public OptimizationWindow(double lowerBound, double upperBound) {
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
     }

@@ -5,7 +5,6 @@ import com.example.demo.model.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.example.demo.service.ScenarioUtility.generatePermutations;
@@ -19,19 +18,20 @@ import static com.example.demo.service.ScenarioUtility.generatePermutations;
 
 @Service
 public class TaxMinimizationService {
-    static int debugScenario = 0;
+    static int debugScenario;
     static int intervalSize = 2;
     static int iterationsPerScenario = 2;
 
     public static void main(AccountState startingState) {
+        debugScenario = 0;
 //        List<Integer> debugChain = new ArrayList<>(); //TODO delete once tree is implemented, we will need getParent method to get debugChain
         ScenarioNode root = new ScenarioNode.Builder()
-                .setStartingAccountState(startingState)
-                .setEndingAccountState(startingState)
-                .setAccounts(startingState.getAccountsList()) //TODO delete
-                .setLevel(1)
-                .setScenario(new Scenario())
-                .build();
+            .setStartingAccountState(startingState)
+            .setEndingAccountState(startingState)
+            .setAccounts(startingState.getAccountsList()) //TODO delete
+            .setLevel(1)
+            .setScenario(new Scenario())
+            .build();
         generateChildrenAndCalculate(root);
         root.displayResults();
     }
@@ -41,36 +41,46 @@ public class TaxMinimizationService {
         debugStopOnScenario(2);
         generateChildren(parent);
         calculateChildren(parent);
-        if(parent.children.size() > 1 && parent.children.size() <  iterationsPerScenario){
-            // Get optimal child
-            parent.findMaximumYearsToDepletion();
-            setNextOptimizationWindow(parent); // Set optimization window to be around optimal child
 
-            parent.optimalNodes.add(new ScenarioNode());  // Create optimalNodes new parent
-            generateChildrenAndCalculate(parent.getCurrentOptimizationNode());
+        while(parent.children.size() > 1 && parent.optimalNodes.size() <  iterationsPerScenario){
+            setNextOptimalNodeAndShrinkOptimizationWindow(parent);
+            generateChildren(parent.getCurrentOptimizationNode());
+            calculateChildren(parent.getCurrentOptimizationNode());
         }
         parent.findMaximumYearsToDepletionFromResults();
     }
 
 
-    private static void setNextOptimizationWindow(ScenarioNode nodeToOptimize) {
-        ArrayList<Double> optimalPoint;
-        nodeToOptimize.findMaximumYearsToDepletion();
-        optimalPoint = nodeToOptimize.optimalChild.result.calculationPoint;
+    private static void setNextOptimalNodeAndShrinkOptimizationWindow(ScenarioNode nodeToOptimize) {
+        nodeToOptimize.getOptimalChildAndSetYearsToDepletion();
+        setNextOptimalNode(nodeToOptimize);
+        shrinkOptimizationWindow(nodeToOptimize);
+    }
+
+    private static void setNextOptimalNode(ScenarioNode nodeToOptimize) {
+        ScenarioNode nextOptimizationIteration = nodeToOptimize.cloneNodeWithoutChildren();
+        nodeToOptimize.optimalNodes.add(nextOptimizationIteration);
+        nodeToOptimize.getCurrentOptimizationNode().optimizationWindows = new ArrayList<>();
+        nextOptimizationIteration.endingAccountState = nodeToOptimize.startingAccountState;
+    }
+
+    private static void shrinkOptimizationWindow(ScenarioNode nodeToOptimize) {
+        ArrayList<Double> prevOptimalPoint = nodeToOptimize.optimalChild.result.calculationPoint;
         int iteration = nodeToOptimize.optimalNodes.size();
 
         for (int j = 0; j < nodeToOptimize.getNumAccounts(); j++) {
-            Double point = optimalPoint.get(j);
-            System.out.println("Optimal Point " + j + " is: " + point);
+            Double prevAccountOptimalPoint = prevOptimalPoint.get(j);
+            System.out.println("Previous optimal point for account: " + j + " is: " + prevAccountOptimalPoint);
             Double intervalShift = 1 / (intervalSize * Math.pow(2, iteration + 1));
-            nodeToOptimize.result.calculationPoint.get(j) = point == 1 ? 1 : point + intervalShift;
-            nodeToOptimize.optimalChild.result.calculationPoint.get(j) = point == 0 ? 0 : point - intervalShift;
+            Double lowerBound = prevAccountOptimalPoint == 0 ? 0 : prevAccountOptimalPoint - intervalShift;
+            Double upperBound = prevAccountOptimalPoint == 1 ? 1 : prevAccountOptimalPoint + intervalShift;
+            nodeToOptimize.getCurrentOptimizationNode().optimizationWindows.add(new OptimizationWindow(lowerBound, upperBound));
+            System.out.println("New lower bound for account: " + " is: " + lowerBound);
+            System.out.println("New upper bound for account: " + " is: " + upperBound);
         }
     }
 
     private static void generateChildren(ScenarioNode parent) {
-        ArrayList<OptimizationWindow> optimizationWindows = OptimizationWindow.init(parent.endingAccountState.accounts.size());
-
         int numAccounts = parent.endingAccountState.accounts.size();
         if(numAccounts == 0){
             return;
@@ -86,11 +96,13 @@ public class TaxMinimizationService {
             ScenarioNode child = new ScenarioNode.Builder()
                     .setStartingAccountState(parent.endingAccountState)
                     .setEndingAccountState(new AccountState())
+                    .setOptimizationWindows(parent.getOptimizationWindows())
                     .setLevel(parent.level + 1)
                     .setScenario(new Scenario())
+                    .setDebugScenario(debugScenario)
                     .build();
 
-            TaxCalculationService.calculatePostTaxAmounts(child, optimizationWindows, scenario);
+            TaxCalculationService.calculatePostTaxAmounts(child, scenario);
             TaxCalculationService.calculatePreTaxAmounts(child);
 
             parent.addChild(child);
