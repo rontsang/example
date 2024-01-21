@@ -5,25 +5,22 @@ import com.example.demo.model.OptimizationWindow;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ScenarioNode {
-    public ArrayList<ScenarioNode> optimalNodes = new ArrayList<>();
-
     ArrayList<OptimizationWindow> optimizationWindows = new ArrayList<>();
-
-    ScenarioNode optimalChild = null;
-
-    // Tree Structure
-    // List contains the iterations (only the optimal one needs a list of iterations)
-    // Each iteration contains a list of the children of each combination
     List<ScenarioNode> children = new ArrayList<>();
-
-    // INPUTS
+    public ArrayList<ScenarioNode> optimalNodes = new ArrayList<>();
+    ScenarioNode optimalChild = null;
     AccountState startingAccountState;
     AccountState endingAccountState;
     Integer level = 0;
-    Scenario result = new Scenario();
+    Scenario scenario = new Scenario();
+
+    double yearsToDepletion = Double.MAX_VALUE;
+    List<Double> optimalWindow;
+    int optimalIndex;
+    int debugScenario = 0;
+
 
     public void addChild(ScenarioNode child) {
         children.add(child);
@@ -32,36 +29,35 @@ public class ScenarioNode {
     public ScenarioNode getChild(int index) {
         return this.children.isEmpty() ? null: this.children.get(index);
     }
-
-    List<Integer> debugChain = new ArrayList<>();
-
-    // OUTPUTS
-    double yearsToDepletion = Double.MAX_VALUE;
-    List<Double> optimalWindow;
-    int optimalIndex;
-    int debugScenario = 0;
-
+    
     public ScenarioNode() {}
 
-    void getOptimalChildAndSetYearsToDepletion() {
-        if(this.optimalNodes.size() > 0) {
-            getOptimalChildFromOptimalNodeList();
-        }
-        else if(!children.isEmpty()) {
-            getOptimalChildFromChildrenList();
-        }
+    void getOptimalChildAndYearsToDepletion() {
+        setOptimalChild();
+        setYearsToDepletion();
+    }
 
-        if(this.result != null)  {
-            this.yearsToDepletion = this.result.yearsToFirstAccountDepletion;
+    private void setYearsToDepletion() {
+        if(this.scenario != null)  {
+            this.yearsToDepletion = this.scenario.yearsToFirstAccountDepletion;
         }
         if(this.optimalChild != null){
             this.yearsToDepletion += this.optimalChild.yearsToDepletion;
         }
     }
 
+    private void setOptimalChild() {
+        if(this.optimalNodes.size() > 0) {
+            getOptimalChildFromOptimalNodeList();
+        }
+        else if(!children.isEmpty()) {
+            getOptimalChildFromChildrenList();
+        }
+    }
+
     private void getOptimalChildFromOptimalNodeList() {
         ScenarioNode lastOptimizedNode = this.optimalNodes.get(this.optimalNodes.size() - 1);
-        lastOptimizedNode.getOptimalChildAndSetYearsToDepletion();
+        lastOptimizedNode.getOptimalChildAndYearsToDepletion();
         this.optimalChild = lastOptimizedNode.optimalChild;
         this.optimalWindow = lastOptimizedNode.optimalWindow;
         this.optimalIndex = lastOptimizedNode.optimalIndex;
@@ -70,18 +66,13 @@ public class ScenarioNode {
     private void getOptimalChildFromChildrenList() {
         for (int i = 0; i < children.size(); i++) {
             ScenarioNode child = children.get(i);
-            child.getOptimalChildAndSetYearsToDepletion();
+            child.getOptimalChildAndYearsToDepletion();
             if (this.optimalChild == null || child.yearsToDepletion < this.optimalChild.yearsToDepletion) {;
                 this.optimalChild = child;
                 this.optimalWindow = child.optimalWindow;
                 this.optimalIndex = i;
             }
         }
-    }
-
-    String getDebugChainString() {
-        // TODO Implement traversal of debugChain
-        return debugChain.stream().map(Object::toString).collect(Collectors.joining(", "));
     }
 
     ScenarioNode getCurrentOptimizationNode() {
@@ -96,51 +87,6 @@ public class ScenarioNode {
 
     double getNumAccounts(){
         return this.startingAccountState.accounts.size();
-    }
-//        System.out.println();
-//        System.out.println();
-//        System.out.println();
-//        System.out.println("====================================");
-//        System.out.println("Results Summary");
-//        System.out.println("Years to Depletion: " + this.yearsToDepletion);
-//
-//        ScenarioNode printResults = this;
-//
-//        Integer index;
-//        Integer depletedAccountIndex = 0;
-//        int count = 1;
-//        try {
-//            do {
-//                System.out.println("Starting Amounts in Loop: " + count++);
-//                System.out.println(printResults.accounts);
-//                // print account totals at the start
-//                for (int i = 0; i < printResults.accounts.size(); i++) {
-//                    System.out.print("Account: " + printResults.accounts.get(i));
-//                    System.out.print(" has " + (int) printResults.startingAccountState.accounts.get(i).getTotalValue());
-//                    System.out.println(" Withdraw " + (Math.round(printResults.result.preTaxAmounts.get(i))));
-//                }
-//
-//                depletedAccountIndex = printResults.result.indexOfFirstAccountDepletion;
-//                System.out.print("Until account: " + accounts.get(depletedAccountIndex));
-//                System.out.println(" is depleted in " + printResults.result.yearsToFirstAccountDepletion + " years");
-//                System.out.println("====================================");
-//
-////                if (printResults.result.resultsSummary != null) {
-////                    printResults = printResults.result.resultsSummary;
-////                }
-//            } while (printResults.accounts != null);
-//        }
-//        catch (Exception e) {
-//            System.out.println("Error: " + e);
-//        }
-//    }
-
-    public void setDebugScenario(int i) {
-        this.debugScenario = i;
-    }
-
-    public void findMaximumYearsToDepletionFromResults() {
-        System.out.println("=============================================");
     }
 
     public ArrayList<OptimizationWindow> getOptimizationWindows() {
@@ -211,14 +157,12 @@ public class ScenarioNode {
             scenarioNode.endingAccountState = this.endingAccountState;
             scenarioNode.optimizationWindows = this.optimizationWindows;
             scenarioNode.level = this.level;
-            scenarioNode.result = this.scenario;
+            scenarioNode.scenario = this.scenario;
             scenarioNode.children = this.children;
             scenarioNode.debugScenario = this.debugScenario;
             return scenarioNode;
         }
-
     }
-
 
     public ScenarioNode cloneNodeWithoutChildren(){
         return new ScenarioNode.Builder()

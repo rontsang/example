@@ -11,7 +11,6 @@ public class Scenario {
     // Intermediate Calculations
     List<Double> preTaxAmounts = new ArrayList<>();
     List<Double> postTaxAmounts = new ArrayList<>();
-
     List<Double> taxableAmounts = new ArrayList<>();
 
     List<Integer> debugChain;

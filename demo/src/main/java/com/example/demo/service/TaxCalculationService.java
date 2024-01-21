@@ -82,8 +82,8 @@ public class TaxCalculationService {
             Account account = node.startingAccountState.accounts.get(i);
             double taxableAmount = 0.0;
             double accountTotal = account.principalAmount + account.capitalGainsAmount;
-            double amountFromPrincipal = node.result.postTaxAmounts.get(i) * (account.principalAmount / accountTotal);
-            double amountFromCapitalGains = node.result.postTaxAmounts.get(i) * (account.capitalGainsAmount / accountTotal);
+            double amountFromPrincipal = node.scenario.postTaxAmounts.get(i) * (account.principalAmount / accountTotal);
+            double amountFromCapitalGains = node.scenario.postTaxAmounts.get(i) * (account.capitalGainsAmount / accountTotal);
 
             if (account.isAmountTaxable) {
                 taxableAmount += amountFromPrincipal;
@@ -91,7 +91,7 @@ public class TaxCalculationService {
             if (account.isCapitalGainsTaxable) {
                 taxableAmount += amountFromCapitalGains * account.capitalGainsTaxablePercentage;
             }
-            node.result.taxableAmounts.add(taxableAmount);
+            node.scenario.taxableAmounts.add(taxableAmount);
             taxableAmounts.add(taxableAmount); //TODO delete and just add to afterTaxTotalTaxable
             afterTaxTotalTaxable += taxableAmount;
         }
@@ -122,13 +122,13 @@ public class TaxCalculationService {
             }
 
             scenario.set(accountNumber, (float) adjustedPercentage);
-            parent.result.postTaxAmounts.add(parent.startingAccountState.postTaxAmountNeededPerYear * adjustedPercentage);
-            parent.result.calculationPoint.add(adjustedPercentage);
+            parent.scenario.postTaxAmounts.add(parent.startingAccountState.postTaxAmountNeededPerYear * adjustedPercentage);
+            parent.scenario.calculationPoint.add(adjustedPercentage);
 
             // Used calculated percentages to calculate how much to withdraw from each account
-            postTaxAmounts.add(parent.result.postTaxAmounts.get(accountNumber) * adjustedPercentage);
+            postTaxAmounts.add(parent.scenario.postTaxAmounts.get(accountNumber) * adjustedPercentage);
         }
-        System.out.println(parent.result.calculationPoint);
+        System.out.println(parent.scenario.calculationPoint);
         System.out.println("Post Tax Amounts for each account: " + postTaxAmounts);
     }
     static void calculatePreTaxAmounts(ScenarioNode node) {
@@ -150,7 +150,7 @@ public class TaxCalculationService {
         // 2. Distribute the taxes proportionally to all accounts
         ArrayList<Double> withdrawalAmounts = new ArrayList<>();
         for (int i = 0; i < node.startingAccountState.accounts.size(); i++) {
-            Double withdrawalAmount = node.result.postTaxAmounts.get(i);
+            Double withdrawalAmount = node.scenario.postTaxAmounts.get(i);
 
             // If there are taxes to add
             if (afterTaxTotalTaxable > 0) {
@@ -162,7 +162,7 @@ public class TaxCalculationService {
         System.out.println("Starting Principal for each account: " + node.startingAccountState.accounts.stream().map(acc -> acc.principalAmount).toList());
         System.out.println("Starting Capital Gains for each account: " + node.startingAccountState.accounts.stream().map(acc -> acc.capitalGainsAmount).toList());
 
-        node.result.preTaxAmounts = withdrawalAmounts;
+        node.scenario.preTaxAmounts = withdrawalAmounts;
     }
 
 }

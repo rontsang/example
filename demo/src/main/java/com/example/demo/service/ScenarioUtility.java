@@ -12,12 +12,12 @@ public class ScenarioUtility {
 
         for (int i = 0; i < parent.startingAccountState.accounts.size(); i++) {
 
-            double yearsUntilAccountDepletes = getYearsUntilDepletion(parent.startingAccountState.accounts.get(i), parent.result.preTaxAmounts.get(i), parent.startingAccountState.interestRate);
+            double yearsUntilAccountDepletes = getYearsUntilDepletion(parent.startingAccountState.accounts.get(i), parent.scenario.preTaxAmounts.get(i), parent.startingAccountState.interestRate);
 
             if(yearsUntilAccountDepletes < minYearsToDepletion){
                 minYearsToDepletion = yearsUntilAccountDepletes;
-                parent.result.yearsToFirstAccountDepletion = yearsUntilAccountDepletes;
-                parent.result.indexOfFirstAccountDepletion = i;
+                parent.scenario.yearsToFirstAccountDepletion = yearsUntilAccountDepletes;
+                parent.scenario.indexOfFirstAccountDepletion = i;
             }
         }
     }

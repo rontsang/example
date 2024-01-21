@@ -47,12 +47,11 @@ public class TaxMinimizationService {
             generateChildren(parent.getCurrentOptimizationNode());
             calculateChildren(parent.getCurrentOptimizationNode());
         }
-        parent.findMaximumYearsToDepletionFromResults();
     }
 
 
     private static void setNextOptimalNodeAndShrinkOptimizationWindow(ScenarioNode nodeToOptimize) {
-        nodeToOptimize.getOptimalChildAndSetYearsToDepletion();
+        nodeToOptimize.getOptimalChildAndYearsToDepletion();
         setNextOptimalNode(nodeToOptimize);
         shrinkOptimizationWindow(nodeToOptimize);
     }
@@ -65,7 +64,7 @@ public class TaxMinimizationService {
     }
 
     private static void shrinkOptimizationWindow(ScenarioNode nodeToOptimize) {
-        ArrayList<Double> prevOptimalPoint = nodeToOptimize.optimalChild.result.calculationPoint;
+        ArrayList<Double> prevOptimalPoint = nodeToOptimize.optimalChild.scenario.calculationPoint;
         int iteration = nodeToOptimize.optimalNodes.size();
 
         for (int j = 0; j < nodeToOptimize.getNumAccounts(); j++) {
@@ -122,26 +121,26 @@ public class TaxMinimizationService {
         calculateYearsUntilFirstAccountDepletes(parent); // CREATE RESULTS OBJECT TO STORE RESULTS OF CURRENT PARENT NODE
         calculateEndingAccountState(parent); // CALCULATE ENDING STATE OF ACCOUNTS AFTER FIRST ACCOUNT DEPLETES
         generateChildrenAndCalculate(parent); // GENERATE CHILD NODE TO CALCULATE FOR REMAINING ACCOUNTS
-        return parent.result.yearsToDepletion;
+        return parent.scenario.yearsToDepletion;
     }
 
     private static void calculateYearsUntilFirstAccountDepletes(ScenarioNode node) {
         // Calculate time to depletion of each account and find first account that depletes
         ScenarioUtility.calculateYearsUntilFirstAccountDepletes(node);
 
-        if (node.result.yearsToDepletion == Double.MAX_VALUE) {
+        if (node.scenario.yearsToDepletion == Double.MAX_VALUE) {
             //TODO code infinite money case
-            node.result.yearsToDepletion = Double.MAX_VALUE; // You have infinite money glitch
+            node.scenario.yearsToDepletion = Double.MAX_VALUE; // You have infinite money glitch
         }
 
         System.out.println("=============================================");
         System.out.println("Scenario: " + node.debugScenario);
         System.out.println("Accounts: " + node.startingAccountState.accounts.stream().map(acc -> acc.principalAmount).toList());
-        System.out.println("Calculation Point: " + node.result.calculationPoint);
-        System.out.println("Post Tax Amounts for each account: " + node.result.postTaxAmounts);
-        System.out.println("Pre Tax Amounts for each account: " + node.result.preTaxAmounts);
-        System.out.println("Years until first account depletion: " + node.result.yearsToFirstAccountDepletion);
-        System.out.println("Depleted account: " + node.startingAccountState.accounts.get(node.result.indexOfFirstAccountDepletion).accountName);
+        System.out.println("Calculation Point: " + node.scenario.calculationPoint);
+        System.out.println("Post Tax Amounts for each account: " + node.scenario.postTaxAmounts);
+        System.out.println("Pre Tax Amounts for each account: " + node.scenario.preTaxAmounts);
+        System.out.println("Years until first account depletion: " + node.scenario.yearsToFirstAccountDepletion);
+        System.out.println("Depleted account: " + node.startingAccountState.accounts.get(node.scenario.indexOfFirstAccountDepletion).accountName);
     }
 
     // Generate a single child node for the scenario after the first account depletes
@@ -153,7 +152,7 @@ public class TaxMinimizationService {
 
         // For each non-depleted account, calculate the end state of that account after the first account depletes
         for (int i = 0; i < parent.getNumAccounts(); i++) {
-            if (i != parent.result.indexOfFirstAccountDepletion && parent.startingAccountState.accounts.get(i).getTotalValue() > 0) {
+            if (i != parent.scenario.indexOfFirstAccountDepletion && parent.startingAccountState.accounts.get(i).getTotalValue() > 0) {
                 // Calculate FV of account i
                 Account endingAccount = calculateEndingAccount(parent, i);
                 parent.endingAccountState.accounts.add(endingAccount);
@@ -173,8 +172,8 @@ public class TaxMinimizationService {
         // TODO calculate capital gains during the period to account for ratio
         // TODO Otherwise we can get negative numbers in principal
 
-        double preTaxAmount = parent.result.preTaxAmounts.get(i);
-        double years = parent.result.yearsToFirstAccountDepletion;
+        double preTaxAmount = parent.scenario.preTaxAmounts.get(i);
+        double years = parent.scenario.yearsToFirstAccountDepletion;
         double futureValue = FinanceUtility.calcFinalValue(startingAmount, parent.startingAccountState.interestRate, years, preTaxAmount);
 
         double totalTakenFromPrincipal = preTaxAmount * ratioPrincipal * years;
