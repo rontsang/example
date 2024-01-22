@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.demo.service.ScenarioUtility.generatePermutations;
+import static com.example.demo.service.ScenarioUtility.printOptimalStrategy;
 
 // TODO Optimize infinite money case
 // TODO recalculate taxes ever withdrawal based on capital gain differences
@@ -20,7 +21,7 @@ import static com.example.demo.service.ScenarioUtility.generatePermutations;
 public class TaxMinimizationService {
     static int debugScenario;
     static int intervalSize = 2;
-    static int iterationsPerScenario = 2;
+    static int iterationsPerScenario = 4;
 
     public static void main(AccountState startingState) {
         debugScenario = 0;
@@ -33,6 +34,7 @@ public class TaxMinimizationService {
             .setScenario(new Scenario())
             .build();
         generateChildrenAndCalculate(root);
+        printOptimalStrategy(root);
         root.displayResults();
     }
 
@@ -43,14 +45,13 @@ public class TaxMinimizationService {
         calculateChildren(parent);
 
         while(parent.children.size() > 1 && parent.optimalNodes.size() <  iterationsPerScenario){
-            setNextOptimalNodeAndShrinkOptimizationWindow(parent);
+            setupNextOptimizationNode(parent);
             generateChildren(parent.getCurrentOptimizationNode());
             calculateChildren(parent.getCurrentOptimizationNode());
         }
     }
 
-
-    private static void setNextOptimalNodeAndShrinkOptimizationWindow(ScenarioNode nodeToOptimize) {
+    private static void setupNextOptimizationNode(ScenarioNode nodeToOptimize) {
         nodeToOptimize.getOptimalChildAndYearsToDepletion();
         setNextOptimalNode(nodeToOptimize);
         shrinkOptimizationWindow(nodeToOptimize);
@@ -60,19 +61,24 @@ public class TaxMinimizationService {
         ScenarioNode nextOptimizationIteration = nodeToOptimize.cloneNodeWithoutChildren();
         nodeToOptimize.optimalNodes.add(nextOptimizationIteration);
         nodeToOptimize.getCurrentOptimizationNode().optimizationWindows = new ArrayList<>();
-        nextOptimizationIteration.endingAccountState = nodeToOptimize.startingAccountState;
+        nextOptimizationIteration.startingAccountState = nodeToOptimize.startingAccountState;
+        nextOptimizationIteration.endingAccountState = nodeToOptimize.endingAccountState;
     }
 
     private static void shrinkOptimizationWindow(ScenarioNode nodeToOptimize) {
         ArrayList<Double> prevOptimalPoint = nodeToOptimize.optimalChild.scenario.calculationPoint;
         int iteration = nodeToOptimize.optimalNodes.size();
 
-        for (int j = 0; j < nodeToOptimize.getNumAccounts(); j++) {
+        for (int j = 0; j < nodeToOptimize.optimalChild.getNumAccounts(); j++) {
             Double prevAccountOptimalPoint = prevOptimalPoint.get(j);
             System.out.println("Previous optimal point for account: " + j + " is: " + prevAccountOptimalPoint);
-            Double intervalShift = 1 / (intervalSize * Math.pow(2, iteration + 1));
+            Double intervalShift = 1 / (intervalSize * Math.pow(2, iteration));
             Double lowerBound = prevAccountOptimalPoint == 0 ? 0 : prevAccountOptimalPoint - intervalShift;
             Double upperBound = prevAccountOptimalPoint == 1 ? 1 : prevAccountOptimalPoint + intervalShift;
+
+            if(prevAccountOptimalPoint == 0) upperBound += intervalShift; //shift edge case by extra interval
+            if(prevAccountOptimalPoint == 1) lowerBound -= intervalShift; // shift edge case by extra interval
+
             nodeToOptimize.getCurrentOptimizationNode().optimizationWindows.add(new OptimizationWindow(lowerBound, upperBound));
             System.out.println("New lower bound for account: " + " is: " + lowerBound);
             System.out.println("New upper bound for account: " + " is: " + upperBound);

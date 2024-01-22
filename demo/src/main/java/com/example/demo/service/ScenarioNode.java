@@ -67,7 +67,7 @@ public class ScenarioNode {
         for (int i = 0; i < children.size(); i++) {
             ScenarioNode child = children.get(i);
             child.getOptimalChildAndYearsToDepletion();
-            if (this.optimalChild == null || child.yearsToDepletion < this.optimalChild.yearsToDepletion) {;
+            if (this.optimalChild == null || child.yearsToDepletion > this.optimalChild.yearsToDepletion) {;
                 this.optimalChild = child;
                 this.optimalWindow = child.optimalWindow;
                 this.optimalIndex = i;

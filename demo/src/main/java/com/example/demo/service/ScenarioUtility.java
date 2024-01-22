@@ -7,6 +7,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScenarioUtility {
+
+    static void printOptimalStrategy(ScenarioNode root){
+        System.out.println("Optimal Strategy:");
+        ScenarioNode optimalChild = root.optimalChild;
+        System.out.println("Years to Depletion: " + optimalChild.yearsToDepletion);
+        int stage = 1;
+
+        while(optimalChild != null){
+            System.out.println("====================================");
+            System.out.println("STAGE " + stage++ + " STRATEGY");
+            System.out.println("Optimal Window: " + optimalChild.scenario.calculationPoint);
+            System.out.println("Post Tax: " + optimalChild.scenario.postTaxAmounts);
+            System.out.println("Pre Tax: " + optimalChild.scenario.preTaxAmounts);
+            System.out.println("Years to Depletion: " + optimalChild.scenario.yearsToFirstAccountDepletion);
+            optimalChild = optimalChild.optimalChild;
+        }
+        System.out.println("====================================");
+    }
     static void calculateYearsUntilFirstAccountDepletes(ScenarioNode parent) {
         double minYearsToDepletion = Double.MAX_VALUE;
 

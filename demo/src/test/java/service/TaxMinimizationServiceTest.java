@@ -3,6 +3,7 @@ package service;
 import com.example.demo.model.TaxDeferredAccount;
 import com.example.demo.model.AccountState;
 import com.example.demo.model.TaxFreeAccount;
+import com.example.demo.model.TaxableAccount;
 import com.example.demo.service.TaxMinimizationService;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +33,7 @@ public class TaxMinimizationServiceTest {
                         .withInterestRate(0.05)
                         .addAccount(new TaxFreeAccount(500000, 0))
                         .addAccount(new TaxDeferredAccount(500000, 0))
-//                        .addAccount(new TaxableAccount(300000, 500000))
+                        .addAccount(new TaxableAccount(300000, 500000))
                         .build();
                 TaxMinimizationService.main(user);
             } catch(Exception e){
