@@ -25,7 +25,7 @@ public class TaxMinimizationService {
 
     public static void main(AccountState startingState) {
         debugScenario = 0;
-//        List<Integer> debugChain = new ArrayList<>(); //TODO delete once tree is implemented, we will need getParent method to get debugChain
+
         ScenarioNode root = new ScenarioNode.Builder()
             .setStartingAccountState(startingState)
             .setEndingAccountState(startingState)
@@ -34,8 +34,32 @@ public class TaxMinimizationService {
             .setScenario(new Scenario())
             .build();
         generateChildrenAndCalculate(root);
+
         printOptimalStrategy(root);
+        ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
+        burndownStageN(root.optimalChild, burndown);
         root.displayResults();
+    }
+
+    private static void burndownStageN(ScenarioNode currentScenarioNode, ArrayList<BurndownTimeEvent> burndown) {
+
+        ArrayList<BurndownTimeEvent> nextBurnDown = Postprocessor.generateBurndownUntilFirstAccountDepletes(currentScenarioNode.startingAccountState, (ArrayList<Double>) currentScenarioNode.scenario.preTaxAmounts, burndown);
+
+        // Print accounts in burn down
+        for (BurndownTimeEvent event : nextBurnDown) {
+            System.out.println("Year: " + event.year);
+            System.out.println("Accounts Principle: " + event.accountState.accounts.stream().map(acc -> acc.principalAmount).toList());
+            System.out.println("Accounts Capital Gains: " + event.accountState.accounts.stream().map(acc -> acc.capitalGainsAmount).toList());
+        }
+
+        // Append nextBurnDown to previousBurnDown
+        for(BurndownTimeEvent event : nextBurnDown){
+            burndown.add(event);
+        }
+
+        if (currentScenarioNode.optimalChild != null){
+            burndownStageN(currentScenarioNode.optimalChild, burndown);
+        }
     }
 
 

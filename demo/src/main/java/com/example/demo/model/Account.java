@@ -18,4 +18,8 @@ public class Account {
     public double getTotalValue() {
         return principalAmount + capitalGainsAmount;
     }
+
+    public Account clone() {
+        return new Account(this.principalAmount, this.capitalGainsAmount, this.accountName);
+    }
 }

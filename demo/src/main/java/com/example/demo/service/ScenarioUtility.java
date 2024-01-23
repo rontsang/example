@@ -25,6 +25,7 @@ public class ScenarioUtility {
         }
         System.out.println("====================================");
     }
+
     static void calculateYearsUntilFirstAccountDepletes(ScenarioNode parent) {
         double minYearsToDepletion = Double.MAX_VALUE;
 
@@ -39,6 +40,7 @@ public class ScenarioUtility {
             }
         }
     }
+
     static double getYearsUntilDepletion(Account account, Double annualWithdrawal, Double interestRate) {
         double years;
         double accountTotal = account.principalAmount + account.capitalGainsAmount;

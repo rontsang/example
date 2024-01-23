@@ -1,5 +1,7 @@
 package com.example.demo.model;
 
+import com.example.demo.service.ScenarioNode;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,6 +69,18 @@ public class AccountState {
             user.accounts.addAll(this.accounts);
             return user;
         }
+    }
 
+    public AccountState cloneAccountState(){
+        ArrayList<Account> accountsCopy = new ArrayList<>();
+        for (Account account : this.accounts) {
+            // Clone individual accounts, assuming Account has a proper clone method
+            accountsCopy.add(account.clone());
+        }
+
+        return new AccountState.Builder()
+                .addAccounts(accountsCopy)
+                .withInterestRate(this.interestRate)
+                .build();
     }
 }
