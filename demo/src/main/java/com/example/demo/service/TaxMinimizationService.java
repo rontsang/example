@@ -37,7 +37,8 @@ public class TaxMinimizationService {
 
         printOptimalStrategy(root);
         ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
-        burndownStageN(root.optimalChild, burndown);
+        root.getOptimalChildAndYearsToDepletion();
+        burndownStageN(root.optimalChild, burndown);root.getOptimalChildAndYearsToDepletion();
         root.displayResults();
     }
 
@@ -64,7 +65,6 @@ public class TaxMinimizationService {
 
 
     private static void generateChildrenAndCalculate(ScenarioNode parent) {
-        debugStopOnScenario(2);
         generateChildren(parent);
         calculateChildren(parent);
 
@@ -110,6 +110,8 @@ public class TaxMinimizationService {
     }
 
     private static void generateChildren(ScenarioNode parent) {
+        debugStopOnScenario(745);
+
         int numAccounts = parent.endingAccountState.accounts.size();
         if(numAccounts == 0){
             return;
@@ -121,7 +123,7 @@ public class TaxMinimizationService {
         // Loop through each scenario, adjust optimization window bounds, and create a child node
         for (List<Float> scenario : scenarioPermutations) {
             System.out.println("Scenario: " + debugScenario++);
-
+            debugStopOnScenario(745);
             ScenarioNode child = new ScenarioNode.Builder()
                     .setStartingAccountState(parent.endingAccountState)
                     .setEndingAccountState(new AccountState())
@@ -139,6 +141,7 @@ public class TaxMinimizationService {
     }
 
     private static void calculateChildren(ScenarioNode parent) {
+        debugStopOnScenario(745);
         if(parent != null){
             for (int i = 0; i < parent.children.size(); i++) {
                 ScenarioNode child = parent.getChild(i);
@@ -207,23 +210,53 @@ public class TaxMinimizationService {
         double futureValue = FinanceUtility.calcFinalValue(startingAmount, parent.startingAccountState.interestRate, years, preTaxAmount);
 
         double totalTakenFromPrincipal = preTaxAmount * ratioPrincipal * years;
-        double futureValuePrincipal = startingAccount.principalAmount - totalTakenFromPrincipal;
-        double futureValueCapitalGains;
+//        double futureValuePrincipal = startingAccount.principalAmount - totalTakenFromPrincipal;
+//        double futureValueCapitalGains;
 
-        if (futureValue > startingAmount) {
-            // Account has grown
-            double growth = futureValue - startingAmount;
-            futureValueCapitalGains = startingAccount.capitalGainsAmount + growth + totalTakenFromPrincipal;
-        } else {
-            // Account has shrunk
-            futureValueCapitalGains = startingAccount.capitalGainsAmount - (preTaxAmount * ratioCapitalGains * years);
-            if (futureValuePrincipal < 0) {
-                // Account has been depleted
-                // Take money from capital gains
-                futureValueCapitalGains -= futureValuePrincipal;
-                futureValuePrincipal = 0;
+//        if (futureValue > startingAmount) {
+//            // Account has grown
+//            double growth = futureValue - startingAmount;
+//            futureValueCapitalGains = startingAccount.capitalGainsAmount + growth + totalTakenFromPrincipal;
+//        } else {
+//            // Account has shrunk
+//            futureValueCapitalGains = startingAccount.capitalGainsAmount - (preTaxAmount * ratioCapitalGains * years);
+//            if (futureValuePrincipal < 0) {
+//                // Account has been depleted
+//                // Take money from capital gains
+//                futureValueCapitalGains -= futureValuePrincipal;
+//                futureValuePrincipal = 0;
+//            }
+//        }
+        double futureValuePrincipal= startingAccount.principalAmount;
+        double futureValueCapitalGains = startingAccount.capitalGainsAmount;
+
+        for(int year = 1; year < parent.scenario.yearsToFirstAccountDepletion; year++) {
+            double totalValue = futureValuePrincipal + futureValueCapitalGains;
+            double capitalGains = futureValueCapitalGains;
+            double principal = futureValuePrincipal;
+
+            futureValueCapitalGains += (principal + capitalGains) * (parent.startingAccountState.interestRate);
+//                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
+
+            futureValuePrincipal -= preTaxAmount * principal / totalValue;
+            futureValueCapitalGains -= preTaxAmount * capitalGains / totalValue;
+            if(parent.debugScenario == 750){
+                System.out.println(futureValuePrincipal + futureValueCapitalGains);
             }
         }
+
+        double partialYear = parent.scenario.yearsToFirstAccountDepletion - Math.floor(parent.scenario.yearsToFirstAccountDepletion);
+
+        double totalValue = futureValuePrincipal + futureValueCapitalGains;
+        double capitalGains = futureValueCapitalGains;
+        double principal = futureValuePrincipal;
+
+        futureValueCapitalGains += (principal+capitalGains)*(parent.startingAccountState.interestRate)*partialYear;
+//            capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
+
+        futureValuePrincipal -= preTaxAmount * principal/totalValue * partialYear;
+        futureValueCapitalGains -= preTaxAmount * capitalGains/totalValue * partialYear;
+
 
         //set flags
         // need to computer future value of prinicpal and capital gains
@@ -233,10 +266,12 @@ public class TaxMinimizationService {
         endingAccount.capitalGainsTaxablePercentage = startingAccount.capitalGainsTaxablePercentage;
         return endingAccount;
     }
-    private static void debugStopOnScenario(int n) {
+    private static boolean debugStopOnScenario(int n) {
         if (debugScenario == n) {
             "".getClass();
+            return true;
         }
+        return false;
     }
 }
 

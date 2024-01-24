@@ -39,8 +39,9 @@ public class Postprocessor {
         }
 
         // Calculate partial year
-        if(burndown.get(0) != null && burndown.get(0).year != 0){
-            double partialYear = Math.ceil(burndown.get(0).year) - burndown.get(0).year;
+        double partialYear = Math.ceil(burndown.get(0).year) - burndown.get(0).year;
+        boolean willItFillToNextYear = (yearsToFirstAccountDepletion - partialYear) > 1;
+        if(burndown.get(0) != null && burndown.get(0).year != 0 && willItFillToNextYear){
             AccountState yearEndState = currentState.cloneAccountState();
             for(int account = 0; account < startingAccountState.accounts.size(); account++){
                 double totalValue = currentState.accounts.get(account).getTotalValue();
@@ -48,7 +49,7 @@ public class Postprocessor {
                 double principal = currentState.accounts.get(account).principalAmount;
 
                 yearEndState.accounts.get(account).capitalGainsAmount += (principal+capitalGains)*(currentState.interestRate)*partialYear;
-                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
+//                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
 
                 yearEndState.accounts.get(account).principalAmount -= withdrawalsPerYear.get(account)*principal/totalValue*partialYear;
                 yearEndState.accounts.get(account).capitalGainsAmount -= withdrawalsPerYear.get(account)*capitalGains/totalValue*partialYear;
@@ -70,11 +71,11 @@ public class Postprocessor {
                 double principal = currentState.accounts.get(account).principalAmount;
 
                 yearEndState.accounts.get(account).capitalGainsAmount += (principal+capitalGains)*(currentState.interestRate);
-                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
+//                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
 
                 yearEndState.accounts.get(account).principalAmount -= withdrawalsPerYear.get(account)*principal/totalValue;
                 yearEndState.accounts.get(account).capitalGainsAmount -= withdrawalsPerYear.get(account)*capitalGains/totalValue;
-
+                System.out.println(yearEndState.accounts.get(0).getTotalValue());
                 roundAccountToNearestCent(yearEndState, account);
             }
             burndown.add(new BurndownTimeEvent(yearEndState.cloneAccountState(), year + Math.ceil(burndown.get(0).year)));
@@ -82,7 +83,7 @@ public class Postprocessor {
         }
 
         // Calculate partial year
-        double partialYear = yearsToFirstAccountDepletion - Math.floor(yearsToFirstAccountDepletion);
+        partialYear = yearsToFirstAccountDepletion - Math.floor(yearsToFirstAccountDepletion);
         AccountState yearEndState = currentState.cloneAccountState();
         for(int account = 0; account < startingAccountState.accounts.size(); account++){
             double totalValue = currentState.accounts.get(account).getTotalValue();
@@ -90,14 +91,18 @@ public class Postprocessor {
             double principal = currentState.accounts.get(account).principalAmount;
 
             yearEndState.accounts.get(account).capitalGainsAmount += (principal+capitalGains)*(currentState.interestRate)*partialYear;
-            capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
+//            capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
 
             yearEndState.accounts.get(account).principalAmount -= withdrawalsPerYear.get(account)*principal/totalValue*partialYear;
             yearEndState.accounts.get(account).capitalGainsAmount -= withdrawalsPerYear.get(account)*capitalGains/totalValue*partialYear;
 
             roundAccountToNearestCent(yearEndState, account);
         }
-        burndown.add(new BurndownTimeEvent(yearEndState, yearsToFirstAccountDepletion + Math.ceil(burndown.get(0).year)));
+        if(willItFillToNextYear){
+            burndown.add(new BurndownTimeEvent(yearEndState, yearsToFirstAccountDepletion + Math.ceil(burndown.get(0).year)));
+        } else {
+            burndown.add(new BurndownTimeEvent(yearEndState, yearsToFirstAccountDepletion + burndown.get(0).year));
+        }
     }
 
     private static void roundAccountToNearestCent(AccountState yearEndState, int account) {
