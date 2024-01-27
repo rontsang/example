@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import {NgxChartsModule} from "@swimlane/ngx-charts";
+import {AccountService} from "../services/AccountService";
 
 @Component({
   selector: 'app-line-chart',
@@ -14,7 +15,37 @@ export class LineChartComponent {
   view: [number, number] = [700, 300];
 
   // Chart data
-  data = [
+  
+  data: ChartData[] = []; // Chart data
+
+  constructor(private accountService: AccountService) {}
+
+  ngOnInit() {
+    this.accountService.getAccountData().subscribe(data => {
+      this.data = this.transformDataForChart(data);
+    });
+  }
+
+
+  private transformDataForChart(rawData: any[]): any[] {
+    const chartData = [];
+
+    // Assuming 'data' is an array of your results
+    rawData.forEach(result => {
+      result.accountState.accounts.forEach(account => {
+        let accountData = chartData.find(d => d.name === account.accountName);
+        if (!accountData) {
+          accountData = { name: account.accountName, series: [] };
+          chartData.push(accountData);
+        }
+        accountData.series.push({ name: `Year ${result.year}`, value: account.totalValue });
+      });
+    });
+
+    return chartData;
+  }
+
+  data2 = [
     {
       "name": "Germany",
       "series": [

@@ -1,9 +1,10 @@
 package com.example.demo.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 // Data structure to hold optimization bracket
-public class OptimizationWindow {
+public class OptimizationWindow implements Serializable {
     public double upperBound;
     public double lowerBound;
 

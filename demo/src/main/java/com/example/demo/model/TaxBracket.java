@@ -4,9 +4,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "tax_bracket")
-public class TaxBracket {
+public class TaxBracket implements Serializable {
     @Id
     private Integer index;
     private Double upper_bound;

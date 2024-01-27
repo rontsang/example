@@ -1,13 +1,15 @@
 package com.example.demo.model;
 
 import com.example.demo.service.ScenarioNode;
+import com.fasterxml.jackson.core.SerializableString;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 // Data structure to hold account amounts and capital gains
-public class AccountState {
+public class AccountState implements Serializable {
     public double postTaxAmountNeededPerYear;
     public double interestRate;
     public ArrayList<Account> accounts = new ArrayList<>();

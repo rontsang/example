@@ -38,8 +38,17 @@ public class TaxMinimizationService {
         printOptimalStrategy(root);
         ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
         root.getOptimalChildAndYearsToDepletion();
-        burndownStageN(root.optimalChild, burndown);root.getOptimalChildAndYearsToDepletion();
+        burndownStageN(root.optimalChild, burndown);
+        root.getOptimalChildAndYearsToDepletion();
         root.displayResults();
+
+        root.saveToFile(root, "root.ser");
+        root.saveToFile(burndown, "burndown.ser");
+
+        ScenarioNode readNode = (ScenarioNode) root.readToFile("root.ser");
+        ArrayList<BurndownTimeEvent> burndownRead = root.readToFileAl("C:\\tax\\demo\\burndown.ser");
+
+        System.out.println("root.");
     }
 
     private static void burndownStageN(ScenarioNode currentScenarioNode, ArrayList<BurndownTimeEvent> burndown) {
