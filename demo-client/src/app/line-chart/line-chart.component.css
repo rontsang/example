@@ -2,3 +2,19 @@
 /*  width: 800px;*/
 /*  height: 800px;*/
 /*}*/
+/* ngx charts bypass */
+
+.ngx-charts-outer {
+  -webkit-animation:chartFadeIn linear 0 !important;
+  animation:chartFadeIn linear 0 !important;
+}
+
+.tooltip-anchor {
+  -webkit-animation:chartFadeIn linear 0 !important;
+  animation:chartFadeIn linear 0 !important;
+}
+
+::ng-deep .ngx-tooltip-content {
+  transition: none !important;
+  animation: none !important;
+}

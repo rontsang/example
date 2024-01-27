@@ -10,9 +10,10 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { NgxChartsModule }from '@swimlane/ngx-charts';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { LineChartComponent } from './line-chart/line-chart.component';
-import {NgChartsModule} from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts';
 import {BarChartComponent} from "./bar-chart/bar-chart.component";
 import {UserInputComponent} from "./userinput/userinput.component";
+import {ChartComponent} from "./chart/chart.component";
 // import {MoneyTimeChartComponent} from "./money-time-chart/money-time-chart.component";
 // import {MoneyTimeChartComponent} from "./money-time-chart/money-time-chart.component";
 
@@ -34,7 +35,9 @@ import {UserInputComponent} from "./userinput/userinput.component";
     LineChartComponent,
     BarChartComponent,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    NgChartsModule,
+    ChartComponent,
     // NgChartsModule
   ],
   providers: [],

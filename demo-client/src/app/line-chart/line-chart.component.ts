@@ -11,11 +11,14 @@ import {AccountService} from "../services/AccountService";
   templateUrl: './line-chart.component.html',
   styleUrl: './line-chart.component.css'
 })
+
+
 export class LineChartComponent {
   view: [number, number] = [700, 300];
 
+
   // Chart data
-  
+
   data: ChartData[] = []; // Chart data
 
   constructor(private accountService: AccountService) {}
@@ -23,12 +26,12 @@ export class LineChartComponent {
   ngOnInit() {
     this.accountService.getAccountData().subscribe(data => {
       this.data = this.transformDataForChart(data);
+      console.log(data);
     });
-  }
+  };
 
-
-  private transformDataForChart(rawData: any[]): any[] {
-    const chartData = [];
+  private transformDataForChart(rawData: RawDataItem[]): any[] {
+    const chartData: ChartData[] = [];
 
     // Assuming 'data' is an array of your results
     rawData.forEach(result => {
@@ -38,7 +41,8 @@ export class LineChartComponent {
           accountData = { name: account.accountName, series: [] };
           chartData.push(accountData);
         }
-        accountData.series.push({ name: `Year ${result.year}`, value: account.totalValue });
+        const roundedYear = Math.round(result.year * 10) / 10;
+        accountData.series.push({ name: `${roundedYear}`, value: account.totalValue });
       });
     });
 
@@ -50,12 +54,16 @@ export class LineChartComponent {
       "name": "Germany",
       "series": [
         {
-          "name": "2010",
+          "name": 2010,
           "value": 7300000
         },
         {
-          "name": "2011",
+          "name": 2011,
           "value": 8940000
+        },
+        {
+          "name": 2020,
+          "value": 1894000
         }
       ]
     },
@@ -70,10 +78,30 @@ export class LineChartComponent {
   showXAxisLabel = true;
   xAxisLabel = 'Country';
   showYAxisLabel = true;
-  yAxisLabel = 'Population';
+  yAxisLabel = 'Populatiosn';
+  animations = false;
 
   colorScheme = {
     domain: ['#5AA454', '#E44D25', '#7aa3e5', '#a8385d', '#aae3f5']
   };
+}
 
+
+interface Account {
+  accountName: string;
+  totalValue: number;
+}
+
+interface AccountState {
+  accounts: Account[];
+}
+
+interface RawDataItem {
+  year: number;
+  accountState: AccountState;
+}
+
+interface ChartData {
+  name: string;
+  series: { name: string; value: number }[];
 }
