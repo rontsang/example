@@ -50,6 +50,8 @@ public class Postprocessor {
 
                 yearEndState.accounts.get(account).capitalGainsAmount += (principal+capitalGains)*(currentState.interestRate)*partialYear;
 //                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
+                totalValue = yearEndState.accounts.get(account).capitalGainsAmount + yearEndState.accounts.get(account).principalAmount;
+                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
 
                 yearEndState.accounts.get(account).principalAmount -= withdrawalsPerYear.get(account)*principal/totalValue*partialYear;
                 yearEndState.accounts.get(account).capitalGainsAmount -= withdrawalsPerYear.get(account)*capitalGains/totalValue*partialYear;
@@ -72,6 +74,8 @@ public class Postprocessor {
 
                 yearEndState.accounts.get(account).capitalGainsAmount += (principal+capitalGains)*(currentState.interestRate);
 //                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
+                totalValue = yearEndState.accounts.get(account).capitalGainsAmount + yearEndState.accounts.get(account).principalAmount;
+                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
 
                 yearEndState.accounts.get(account).principalAmount -= withdrawalsPerYear.get(account)*principal/totalValue;
                 yearEndState.accounts.get(account).capitalGainsAmount -= withdrawalsPerYear.get(account)*capitalGains/totalValue;
@@ -92,6 +96,8 @@ public class Postprocessor {
 
             yearEndState.accounts.get(account).capitalGainsAmount += (principal+capitalGains)*(currentState.interestRate)*partialYear;
 //            capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
+            totalValue = yearEndState.accounts.get(account).capitalGainsAmount + yearEndState.accounts.get(account).principalAmount;
+            capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
 
             yearEndState.accounts.get(account).principalAmount -= withdrawalsPerYear.get(account)*principal/totalValue*partialYear;
             yearEndState.accounts.get(account).capitalGainsAmount -= withdrawalsPerYear.get(account)*capitalGains/totalValue*partialYear;

@@ -23,7 +23,7 @@ public class TaxMinimizationService {
     static int intervalSize = 2;
     static int iterationsPerScenario = 4;
 
-    public static void main(AccountState startingState) {
+    public static ScenarioNode main(AccountState startingState) {
         debugScenario = 0;
 
         ScenarioNode root = new ScenarioNode.Builder()
@@ -40,6 +40,8 @@ public class TaxMinimizationService {
         root.getOptimalChildAndYearsToDepletion();
         burndownStageN(root.optimalChild, burndown);root.getOptimalChildAndYearsToDepletion();
         root.displayResults();
+
+        return root;
     }
 
     private static void burndownStageN(ScenarioNode currentScenarioNode, ArrayList<BurndownTimeEvent> burndown) {
@@ -58,6 +60,7 @@ public class TaxMinimizationService {
             burndown.add(event);
         }
 
+        // Recurse
         if (currentScenarioNode.optimalChild != null){
             burndownStageN(currentScenarioNode.optimalChild, burndown);
         }
@@ -237,9 +240,9 @@ public class TaxMinimizationService {
 
             futureValueCapitalGains += (principal + capitalGains) * (parent.startingAccountState.interestRate);
 //                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
-
-            futureValuePrincipal -= preTaxAmount * principal / totalValue;
-            futureValueCapitalGains -= preTaxAmount * capitalGains / totalValue;
+            totalValue = futureValuePrincipal + futureValueCapitalGains;
+            futureValuePrincipal -= preTaxAmount * futureValuePrincipal / totalValue;
+            futureValueCapitalGains -= preTaxAmount * futureValueCapitalGains / totalValue;
             if(parent.debugScenario == 750){
                 System.out.println(futureValuePrincipal + futureValueCapitalGains);
             }
@@ -252,10 +255,11 @@ public class TaxMinimizationService {
         double principal = futureValuePrincipal;
 
         futureValueCapitalGains += (principal+capitalGains)*(parent.startingAccountState.interestRate)*partialYear;
+        totalValue = futureValuePrincipal + futureValueCapitalGains;
 //            capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
 
-        futureValuePrincipal -= preTaxAmount * principal/totalValue * partialYear;
-        futureValueCapitalGains -= preTaxAmount * capitalGains/totalValue * partialYear;
+        futureValuePrincipal -= preTaxAmount * futureValuePrincipal/totalValue * partialYear;
+        futureValueCapitalGains -= preTaxAmount * futureValueCapitalGains/totalValue * partialYear;
 
 
         //set flags

@@ -3,6 +3,8 @@ package com.example.demo;
 public class FinanceUtility {
     //rewrite to have decimal years instead of integer years
 
+    // TODO implement monthly withdrawals, so interest payments are not lump sums at the start
+
     public static double calcYearsUntilDepletion(double balance, double annualWithdrawal, double annualReturnRate) {
         double years = 0;
         double MAX_YEARS = 50;
@@ -15,6 +17,8 @@ public class FinanceUtility {
             if (yearEndBalance > 0) {
                 years++;
             } else {
+                double partial = balance / annualWithdrawal;
+                balance *= 1 + annualReturnRate * partial;
                 years += balance / annualWithdrawal;
             }
             balance = yearEndBalance;

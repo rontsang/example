@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HelloService } from './services/HelloService';
+import { DataService } from './data.service';
 import { LineChartComponent } from './line-chart/line-chart.component';
 import {Subscription} from "rxjs";
 

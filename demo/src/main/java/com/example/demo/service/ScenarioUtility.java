@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScenarioUtility {
-
     static void printOptimalStrategy(ScenarioNode root){
         System.out.println("Optimal Strategy:");
         ScenarioNode optimalChild = root.optimalChild;
@@ -19,8 +18,15 @@ public class ScenarioUtility {
             System.out.println("STAGE " + stage++ + " STRATEGY");
             System.out.println("Optimal Window: " + optimalChild.scenario.calculationPoint);
             System.out.println("Post Tax: " + optimalChild.scenario.postTaxAmounts);
-            System.out.println("Pre Tax: " + optimalChild.scenario.preTaxAmounts);
-            System.out.println("Years to Depletion: " + optimalChild.scenario.yearsToFirstAccountDepletion);
+            // iterate through each account and print the withdrawal amount
+            for(int i = 0; i < optimalChild.scenario.preTaxAmounts.size(); i++){
+                String accountName = optimalChild.startingAccountState.accounts.get(i).accountName;
+                long withdrawalAmount = Math.round(optimalChild.scenario.preTaxAmounts.get(i));
+                System.out.println(accountName + " withdrawal: " + withdrawalAmount);
+            }
+            int years = (int) optimalChild.scenario.yearsToFirstAccountDepletion; // Extracts the year part
+            int months = (int) Math.round((optimalChild.scenario.yearsToFirstAccountDepletion - years) * 12); // Converts fractional part to months
+            System.out.println("Years to Depletion: " + years + " years and " + months + " months");
             optimalChild = optimalChild.optimalChild;
         }
         System.out.println("====================================");

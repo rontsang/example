@@ -1,0 +1,28 @@
+<p>userinput works!</p>
+
+<!--<input type="range" min="0" max="100" [(ngModel)]="sharedValue">-->
+<!--<input type="number" [(ngModel)]="sharedValue">-->
+
+<form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+  <input type="range" formControlName="tfsaAmount" [value]="sliderValue" (input)="onSliderChange($event)">
+  <input type="number" formControlName="tfsaAmount" [value]="sliderValue" (input)="onTextChange($event)">
+
+<!--  <p>Slider Value: {{ userForm.get('sliderControl').value }}</p>-->
+<!--  <input type="number" formControlName="linkedValue">-->
+  <!-- Slider Input -->
+<!--  <input type="range" formControlName="tfsaAmount">-->
+<!--  <input type="number" formControlName="tfsaAmount">-->
+<!--  <input type="range" [min]="0" [max]="2000000" formControlName="tfsaAmount" [(ngModel)]="sharedValue" (ngModelChange)="onSliderChange($event)">-->
+<!--  <input type="text" [(ngModel)]="sharedValue" placeholder="Input 1">-->
+  <input type="text" formControlName="rrspAmount" placeholder="Input 2">
+  <input type="text" formControlName="margAmountPrincipal" placeholder="Input 3">
+  <input type="text" formControlName="margAmountCapitalGain" placeholder="Input 4">
+  <input type="text" formControlName="interestRate" placeholder="Input 5">
+  <input type="text" formControlName="amountPerYear" placeholder="Input 6">
+
+  <select formControlName="province">
+    <option *ngFor="let province of provinces" [value]="province">{{ province }}</option>
+  </select>
+
+  <button type="submit">{{ isSubmitted ? 'Recalculate' : 'Run' }}</button>
+</form>

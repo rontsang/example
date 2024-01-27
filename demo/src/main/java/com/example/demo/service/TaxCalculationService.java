@@ -131,6 +131,10 @@ public class TaxCalculationService {
         System.out.println(parent.scenario.calculationPoint);
         System.out.println("Post Tax Amounts for each account: " + postTaxAmounts);
     }
+
+    // TODO calculate pre-tax amount based on changing capital gains amount
+    // Loop this calculate for each year, recalculate step 1, 2 and 3 and save to a data structure until empty
+    // Add the loop in years until first account depletes
     static void calculatePreTaxAmounts(ScenarioNode node) {
 //        double years = 0;
         ArrayList<Double> taxableAmounts = new ArrayList<>();
