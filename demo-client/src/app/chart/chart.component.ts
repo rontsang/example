@@ -38,7 +38,7 @@ export class ChartComponent {
           accountData = { name: account.accountName, series: [] };
           chartData.push(accountData);
         }
-        const roundedYear = Math.round(result.year * 10) / 10;
+        const roundedYear = Math.round(result.year * 100) / 100;
         accountData.series.push({ name: `${roundedYear}`, value: account.totalValue });
       });
     });
