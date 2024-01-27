@@ -1,6 +1,8 @@
 package com.example.demo.model;
 
-public class TaxDeferredAccount extends Account {
+import java.io.Serializable;
+
+public class TaxDeferredAccount extends Account implements Serializable {
 
     public TaxDeferredAccount(double principal, double capitalGains) {
         super(principal, capitalGains, "RRSP");

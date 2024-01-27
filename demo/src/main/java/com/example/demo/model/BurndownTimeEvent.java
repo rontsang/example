@@ -1,6 +1,8 @@
 package com.example.demo.model;
 
-public class BurndownTimeEvent {
+import java.io.Serializable;
+
+public class BurndownTimeEvent implements Serializable {
     public AccountState accountState;
     public double year;
 

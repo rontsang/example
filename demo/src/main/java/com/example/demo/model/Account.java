@@ -1,6 +1,8 @@
 package com.example.demo.model;
 
-public class Account {
+import java.io.Serializable;
+
+public class Account implements Serializable {
     public boolean isAmountTaxable = false;
     public boolean isCapitalGainsTaxable = false;
     public double principalAmount = 0;

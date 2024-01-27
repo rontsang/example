@@ -1,12 +1,14 @@
 package com.example.demo.service;
 
 import com.example.demo.model.AccountState;
+import com.example.demo.model.BurndownTimeEvent;
 import com.example.demo.model.OptimizationWindow;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScenarioNode {
+public class ScenarioNode implements Serializable {
     ArrayList<OptimizationWindow> optimizationWindows = new ArrayList<>();
     List<ScenarioNode> children = new ArrayList<>();
     public ArrayList<ScenarioNode> optimalNodes = new ArrayList<>();
@@ -170,5 +172,48 @@ public class ScenarioNode {
                 .setLevel(this.level)
                 .setDebugScenario(this.debugScenario)
                 .build();
+    }
+
+    public void saveToFile(Object object, String name) {
+        try {
+            FileOutputStream fileOut = new FileOutputStream(name);
+            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+            objectOut.writeObject(object);
+            objectOut.close();
+            fileOut.close();
+            System.out.println("The Object was successfully written to a file");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public Object readToFile(String name) {
+        Object readNode = new Object();
+        try {
+            FileInputStream fileIn = new FileInputStream(name);
+            ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+            readNode = (Object) objectIn.readObject();
+            objectIn.close();
+            fileIn.close();
+            System.out.println("The Object has been read from the file");
+            // Use myObj as needed
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return readNode;
+    }
+
+    public ArrayList<BurndownTimeEvent> readToFileAl(String name) {
+        ArrayList<BurndownTimeEvent> readList = null;
+        try {
+            FileInputStream fileIn = new FileInputStream(name);
+            ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+            readList = (ArrayList<BurndownTimeEvent>) objectIn.readObject();
+            objectIn.close();
+            fileIn.close();
+            System.out.println("The ArrayList<Object> has been read from the file");
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return readList;
     }
 }
