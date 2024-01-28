@@ -32,7 +32,7 @@ public class Controller {
 
     @PostMapping("/submit-form")
     @CrossOrigin(origins = "http://localhost:4200")
-    public String handleSubmit(@RequestBody FormData formData) {
+    public @ResponseBody ArrayList<BurndownTimeEvent> handleSubmit(@RequestBody FormData formData) {
         // Process formData
         System.out.println(formData);
         // create new account and run tax minimization
@@ -45,8 +45,11 @@ public class Controller {
                 .build();
 
         ScenarioNode root = TaxMinimizationService.main(startingAccountState);
-
-        return "Form submitted successfully";
+        System.out.println("burndown getting");
+//        ScenarioNode root = new ScenarioNode();
+        ArrayList<BurndownTimeEvent> burndown = (ArrayList<BurndownTimeEvent>) root.readToFile("C:\\example\\demo\\burndown.ser");
+        return burndown;
+//        return "{\"message\": \"Form submitted successfully\"}";
     }
 
     @GetMapping(path = "/results")

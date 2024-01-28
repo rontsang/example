@@ -22,23 +22,21 @@ import {ChartComponent} from "./chart/chart.component";
     AppComponent,
     Component1Component,
     Component2Component,
-    UserInputComponent,
-    // MoneyTimeChartComponent
+    UserInputComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
     RouterModule,
-    BrowserAnimationsModule,  // added
-    NgxChartsModule,  // added
+    BrowserAnimationsModule,
+    NgxChartsModule,
     LineChartComponent,
     BarChartComponent,
     ReactiveFormsModule,
     FormsModule,
     NgChartsModule,
-    ChartComponent,
-    // NgChartsModule
+    ChartComponent
   ],
   providers: [],
   bootstrap: [AppComponent]

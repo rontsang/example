@@ -1,0 +1,85 @@
+/* Container styling */
+form {
+  background-color: #525252; /* Light grey background */
+  padding: 10px; /* Reduced padding around the form */
+  border-radius: 15px; /* Smaller rounded corners */
+  width: 200px; /* Reduced width of the form */
+  margin: auto; /* Center the form on the page */
+  font-size: 12px; /* Smaller font size for the entire form */
+}
+
+/* Label styling */
+form label {
+  display: block;
+  margin-top: 15px; /* Reduced space above each label */
+  margin-bottom: 2px; /* Reduced space between label and input */
+  margin-left: 10px;
+  color: white;
+  font-size: 10px; /* Reduced font size for labels */
+  font-weight: bold;
+}
+
+/* General input and select element styling */
+form input[type="range"],
+form input[type="number"],
+form input[type="text"],
+form select {
+  width: 100%;
+  padding: 2px 10px; /* Reduced padding inside the inputs/select */
+  margin: 2px 0; /* Reduced margin for vertical spacing */
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 30px; /* Semi-circular rounded borders for inputs and select */
+  background-color: #727272;
+  color: white;
+}
+
+/* Specific styling for the slider */
+form input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px; /* Further reduced height of the slider */
+  background: #ddd;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+  border-radius: 30px; /* Semi-circular shape for the slider */
+}
+
+/* Specific styling for the slider thumb */
+form input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default appearance */
+  width: 15px; /* Size of the slider thumb */
+  height: 15px; /* Size of the slider thumb, equal to width to make it circular */
+  background: #4CAF50; /* Color of the slider thumb */
+  cursor: pointer; /* Change cursor to pointer when hovering over the slider thumb */
+  border-radius: 50%; /* Fully rounded edges to create a circle */
+  border: 1px solid #ccc; /* Optional: adds a border to the slider thumb */
+}
+
+form input[type="range"]::-moz-range-thumb {
+  width: 20px; /* Size of the slider thumb */
+  height: 20px; /* Size of the slider thumb, equal to width to make it circular */
+  background: #4CAF50; /* Color of the slider thumb */
+  cursor: pointer; /* Change cursor to pointer when hovering over the slider thumb */
+  border-radius: 50%; /* Fully rounded edges to create a circle */
+  border: 1px solid #ccc; /* Optional: adds a border to the slider thumb */
+}
+
+/* Button styling */
+form button {
+  width: 100%;
+  padding: 3px; /* Further reduced padding inside the button */
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  height: 35px;
+  border-radius: 40px; /* Semi-circular rounded borders for the button */
+  cursor: pointer;
+  margin-top: 20px; /* Reduced margin at the top */
+}
+
+form button:hover {
+  background-color: #45a049;
+}

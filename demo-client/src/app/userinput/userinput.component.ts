@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, FormsModule } from '@angular/forms';
 import { DataService } from './../data.service';
+import {HttpClient} from "@angular/common/http";
+import {SharedDataService} from "../services/SharedDataService";
 
 @Component({
   selector: 'app-userinput',
@@ -29,11 +31,6 @@ export class UserInputComponent {
     // this.cdRef.detectChanges();
   }
 
-  // onSliderChange(value: number) {
-  //   console.log(value);
-  //   this.tfsaAmount = this.logToLinear(value);
-  //   console.log(this.tfsaAmount);
-  // }
   logToLinear(logValue: number): number {
     return Math.pow(2, logValue / 2000);
   }
@@ -49,7 +46,11 @@ export class UserInputComponent {
     this.sliderValue = Number(input.value);
   }
 
-  constructor(private dataService: DataService) { }
+  constructor(
+    private dataService: DataService,
+    private http: HttpClient,
+    private sharedDataService: SharedDataService
+  ) { }
 
   isSubmitted = false;
 
@@ -63,5 +64,10 @@ export class UserInputComponent {
       },
       error => console.error('Error!', error)
     );
+    this.http.post<any[]>('http://localhost:8081/submit-form', this.userForm.value).subscribe(data => {
+      console.log("returned data: ")
+      console.log(data)
+      this.sharedDataService.updateChartData(data);
+    });
   }
 }

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {Chart} from "chart.js";
 import {AccountService} from "../services/AccountService";
+import {SharedDataService} from "../services/SharedDataService";
 
 @Component({
   selector: 'app-chart',
@@ -14,16 +15,50 @@ export class ChartComponent {
 
   data: ChartData[] = []; // Chart data
 
-  constructor(private accountService: AccountService) {}
+  constructor(
+    private accountService: AccountService,
+    private sharedDataService: SharedDataService
+  ) {}
 
   ngOnInit(): void {
     this.accountService.getAccountData().subscribe(data => {
       this.data = this.transformDataForChart(data);
-      console.log("our data is:");
-      console.log(this.data);
-      console.log("our data is not:");
-      this.createChart(this.data);
+      if (this.data.length > 0) {
+        const firstDataset = [this.data[0]]; // Create an array with only the first dataset
+        console.log("updating chart with first dataset", firstDataset);
+        // console.log("our data is now:");
+        // console.log(firstDataset);
+        this.createChart(firstDataset);
+      } else {
+        console.log("No data available to create the chart.");
+      }
     });
+
+    this.sharedDataService.chartData$.subscribe(data => {
+      this.updateChart(data);
+    });
+  }
+
+  updateChart(data: any[]): void {
+    if (this.chart) {
+      this.data = this.transformDataForChart(data);
+      console.log("updating chart with new data", this.data);
+      // Assuming the new data is already in the correct format
+      // as required by the Chart.js datasets
+      this.chart.data.datasets = this.data.map((dataset: ChartData) => ({
+        label: dataset.name,
+        data: dataset.series.map((seriesItem: SeriesItem) => ({
+          x: seriesItem.name, // Assuming 'name' is the x-axis value (like a date or category)
+          y: seriesItem.value  // y-axis value
+        })), // Or use a fixed color / existing color
+        fill: false
+      }));
+
+      this.chart.update(); // Redraw the chart with the new data
+    } else {
+      // If the chart does not exist, create it
+      // this.createChart(data);
+    }
   }
 
   private transformDataForChart(rawData: RawDataItem[]): any[] {
@@ -31,7 +66,7 @@ export class ChartComponent {
 
     // Assuming 'data' is an array of your results
     rawData.forEach(result => {
-      console.log(result);
+      // console.log(result);
       result.accountState.accounts.forEach(account => {
         let accountData = chartData.find(d => d.name === account.accountName);
         if (!accountData) {
@@ -72,43 +107,6 @@ export class ChartComponent {
           fill: false
         }))
       },
-      // data: {
-      //   datasets: [{
-      //     label: 'Test Data',
-      //     data: [{ x: 10, y: 20 }, { x: 15, y: 25 }, { x: 20, y: 30 }],
-      //     backgroundColor: 'red',
-      //     borderColor: 'red',
-      //     fill: false
-      //   }]
-      // },
-      //
-
-      // data: {// values on X-Axis
-      //   // labels: ['2022-05-10', '2022-05-11', '2022-05-12','2022-05-13',
-      //   //   '2022-05-14', '2022-05-15', '2022-05-16','2022-05-17', ],
-      //   datasets: [
-      //     {
-      //       label: "Sales",
-      //       data: [
-      //         { x: 10, y: 20 },
-      //         { x: 15, y: 25 },
-      //         { x: 20, y: 30 },
-      //         // more data points...
-      //       ],
-      //       backgroundColor: 'blue'
-      //     },
-      //     {
-      //       label: "Profit",
-      //       data: [
-      //         { x: 10, y: 15 },
-      //         { x: 15, y: 10 },
-      //         { x: 20, y: 5 },
-      //         // more data points...
-      //       ],
-      //       backgroundColor: 'limegreen'
-      //     }
-      //   ]
-      // },
       options: {
         responsive: true,
         animation: {

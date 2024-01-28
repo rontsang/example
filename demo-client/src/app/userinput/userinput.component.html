@@ -1,26 +1,27 @@
-<p>userinput works!</p>
-
-<!--<input type="range" min="0" max="100" [(ngModel)]="sharedValue">-->
-<!--<input type="number" [(ngModel)]="sharedValue">-->
+<!--<p>userinput works!</p>-->
 
 <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-  <input type="range" formControlName="tfsaAmount" [value]="sliderValue" (input)="onSliderChange($event)">
-  <input type="number" formControlName="tfsaAmount" [value]="sliderValue" (input)="onTextChange($event)">
+  <label for="tfsaAmountNumber">TFSA Amount</label>
+  <input type="number" id="tfsaAmountNumber" formControlName="tfsaAmount" [value]="sliderValue" (input)="onTextChange($event)">
+  <input type="range" id="tfsaAmountRange" formControlName="tfsaAmount" [value]="sliderValue" (input)="onSliderChange($event)">
 
-<!--  <p>Slider Value: {{ userForm.get('sliderControl').value }}</p>-->
-<!--  <input type="number" formControlName="linkedValue">-->
-  <!-- Slider Input -->
-<!--  <input type="range" formControlName="tfsaAmount">-->
-<!--  <input type="number" formControlName="tfsaAmount">-->
-<!--  <input type="range" [min]="0" [max]="2000000" formControlName="tfsaAmount" [(ngModel)]="sharedValue" (ngModelChange)="onSliderChange($event)">-->
-<!--  <input type="text" [(ngModel)]="sharedValue" placeholder="Input 1">-->
-  <input type="text" formControlName="rrspAmount" placeholder="Input 2">
-  <input type="text" formControlName="margAmountPrincipal" placeholder="Input 3">
-  <input type="text" formControlName="margAmountCapitalGain" placeholder="Input 4">
-  <input type="text" formControlName="interestRate" placeholder="Input 5">
-  <input type="text" formControlName="amountPerYear" placeholder="Input 6">
+  <label for="rrspAmount">RRSP Amount</label>
+  <input type="text" id="rrspAmount" formControlName="rrspAmount" placeholder="Input 2">
 
-  <select formControlName="province">
+  <label for="margAmountPrincipal">Marginal Amount Principal</label>
+  <input type="text" id="margAmountPrincipal" formControlName="margAmountPrincipal" placeholder="Input 3">
+
+  <label for="margAmountCapitalGain">Marginal Amount Capital Gain</label>
+  <input type="text" id="margAmountCapitalGain" formControlName="margAmountCapitalGain" placeholder="Input 4">
+
+  <label for="interestRate">Interest Rate</label>
+  <input type="text" id="interestRate" formControlName="interestRate" placeholder="Input 5">
+
+  <label for="amountPerYear">Amount Per Year</label>
+  <input type="text" id="amountPerYear" formControlName="amountPerYear" placeholder="Input 6">
+
+  <label for="provinceSelect">Province</label>
+  <select id="provinceSelect" formControlName="province">
     <option *ngFor="let province of provinces" [value]="province">{{ province }}</option>
   </select>
 

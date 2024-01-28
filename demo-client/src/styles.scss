@@ -3,3 +3,13 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+body {
+  height: auto; /* 100% of the viewport height */
+  width: 100vw; /* 100% of the viewport width */
+}
+
+#app-root {
+  overflow: auto; /* Adds scrollbars if content overflows */
+  /* or 'overflow: hidden;' to hide the overflow */
+}
