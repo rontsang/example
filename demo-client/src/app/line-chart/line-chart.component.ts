@@ -23,10 +23,12 @@ export class LineChartComponent {
 
   constructor(private accountService: AccountService) {}
 
+
   ngOnInit() {
     this.accountService.getAccountData().subscribe(data => {
       this.data = this.transformDataForChart(data);
       console.log(data);
+      console.log("withdraw strategy: ");
     });
   };
 
@@ -48,6 +50,7 @@ export class LineChartComponent {
 
     return chartData;
   }
+
 
   data2 = [
     {
@@ -84,6 +87,7 @@ export class LineChartComponent {
   colorScheme = {
     domain: ['#5AA454', '#E44D25', '#7aa3e5', '#a8385d', '#aae3f5']
   };
+
 }
 
 
@@ -99,9 +103,16 @@ interface AccountState {
 interface RawDataItem {
   year: number;
   accountState: AccountState;
+  preTaxAmounts: number[];
 }
 
 interface ChartData {
   name: string;
   series: { name: string; value: number }[];
+}
+
+interface Summary {
+  startYear: number;
+  endYear: number;
+  withdrawals: number[];
 }

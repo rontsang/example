@@ -17,7 +17,7 @@ public class Postprocessor {
         }
 
         ArrayList<BurndownTimeEvent> newBurndown = new ArrayList<>();
-        BurndownTimeEvent startingEvent = new BurndownTimeEvent(startingAccountState, startingYear);
+        BurndownTimeEvent startingEvent = new BurndownTimeEvent(startingAccountState, startingYear, withdrawalsPerYear);
         newBurndown.add(startingEvent);
 
         double yearsToFirstAccountDepletion = calculateYearsUntilFirstAccountDepletes(startingAccountState, withdrawalsPerYear);
@@ -58,7 +58,7 @@ public class Postprocessor {
 
                 roundAccountToNearestCent(yearEndState, account);
             }
-            burndown.add(new BurndownTimeEvent(yearEndState, Math.ceil(burndown.get(0).year)));
+            burndown.add(new BurndownTimeEvent(yearEndState, Math.ceil(burndown.get(0).year),withdrawalsPerYear));
             currentState = yearEndState;
 //            burndown.remove(0);
             yearsToFirstAccountDepletion -= partialYear;
@@ -82,7 +82,7 @@ public class Postprocessor {
                 System.out.println(yearEndState.accounts.get(0).getTotalValue());
                 roundAccountToNearestCent(yearEndState, account);
             }
-            burndown.add(new BurndownTimeEvent(yearEndState.cloneAccountState(), year + Math.ceil(burndown.get(0).year)));
+            burndown.add(new BurndownTimeEvent(yearEndState.cloneAccountState(), year + Math.ceil(burndown.get(0).year),withdrawalsPerYear));
             currentState = yearEndState;
         }
 
@@ -105,9 +105,9 @@ public class Postprocessor {
             roundAccountToNearestCent(yearEndState, account);
         }
         if(willItFillToNextYear){
-            burndown.add(new BurndownTimeEvent(yearEndState, yearsToFirstAccountDepletion + Math.ceil(burndown.get(0).year)));
+            burndown.add(new BurndownTimeEvent(yearEndState, yearsToFirstAccountDepletion + Math.ceil(burndown.get(0).year),withdrawalsPerYear));
         } else {
-            burndown.add(new BurndownTimeEvent(yearEndState, yearsToFirstAccountDepletion + burndown.get(0).year));
+            burndown.add(new BurndownTimeEvent(yearEndState, yearsToFirstAccountDepletion + burndown.get(0).year, withdrawalsPerYear));
         }
     }
 

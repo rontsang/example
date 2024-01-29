@@ -55,6 +55,7 @@ export class ChartComponent {
       }));
 
       this.chart.update(); // Redraw the chart with the new data
+      this.getWithdrawalStrategy(data);
     } else {
       // If the chart does not exist, create it
       // this.createChart(data);
@@ -142,6 +143,54 @@ export class ChartComponent {
 
     });
   }
+
+
+  getWithdrawalStrategy(rawData: RawDataItem[]){
+    let summaries: Summary[] = [];
+    let lastPreTaxAmounts: number[] | null = null;
+    let startYear = 0;
+
+    rawData.forEach((item, index) => {
+      // Check if preTaxAmounts have changed
+      if (!lastPreTaxAmounts || !this.arraysEqual(lastPreTaxAmounts, item.preTaxAmounts)) {
+        if (lastPreTaxAmounts) {
+          // Record the summary for the previous segment
+          const summary = {
+            startYear: startYear,
+            endYear: item.year,
+            withdrawals: lastPreTaxAmounts
+          };
+          summaries.push(summary);
+        }
+        // Update for the next segment
+        startYear = item.year;
+        lastPreTaxAmounts = item.preTaxAmounts;
+      }
+
+      // Handle the last item
+      if (index === rawData.length - 1) {
+        const summary = {
+          startYear: startYear,
+          endYear: item.year,
+          withdrawals: item.preTaxAmounts
+        };
+        summaries.push(summary);
+      }
+    });
+    console.log("Best strategy ")
+    console.log(summaries);
+  }
+
+  arraysEqual(a: number[], b: number[]): boolean {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
+
+    for (let i = 0; i < a.length; ++i) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }
 }
 
 interface Account {
@@ -156,6 +205,7 @@ interface AccountState {
 interface RawDataItem {
   year: number;
   accountState: AccountState;
+  preTaxAmounts: number[];
 }
 
 interface ChartData {
@@ -166,4 +216,10 @@ interface ChartData {
 interface SeriesItem {
   name: string; // Adjust the type if necessary (e.g., number, Date, etc.)
   value: number;
+}
+
+interface Summary {
+  startYear: number;
+  endYear: number;
+  withdrawals: number[];
 }
