@@ -14,6 +14,8 @@ import { NgChartsModule } from 'ng2-charts';
 import {BarChartComponent} from "./bar-chart/bar-chart.component";
 import {UserInputComponent} from "./userinput/userinput.component";
 import {ChartComponent} from "./chart/chart.component";
+import { CurrencyFormatDirective } from './userinput/currency-format.directive';
+
 // import {MoneyTimeChartComponent} from "./money-time-chart/money-time-chart.component";
 // import {MoneyTimeChartComponent} from "./money-time-chart/money-time-chart.component";
 
@@ -22,7 +24,8 @@ import {ChartComponent} from "./chart/chart.component";
     AppComponent,
     Component1Component,
     Component2Component,
-    UserInputComponent
+    UserInputComponent,
+    CurrencyFormatDirective
   ],
   imports: [
     BrowserModule,

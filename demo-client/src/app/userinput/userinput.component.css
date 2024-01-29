@@ -20,7 +20,6 @@ form label {
 }
 
 /* General input and select element styling */
-form input[type="range"],
 form input[type="number"],
 form input[type="text"],
 form select {
@@ -34,8 +33,10 @@ form select {
   color: white;
 }
 
+
 /* Specific styling for the slider */
 form input[type="range"] {
+  width: 100%;
   -webkit-appearance: none;
   appearance: none;
   height: 5px; /* Further reduced height of the slider */
@@ -82,4 +83,21 @@ form button {
 
 form button:hover {
   background-color: #45a049;
+}
+
+.currency-input {
+  position: relative; /* Needed for positioning the pseudo-element */
+}
+
+.currency-input::before {
+  content: '$'; /* Dollar sign */
+  position: absolute;
+  left: 8px; /* Adjust as needed */
+  top: 50%;
+  transform: translateY(-50%);
+  color: #333; /* Adjust the color as needed */
+}
+
+.currency-input input {
+  padding-left: 20px; /* Make space for the dollar sign */
 }

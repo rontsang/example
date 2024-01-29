@@ -40,7 +40,7 @@ public class Postprocessor {
 
         // Calculate partial year
         double partialYear = Math.ceil(burndown.get(0).year) - burndown.get(0).year;
-        boolean willItFillToNextYear = (yearsToFirstAccountDepletion - partialYear) > 1;
+        boolean willItFillToNextYear = (yearsToFirstAccountDepletion - partialYear) > 0;
         if(burndown.get(0) != null && burndown.get(0).year != 0 && willItFillToNextYear){
             AccountState yearEndState = currentState.cloneAccountState();
             for(int account = 0; account < startingAccountState.accounts.size(); account++){

@@ -19,7 +19,7 @@ public class Scenario {
 
     // Outputs
 //    ScenarioNode resultsSummary = new ScenarioNode();
-    double yearsToDepletion = 0;
+    public double yearsToDepletion = 0;
     double yearsToFirstAccountDepletion = Double.MAX_VALUE;
 
     int indexOfFirstAccountDepletion;

@@ -47,6 +47,16 @@ public class Controller {
         ScenarioNode root = TaxMinimizationService.main(startingAccountState);
         System.out.println("burndown getting");
 //        ScenarioNode root = new ScenarioNode();
+        if(root == null){
+            Double allAccountsTotal = startingAccountState.accounts.stream().mapToDouble(account -> account.getTotalValue()).sum();
+            Double interestPerYearEstimate = allAccountsTotal * startingAccountState.interestRate;
+            startingAccountState.postTaxAmountNeededPerYear = interestPerYearEstimate*1.5;
+            root = TaxMinimizationService.main(startingAccountState);
+            ArrayList<BurndownTimeEvent> burndown = (ArrayList<BurndownTimeEvent>) root.readToFile("C:\\example\\demo\\burndown.ser");
+            return burndown;
+        }
+
+
         ArrayList<BurndownTimeEvent> burndown = (ArrayList<BurndownTimeEvent>) root.readToFile("C:\\example\\demo\\burndown.ser");
         return burndown;
 //        return "{\"message\": \"Form submitted successfully\"}";

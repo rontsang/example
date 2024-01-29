@@ -16,7 +16,7 @@ public class ScenarioNode implements Serializable {
     AccountState startingAccountState;
     AccountState endingAccountState;
     Integer level = 0;
-    Scenario scenario = new Scenario();
+    public Scenario scenario = new Scenario();
 
     double yearsToDepletion = Double.MAX_VALUE;
     List<Double> optimalWindow;

@@ -35,21 +35,26 @@ public class TaxMinimizationService {
             .build();
         generateChildrenAndCalculate(root);
 
-        printOptimalStrategy(root);
-        ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
-        root.getOptimalChildAndYearsToDepletion();
-        burndownStageN(root.optimalChild, burndown);
-        root.getOptimalChildAndYearsToDepletion();
-        root.displayResults();
+        if(root.scenario.yearsToDepletion != Double.MAX_VALUE) {
 
-//        root.saveToFile(root, "root.ser");
-        root.saveToFile(burndown, "C:\\example\\demo\\burndown.ser");
+//        printOptimalStrategy(root);
+            ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
+            root.getOptimalChildAndYearsToDepletion();
+            burndownStageN(root.optimalChild, burndown);
+            root.getOptimalChildAndYearsToDepletion();
+            root.displayResults();
+
+            root.saveToFile(root, "root.ser");
+            root.saveToFile(burndown, "C:\\example\\demo\\burndown.ser");
 
 //        ScenarioNode readNode = (ScenarioNode) root.readToFile("root.ser");
 //        ArrayList<BurndownTimeEvent> burndownRead = root.readToFileAl("C:\\tax\\demo\\burndown.ser");
 
-        System.out.println(root);
-        return root;
+            System.out.println(root);
+
+            return root;
+        }
+        return null;
     }
 
     private static void burndownStageN(ScenarioNode currentScenarioNode, ArrayList<BurndownTimeEvent> burndown) {
@@ -79,7 +84,10 @@ public class TaxMinimizationService {
         generateChildren(parent);
         calculateChildren(parent);
 
-        while(parent.children.size() > 1 && parent.optimalNodes.size() <  iterationsPerScenario){
+        while(parent.children.size() > 1
+                && parent.optimalNodes.size() <  iterationsPerScenario
+                && parent.scenario.yearsToDepletion != Double.MAX_VALUE
+        ){
             setupNextOptimizationNode(parent);
             generateChildren(parent.getCurrentOptimizationNode());
             calculateChildren(parent.getCurrentOptimizationNode());
@@ -157,14 +165,20 @@ public class TaxMinimizationService {
             for (int i = 0; i < parent.children.size(); i++) {
                 ScenarioNode child = parent.getChild(i);
                 calculateYearsUntilAccountsAreEmpty(child);
+                if(child.scenario.yearsToDepletion == Double.MAX_VALUE){
+                    parent.scenario.yearsToDepletion = Double.MAX_VALUE;
+                    return;
+                }
             }
         }
     }
 
     public static double calculateYearsUntilAccountsAreEmpty(ScenarioNode parent) {
         calculateYearsUntilFirstAccountDepletes(parent); // CREATE RESULTS OBJECT TO STORE RESULTS OF CURRENT PARENT NODE
-        calculateEndingAccountState(parent); // CALCULATE ENDING STATE OF ACCOUNTS AFTER FIRST ACCOUNT DEPLETES
-        generateChildrenAndCalculate(parent); // GENERATE CHILD NODE TO CALCULATE FOR REMAINING ACCOUNTS
+        if(parent.scenario.yearsToDepletion != Double.MAX_VALUE){
+            calculateEndingAccountState(parent); // CALCULATE ENDING STATE OF ACCOUNTS AFTER FIRST ACCOUNT DEPLETES
+            generateChildrenAndCalculate(parent); // GENERATE CHILD NODE TO CALCULATE FOR REMAINING ACCOUNTS
+        }
         return parent.scenario.yearsToDepletion;
     }
 
@@ -172,9 +186,10 @@ public class TaxMinimizationService {
         // Calculate time to depletion of each account and find first account that depletes
         ScenarioUtility.calculateYearsUntilFirstAccountDepletes(node);
 
-        if (node.scenario.yearsToDepletion == Double.MAX_VALUE) {
+        if (node.scenario.yearsToFirstAccountDepletion == Double.MAX_VALUE) {
             //TODO code infinite money case
             node.scenario.yearsToDepletion = Double.MAX_VALUE; // You have infinite money glitch
+            return;
         }
 
         System.out.println("=============================================");

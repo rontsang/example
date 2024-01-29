@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import {Component, ElementRef, ViewChild} from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, FormsModule } from '@angular/forms';
 import { DataService } from './../data.service';
 import {HttpClient} from "@angular/common/http";
 import {SharedDataService} from "../services/SharedDataService";
+import { CurrencyFormatDirective } from './currency-format.directive';
 
 @Component({
   selector: 'app-userinput',
@@ -36,9 +37,28 @@ export class UserInputComponent {
   }
   sliderValue = 50; // Default value
 
+  @ViewChild('currencyInput') textInput!: ElementRef;
+
+  private formatCurrency(value: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  }
+
   onSliderChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.sliderValue = Number(input.value);
+    const numericValue = Number(input.value);
+    this.userForm.get('tfsaAmount')?.setValue(numericValue);
+    this.formatTextInput(numericValue);
+  }
+
+  private formatTextInput(value: number): void {
+    if (this.textInput) {
+      this.textInput.nativeElement.value = this.formatCurrency(value);
+    }
   }
 
   onTextChange(event: Event) {
