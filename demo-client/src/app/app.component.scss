@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -6,12 +8,51 @@
 
 :host {
   display: block;
-  background-color: #202020;
-  font-family: 'Roboto', sans-serif;
+  background-color: #121212;
+  font-family: 'Montserrat', sans-serif;
 }
 
 body {
   margin: 0; /* Remove default margin */
   height: auto; /* 100% of the viewport height */
   width: 100vw; /* 100% of the viewport width */
+}
+
+/* global-styles.css */
+
+.container {
+  display: flex;
+  flex-wrap: wrap; /* Allows items to wrap onto the next line on small screens */
+}
+
+/* For mobile screens */
+@media (max-width: 600px) {
+  .container {
+    flex-direction: column;
+  }
+}
+
+/* Styles for each component - adjust as needed */
+app-userinput,
+app-displaywindow {
+  flex: 1; /* Each component takes equal width */
+  margin: 10px; /* Spacing between components */
+}
+
+header {
+  background-color: #202020; /* Choose a background color */
+
+  letter-spacing: 0.25px;
+  text-align: center; /* Center the header content */
+  padding: 10px 0; /* Padding above and below the text */
+  margin-bottom: 20px; /* Spacing between header and the rest of the content */
+}
+
+/* Header title style */
+header h1 {
+  margin: 0; /* Remove default margin */
+  font-size: 34px; /* Adjust font size as needed */
+  color: white; /* Text color */
+  font-weight: lighter;
+  letter-spacing: -200;
 }

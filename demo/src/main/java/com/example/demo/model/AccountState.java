@@ -15,14 +15,15 @@ public class AccountState implements Serializable {
     public ArrayList<Account> accounts = new ArrayList<>();
 
     public AccountState(){}
-    public AccountState(double TAX_FREE, double TAX_DEFERRED, double TAXABLE, double postTaxAmountNeededPerYear, double interestRate) {
-        this.accounts.add(new TaxFreeAccount(TAX_FREE,0));
-        this.accounts.add(new TaxDeferredAccount(TAX_DEFERRED,0));
-        this.accounts.add(new TaxableAccount(TAXABLE,500000));
 
-        this.postTaxAmountNeededPerYear = postTaxAmountNeededPerYear;
-        this.interestRate = interestRate;
-    }
+//    public AccountState(double TAX_FREE, double TAX_DEFERRED, double TAXABLE, double postTaxAmountNeededPerYear, double interestRate) {
+//        this.accounts.add(new TaxFreeAccount(TAX_FREE,0));
+//        this.accounts.add(new TaxDeferredAccount(TAX_DEFERRED,0));
+//        this.accounts.add(new TaxableAccount(TAXABLE,500000));
+//
+//        this.postTaxAmountNeededPerYear = postTaxAmountNeededPerYear;
+//        this.interestRate = interestRate;
+//    }
 
     public List<String> getAccountsList() {
         return this.accounts.stream().map(acc -> acc.accountName).collect(Collectors.toList());

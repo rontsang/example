@@ -41,7 +41,7 @@ public class Controller {
                 .withInterestRate(formData.getInterestRate())
                 .addAccount(new TaxFreeAccount(formData.getTfsaAmount(), 0))
                 .addAccount(new TaxDeferredAccount(formData.getRrspAmount(), 0))
-                .addAccount(new TaxableAccount(formData.getMargAmountCapitalGain(), 500000))
+                .addAccount(new TaxableAccount(formData.getMargAmountPrincipal(), formData.getMargAmountCapitalGain()))
                 .build();
 
         ScenarioNode root = TaxMinimizationService.main(startingAccountState);

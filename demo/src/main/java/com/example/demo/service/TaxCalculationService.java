@@ -128,6 +128,9 @@ public class TaxCalculationService {
             // Used calculated percentages to calculate how much to withdraw from each account
             postTaxAmounts.add(parent.scenario.postTaxAmounts.get(accountNumber) * adjustedPercentage);
         }
+        if(parent.scenario.calculationPoint == null){
+            System.out.println("test");
+        }
         System.out.println(parent.scenario.calculationPoint);
         System.out.println("Post Tax Amounts for each account: " + postTaxAmounts);
     }

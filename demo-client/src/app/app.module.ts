@@ -15,6 +15,7 @@ import {BarChartComponent} from "./bar-chart/bar-chart.component";
 import {UserInputComponent} from "./userinput/userinput.component";
 import {ChartComponent} from "./chart/chart.component";
 import { CurrencyFormatDirective } from './userinput/currency-format.directive';
+import { DisplaywindowComponent } from './displaywindow/displaywindow.component';
 
 // import {MoneyTimeChartComponent} from "./money-time-chart/money-time-chart.component";
 // import {MoneyTimeChartComponent} from "./money-time-chart/money-time-chart.component";
@@ -39,7 +40,8 @@ import { CurrencyFormatDirective } from './userinput/currency-format.directive';
     ReactiveFormsModule,
     FormsModule,
     NgChartsModule,
-    ChartComponent
+    ChartComponent,
+    DisplaywindowComponent
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -1,11 +1,12 @@
 /* Container styling */
 form {
-  background-color: #525252; /* Light grey background */
-  padding: 10px; /* Reduced padding around the form */
+  background-color: #202020; /* Light grey background */
+  padding: 15px; /* Reduced padding around the form */
   border-radius: 15px; /* Smaller rounded corners */
-  width: 200px; /* Reduced width of the form */
+  width: 200px; /* Reduced width of the form '*/
+  height: 500px;
   margin: auto; /* Center the form on the page */
-  font-size: 12px; /* Smaller font size for the entire form */
+  font-size: 10px; /* Smaller font size for the entire form */
 }
 
 /* Label styling */
@@ -16,7 +17,6 @@ form label {
   margin-left: 10px;
   color: white;
   font-size: 10px; /* Reduced font size for labels */
-  font-weight: bold;
 }
 
 /* General input and select element styling */
@@ -26,8 +26,8 @@ form select {
   width: 100%;
   padding: 2px 10px; /* Reduced padding inside the inputs/select */
   margin: 2px 0; /* Reduced margin for vertical spacing */
-  box-sizing: border-box;
-  border: 1px solid #ccc;
+  /*box-sizing: border-box;*/
+  border: 0px solid #ccc;
   border-radius: 30px; /* Semi-circular rounded borders for inputs and select */
   background-color: #727272;
   color: white;
@@ -56,7 +56,7 @@ form input[type="range"]::-webkit-slider-thumb {
   background: #4CAF50; /* Color of the slider thumb */
   cursor: pointer; /* Change cursor to pointer when hovering over the slider thumb */
   border-radius: 50%; /* Fully rounded edges to create a circle */
-  border: 1px solid #ccc; /* Optional: adds a border to the slider thumb */
+  border: 0px solid #ccc; /* Optional: adds a border to the slider thumb */
 }
 
 form input[type="range"]::-moz-range-thumb {
@@ -72,17 +72,18 @@ form input[type="range"]::-moz-range-thumb {
 form button {
   width: 100%;
   padding: 3px; /* Further reduced padding inside the button */
-  background-color: #4CAF50;
+  background-color: #BB86FC;
   color: white;
   border: none;
   height: 35px;
   border-radius: 40px; /* Semi-circular rounded borders for the button */
   cursor: pointer;
   margin-top: 20px; /* Reduced margin at the top */
+  transition: background-color 0.1s ease;
 }
 
 form button:hover {
-  background-color: #45a049;
+  background-color: #3700B3;
 }
 
 .currency-input {
@@ -100,4 +101,15 @@ form button:hover {
 
 .currency-input input {
   padding-left: 20px; /* Make space for the dollar sign */
+}
+
+.shadow-box {
+  /* Adjust the color, opacity, and offsets as needed */
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2); /* horizontal-offset vertical-offset blur-radius color */
+  /* Other styling for your element */
+  width: 200px;
+  height: 100px;
+  margin: 20px;
+  background-color: #fff; /* Light background to contrast with the shadow */
+  border-radius: 4px;
 }

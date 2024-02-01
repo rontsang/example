@@ -11,9 +11,8 @@ import {SharedDataService} from "../services/SharedDataService";
   styleUrl: './chart.component.css'
 })
 export class ChartComponent {
-  // private data: any;
 
-  data: ChartData[] = []; // Chart data
+  data: ChartData[] = [];
 
   constructor(
     private accountService: AccountService,

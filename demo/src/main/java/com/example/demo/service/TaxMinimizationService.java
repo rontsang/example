@@ -35,11 +35,12 @@ public class TaxMinimizationService {
             .build();
         generateChildrenAndCalculate(root);
 
-        if(root.scenario.yearsToDepletion != Double.MAX_VALUE) {
+
 
 //        printOptimalStrategy(root);
             ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
             root.getOptimalChildAndYearsToDepletion();
+        if(root.optimalChild.scenario.yearsToDepletion < 100 && root.scenario.yearsToDepletion < 100) {
             burndownStageN(root.optimalChild, burndown);
             root.getOptimalChildAndYearsToDepletion();
             root.displayResults();
@@ -160,12 +161,17 @@ public class TaxMinimizationService {
     }
 
     private static void calculateChildren(ScenarioNode parent) {
-        debugStopOnScenario(745);
+        if(debugStopOnScenario(1260)){
+            "".getClass();
+        }
         if(parent != null){
             for (int i = 0; i < parent.children.size(); i++) {
                 ScenarioNode child = parent.getChild(i);
                 calculateYearsUntilAccountsAreEmpty(child);
                 if(child.scenario.yearsToDepletion == Double.MAX_VALUE){
+                    if(parent.scenario == null){
+                        parent.scenario = new Scenario();
+                    }
                     parent.scenario.yearsToDepletion = Double.MAX_VALUE;
                     return;
                 }
@@ -266,7 +272,7 @@ public class TaxMinimizationService {
             totalValue = futureValuePrincipal + futureValueCapitalGains;
             futureValuePrincipal -= preTaxAmount * futureValuePrincipal / totalValue;
             futureValueCapitalGains -= preTaxAmount * futureValueCapitalGains / totalValue;
-            if(parent.debugScenario == 750){
+            if(futureValuePrincipal + futureValueCapitalGains == 0){
                 System.out.println(futureValuePrincipal + futureValueCapitalGains);
             }
         }

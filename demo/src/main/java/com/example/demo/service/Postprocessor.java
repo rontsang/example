@@ -21,6 +21,10 @@ public class Postprocessor {
         newBurndown.add(startingEvent);
 
         double yearsToFirstAccountDepletion = calculateYearsUntilFirstAccountDepletes(startingAccountState, withdrawalsPerYear);
+        if(yearsToFirstAccountDepletion < 1){
+            return newBurndown;
+        }
+
         calculateResultStatePerYear(startingAccountState, withdrawalsPerYear, newBurndown, yearsToFirstAccountDepletion);
 
         return newBurndown;
