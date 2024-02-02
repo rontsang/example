@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 public class AccountState implements Serializable {
     public double postTaxAmountNeededPerYear;
     public double interestRate;
+
+    public double income = 0;
     public ArrayList<Account> accounts = new ArrayList<>();
 
     public AccountState(){}
@@ -43,6 +45,8 @@ public class AccountState implements Serializable {
     public static class Builder {
         private double postTaxAmountNeededPerYear;
         private double interestRate;
+
+        private double income;
         private ArrayList<Account> accounts = new ArrayList<>();
 
         public Builder withPostTaxAmountNeededPerYear(double value) {
@@ -52,6 +56,11 @@ public class AccountState implements Serializable {
 
         public Builder withInterestRate(double value) {
             this.interestRate = value;
+            return this;
+        }
+
+        public Builder withIncome(double value) {
+            this.income = value;
             return this;
         }
 
@@ -69,6 +78,7 @@ public class AccountState implements Serializable {
             AccountState user = new AccountState();
             user.postTaxAmountNeededPerYear = this.postTaxAmountNeededPerYear;
             user.interestRate = this.interestRate;
+            user.income = this.income;
             user.accounts.addAll(this.accounts);
             return user;
         }
@@ -84,6 +94,7 @@ public class AccountState implements Serializable {
         return new AccountState.Builder()
                 .addAccounts(accountsCopy)
                 .withInterestRate(this.interestRate)
+                .withIncome(this.income)
                 .build();
     }
 }

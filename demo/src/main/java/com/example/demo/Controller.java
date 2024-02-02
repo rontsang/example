@@ -39,6 +39,7 @@ public class Controller {
         AccountState startingAccountState = new AccountState.Builder()
                 .withPostTaxAmountNeededPerYear(formData.getAmountPerYear())
                 .withInterestRate(formData.getInterestRate())
+                .withIncome(20000)
                 .addAccount(new TaxFreeAccount(formData.getTfsaAmount(), 0))
                 .addAccount(new TaxDeferredAccount(formData.getRrspAmount(), 0))
                 .addAccount(new TaxableAccount(formData.getMargAmountPrincipal(), formData.getMargAmountCapitalGain()))

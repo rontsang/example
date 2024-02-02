@@ -213,6 +213,7 @@ public class TaxMinimizationService {
         parent.endingAccountState = new AccountState.Builder()
                 .withPostTaxAmountNeededPerYear(parent.startingAccountState.postTaxAmountNeededPerYear)
                 .withInterestRate(parent.startingAccountState.interestRate)
+                .withIncome(parent.startingAccountState.income)
                 .build();
 
         // For each non-depleted account, calculate the end state of that account after the first account depletes

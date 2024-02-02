@@ -13,6 +13,7 @@ public class Scenario {
     List<Double> postTaxAmounts = new ArrayList<>();
     List<Double> taxableAmounts = new ArrayList<>();
 
+
     List<Integer> debugChain;
 
     int debugScenario = 0;

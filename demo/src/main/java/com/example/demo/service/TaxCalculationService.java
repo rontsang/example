@@ -40,9 +40,10 @@ public class TaxCalculationService {
 //    }
 
     // Computes how much pre-tax money to withdraw from account to satisfy afterTaxAmount
-    public static double calculatePreTaxAmount(double afterTaxAmount) {
+    public static double calculatePreTaxAmount(double afterTaxAmount, double income) {
         int currentTaxBracket = 0;
         double preTaxAmount = 0;
+
         double afterTaxAmountStillNeeded = afterTaxAmount;
 
         // Cycle through all tax indexes
@@ -50,13 +51,23 @@ public class TaxCalculationService {
             // Get current tax bracket
             TaxBracket bracket = taxBrackets.get(currentTaxBracket);
 
+            double lowerBound = bracket.getLower_bound();
+
+            // Shift brackets based on income
+            if(bracket.getUpper_bound() != null && bracket.getUpper_bound() <= income){
+                currentTaxBracket++;
+                continue;
+            } else if((bracket.getUpper_bound() == null || income < bracket.getUpper_bound()) && income > bracket.getLower_bound()){
+                lowerBound -= income;
+            }
+
             // Calculate how much money we can get from current bracket
             double preTaxAmountFromBracket;
             double afterTaxAmountFromBracket;
 
             if(bracket.getUpper_bound() != null){
-                preTaxAmountFromBracket = (bracket.getUpper_bound() - bracket.getLower_bound());
-                afterTaxAmountFromBracket = (bracket.getUpper_bound() - bracket.getLower_bound()) * (1-bracket.getRate());
+                preTaxAmountFromBracket = (bracket.getUpper_bound() - lowerBound);
+                afterTaxAmountFromBracket = (bracket.getUpper_bound() - lowerBound) * (1-bracket.getRate());
             } else {
                 preTaxAmountFromBracket = afterTaxAmountStillNeeded/(1-bracket.getRate());
                 afterTaxAmountFromBracket = afterTaxAmountStillNeeded;
@@ -73,6 +84,30 @@ public class TaxCalculationService {
             }
         }
         return preTaxAmount;
+    }
+
+    public static double calculatePostTaxAmount(double amount){
+        double preTaxAmount = amount;
+        double postTaxAmount = amount;
+        int currentTaxBracket = 0;
+        // Cycle through all tax indexes
+        while(currentTaxBracket < taxBrackets.size()) {
+            // Get current tax bracket
+            TaxBracket bracket = taxBrackets.get(currentTaxBracket);
+            if(bracket.getLower_bound()>preTaxAmount){
+                break;
+            }
+            double afterTaxAmountFromBracket;
+
+            // Calculate how much money we can get from current bracket
+            if(bracket.getUpper_bound() != null){
+                postTaxAmount -= (bracket.getUpper_bound() - bracket.getLower_bound()) * bracket.getRate();
+            } else {
+                postTaxAmount -= (preTaxAmount - bracket.getLower_bound()) * bracket.getRate();
+            }
+            currentTaxBracket++;
+        }
+        return postTaxAmount;
     }
 
 
@@ -112,6 +147,9 @@ public class TaxCalculationService {
             double range = upperBound - lowerBound;
             double adjustedPercentage = 0;
 
+            double incomePostTax = TaxCalculationService.calculatePostTaxAmount(parent.startingAccountState.income);
+            double withdrawalAmount = parent.startingAccountState.postTaxAmountNeededPerYear;
+            withdrawalAmount -= incomePostTax;
 
             if (accountNumber == scenario.size() - 1) {
                 adjustedPercentage = 1 - adjustedCalculation.stream().mapToDouble(Float::doubleValue).sum();
@@ -122,7 +160,7 @@ public class TaxCalculationService {
             }
 
             scenario.set(accountNumber, (float) adjustedPercentage);
-            parent.scenario.postTaxAmounts.add(parent.startingAccountState.postTaxAmountNeededPerYear * adjustedPercentage);
+            parent.scenario.postTaxAmounts.add(withdrawalAmount * adjustedPercentage);
             parent.scenario.calculationPoint.add(adjustedPercentage);
 
             // Used calculated percentages to calculate how much to withdraw from each account
@@ -150,7 +188,7 @@ public class TaxCalculationService {
         // Step 2. Calculate pre-tax withdrawal amounts per account based on afterTaxTotalTaxable
         // We have the total taxable dollars to withdraw and after income tax
         // We need to calculate how much we need to withdraw from each account to get that amount
-        double preTaxTotal = TaxCalculationService.calculatePreTaxAmount(afterTaxTotalTaxable);
+        double preTaxTotal = TaxCalculationService.calculatePreTaxAmount(afterTaxTotalTaxable, node.startingAccountState.income);
 
         // Step 3 Calculate total withdrawal amounts. Withdrawal amounts = (1) + (2)
         // 1. PostTaxAmount
