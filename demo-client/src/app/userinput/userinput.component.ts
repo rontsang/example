@@ -4,6 +4,7 @@ import { DataService } from './../data.service';
 import {HttpClient} from "@angular/common/http";
 import {SharedDataService} from "../services/SharedDataService";
 import { CurrencyFormatDirective } from './currency-format.directive';
+import {SharedService} from "../services/SharedService";
 
 @Component({
   selector: 'app-userinput',
@@ -13,7 +14,6 @@ import { CurrencyFormatDirective } from './currency-format.directive';
 export class UserInputComponent {
   provinces = ['Ontario','Alberta','Yukon']; // Add actual province names
   tfsaAmount = 100000;
-
   sharedValue = 50;
 
   userForm = new FormGroup({
@@ -30,6 +30,11 @@ export class UserInputComponent {
   onInputChange() {
     this.userForm.get('linkedValue')?.updateValueAndValidity();
     // this.cdRef.detectChanges();
+    this.http.post<any[]>('http://localhost:8081/submit-form', this.userForm.value).subscribe(data => {
+      console.log("returned data: ")
+      console.log(data)
+      this.sharedDataService.updateChartData(data);
+    });
   }
 
   logToLinear(logValue: number): number {
@@ -69,13 +74,19 @@ export class UserInputComponent {
   constructor(
     private dataService: DataService,
     private http: HttpClient,
-    private sharedDataService: SharedDataService
-  ) { }
+    private sharedDataService: SharedDataService,
+    private sharedService: SharedService
+  ) {
+    this.userForm.valueChanges.subscribe(() => {
+    // Notify that the chart needs to be updated (greyed out) on user input change
+    this.sharedService.notifyChartUpdateNeeded(true);
+  });}
 
   isSubmitted = false;
 
   onSubmit() {
     this.isSubmitted = true;
+    this.sharedService.notifyChartUpdateNeeded(false);
     console.log('submitted!');
     console.log(this.userForm.value);
     this.dataService.sendData(this.userForm.value).subscribe(

@@ -2,21 +2,33 @@ import { Component } from '@angular/core';
 import {Chart} from "chart.js";
 import {AccountService} from "../services/AccountService";
 import {SharedDataService} from "../services/SharedDataService";
+import {WithdrawalStrategy} from "../optimal-strategy-widget/optimal-strategy-widget.component";
+import {CurrencyPipe, DecimalPipe, NgForOf, CommonModule} from "@angular/common";
+import {SharedService} from "../services/SharedService";
 
 @Component({
   selector: 'app-chart',
   standalone: true,
-  imports: [],
+  imports: [
+    CurrencyPipe,
+    DecimalPipe,
+    NgForOf,
+    CommonModule
+  ],
   templateUrl: './chart.component.html',
   styleUrl: './chart.component.css'
 })
 export class ChartComponent {
 
   data: ChartData[] = [];
+  strategies: WithdrawalStrategy[] = [];
+  summaries: Summary[] = [];
+  tooHighIncome: boolean = false;
 
   constructor(
     private accountService: AccountService,
-    private sharedDataService: SharedDataService
+    private sharedDataService: SharedDataService,
+    private sharedService: SharedService
   ) {}
 
   ngOnInit(): void {
@@ -33,9 +45,40 @@ export class ChartComponent {
       }
     });
 
-    this.sharedDataService.chartData$.subscribe(data => {
-      this.updateChart(data);
+    this.sharedService.chartUpdateNeeded$.subscribe(updateNeeded => {
+      if (updateNeeded) {
+        this.greyOutChart();
+      } else {
+        this.restoreChart();
+      }
     });
+
+    this.sharedDataService.chartData$.subscribe(data => {
+      console.log("Received new data from the shared data service:", data);
+      if(data == null){
+        //redo calculations with higher income value
+        if (this.chart) {
+          this.chart.data.datasets = [];
+          this.chart.update();
+        }
+        this.tooHighIncome = true;
+      } else{
+        this.tooHighIncome = false;
+        this.updateChart(data);
+      }
+    });
+
+    this.strategies = [
+      {
+        "startYear": 0,
+        "endYear": 38.28350747910805,
+        "withdrawals": [
+          8500,
+          18899.371268656716,
+          43630.578136105185
+        ]
+      }
+    ];
   }
 
   updateChart(data: any[]): void {
@@ -147,22 +190,34 @@ export class ChartComponent {
   getWithdrawalStrategy(rawData: RawDataItem[]){
     let summaries: Summary[] = [];
     let lastPreTaxAmounts: number[] | null = null;
+    let lastAccounts: string[] = [];
     let startYear = 0;
-
+    console.log("Best strategy 1")
+    console.log(rawData);
+    console.log(this.summaries);
     rawData.forEach((item, index) => {
       // Check if preTaxAmounts have changed
       if (!lastPreTaxAmounts || !this.arraysEqual(lastPreTaxAmounts, item.preTaxAmounts)) {
+        console.log("lastPreTaxAmounts", lastPreTaxAmounts);
         if (lastPreTaxAmounts) {
           // Record the summary for the previous segment
+          console.log("item", item);
+          console.log("item", item.accountState);
+          console.log("item", item.accountState.accountsList);
           const summary = {
             startYear: startYear,
             endYear: item.year,
-            withdrawals: lastPreTaxAmounts
+            withdrawals: lastPreTaxAmounts.map((amount, index) => ({
+              amount: amount,
+              accountName: lastAccounts ? lastAccounts[index] : 'Unknown'
+            })),
+            accNames: item.accountState.accounts.map(acc => acc.accountName)
           };
           summaries.push(summary);
         }
         // Update for the next segment
         startYear = item.year;
+        lastAccounts = item.accountState.accountsList;
         lastPreTaxAmounts = item.preTaxAmounts;
       }
 
@@ -171,13 +226,18 @@ export class ChartComponent {
         const summary = {
           startYear: startYear,
           endYear: item.year,
-          withdrawals: item.preTaxAmounts
+          withdrawals: lastPreTaxAmounts.map((amount, index) => ({
+            amount: amount,
+            accountName: item.accountState.accountsList[index]
+          })),
+          accNames: item.accountState.accounts.map(acc => acc.accountName)
         };
         summaries.push(summary);
       }
     });
     console.log("Best strategy ")
     console.log(summaries);
+    this.summaries = summaries;
   }
 
   arraysEqual(a: number[], b: number[]): boolean {
@@ -190,6 +250,27 @@ export class ChartComponent {
     }
     return true;
   }
+
+  private greyOutChart() {
+    if (this.chart) {
+      this.chart.data.datasets = [];
+      this.chart.update();
+    }
+  }
+
+  private restoreChart() {
+    if (this.chart) {
+      this.chart.data.datasets = this.data.map((dataset: ChartData) => ({
+        label: dataset.name,
+        data: dataset.series.map((seriesItem: SeriesItem) => ({
+          x: seriesItem.name, // Assuming 'name' is the x-axis value (like a date or category)
+          y: seriesItem.value  // y-axis value
+        })), // Or use a fixed color / existing color
+        fill: false
+      }));
+      this.chart.update();
+    }
+  }
 }
 
 interface Account {
@@ -198,6 +279,7 @@ interface Account {
 }
 
 interface AccountState {
+  accountsList: string[];
   accounts: Account[];
 }
 
@@ -217,8 +299,14 @@ interface SeriesItem {
   value: number;
 }
 
+interface WithdrawalDetail {
+  amount: number;
+  accountName: string;
+}
 interface Summary {
   startYear: number;
   endYear: number;
-  withdrawals: number[];
+  withdrawals: WithdrawalDetail[];
+  accNames: string[];
 }
+

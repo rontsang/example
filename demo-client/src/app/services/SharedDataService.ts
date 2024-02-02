@@ -8,6 +8,7 @@ import {BehaviorSubject, Observable} from 'rxjs';
 export class SharedDataService {
   private chartDataSubject = new BehaviorSubject<any[]>([]);
   chartData$ = this.chartDataSubject.asObservable();
+  chartUpdateNeeded$: boolean = false;
 
   updateChartData(data: any[]): void {
     this.chartDataSubject.next(data);

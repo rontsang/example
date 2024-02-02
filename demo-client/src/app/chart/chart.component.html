@@ -1,4 +1,22 @@
 <p>chart works!</p>
 <div class="chart-container">
-  <canvas  id="MyChart" >{{ chart }}</canvas>
+  <canvas id="MyChart" >{{ chart }}</canvas>
+</div>
+
+<div *ngIf="tooHighIncome === false"  class="results-container">
+  <h3>Optimal Withdrawal Strategy</h3>
+  <div *ngFor="let strategy of summaries">
+    <p>
+      <strong>Years:</strong> {{ strategy.startYear }} - {{ strategy.endYear | number: '1.0-2' }}
+    </p>
+    <ul>
+      <li *ngFor="let detail of strategy.withdrawals">
+        {{ detail?.accountName }}: {{ detail?.amount | currency:'USD':'symbol-narrow':'1.2-2' }}
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div *ngIf="tooHighIncome === true"  class="results-container">
+  <h3>use larger numbers</h3>
 </div>
