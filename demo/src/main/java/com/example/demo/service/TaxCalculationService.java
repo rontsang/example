@@ -58,6 +58,7 @@ public class TaxCalculationService {
                 currentTaxBracket++;
                 continue;
             } else if((bracket.getUpper_bound() == null || income < bracket.getUpper_bound()) && income > bracket.getLower_bound()){
+                if(income > lowerBound)
                 lowerBound -= income;
             }
 

@@ -9,14 +9,24 @@
     <p>
       <strong>Years:</strong> {{ strategy.startYear }} - {{ strategy.endYear | number: '1.0-2' }}
     </p>
+    <p>
+      Total tax is: income + tfsa + rrsp + nonReg
+      {{totalTaxableIncome}}
+    </p>
     <ul>
+      <p> Withdrawal amounts </p>
       <li *ngFor="let detail of strategy.withdrawals">
         {{ detail?.accountName }}: {{ detail?.amount | currency:'USD':'symbol-narrow':'1.2-2' }}
+      </li>
+      <li *ngFor="let detail of strategy.withdrawals">
+        {{ detail?.accountName }}: {{ detail?.taxableAmount | currency:'USD':'symbol-narrow':'1.2-2' }}
       </li>
     </ul>
   </div>
 </div>
 
-<div *ngIf="tooHighIncome === true"  class="results-container">
-  <h3>use larger numbers</h3>
+<div *ngIf="warning === true"  class="results-container">
+  <h3>Warning: User input leads to money not draining in 50 years</h3>
+  <p>You are so rich we cannot simulate your scenario properly</p>
+  <p>We increased your income needed per year to perform the simulation</p>
 </div>

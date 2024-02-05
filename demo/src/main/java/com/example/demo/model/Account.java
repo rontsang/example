@@ -22,6 +22,9 @@ public class Account implements Serializable {
     }
 
     public Account clone() {
-        return new Account(this.principalAmount, this.capitalGainsAmount, this.accountName);
+        Account newAccount = new Account(this.principalAmount, this.capitalGainsAmount, this.accountName);
+        newAccount.isAmountTaxable = this.isAmountTaxable;
+        newAccount.isCapitalGainsTaxable = this.isCapitalGainsTaxable;
+        return newAccount;
     }
 }

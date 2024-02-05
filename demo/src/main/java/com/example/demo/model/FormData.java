@@ -7,6 +7,16 @@ public class FormData {
     private double margAmountCapitalGain;
     private double amountPerYear;
 
+    public double getIncome() {
+        return income;
+    }
+
+    public void setIncome(double income) {
+        this.income = income;
+    }
+
+    private double income;
+
     public double getMargAmountPrincipal() {
         return margAmountPrincipal;
     }

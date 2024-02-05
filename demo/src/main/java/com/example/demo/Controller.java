@@ -39,7 +39,7 @@ public class Controller {
         AccountState startingAccountState = new AccountState.Builder()
                 .withPostTaxAmountNeededPerYear(formData.getAmountPerYear())
                 .withInterestRate(formData.getInterestRate())
-                .withIncome(20000)
+                .withIncome(formData.getIncome())
                 .addAccount(new TaxFreeAccount(formData.getTfsaAmount(), 0))
                 .addAccount(new TaxDeferredAccount(formData.getRrspAmount(), 0))
                 .addAccount(new TaxableAccount(formData.getMargAmountPrincipal(), formData.getMargAmountCapitalGain()))
@@ -70,6 +70,7 @@ public class Controller {
         // This returns a JSON or XML with the users
         System.out.println("burndown getting");
         ScenarioNode root = new ScenarioNode();
+//        ArrayList<BurndownTimeEvent> burndown = null;
         ArrayList<BurndownTimeEvent> burndown = root.readToFileAl("C:\\example\\demo\\burndown.ser");
         return burndown;
     }

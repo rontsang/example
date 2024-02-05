@@ -21,7 +21,7 @@
   <input type="text" id="interestRate" formControlName="interestRate" placeholder="Input 5">
 
   <label for="amountPerYear">Post-Tax Amount Needed Per Year</label>
-  <input appCurrencyFormat type="text" id="amountPerYear" formControlName="amountPerYear" placeholder="Input 6">
+  <input [class.red-border]="updateNeeded" appCurrencyFormat type="text" id="amountPerYear" formControlName="amountPerYear" placeholder="Input 6">
 
   <label for="provinceSelect">Province</label>
 

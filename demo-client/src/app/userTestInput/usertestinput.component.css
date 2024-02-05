@@ -1,12 +1,21 @@
 /* Container styling */
 form {
+  display: flex; /* Use flexbox to layout children side by side */
+  flex-wrap: wrap; /* Allow items to wrap as needed */
+  /*align-items: center; !* Align items vertically *!*/
+  justify-content: space-between; /* Distribute space between items */
   background-color: #202020; /* Light grey background */
   padding: 15px; /* Reduced padding around the form */
   border-radius: 15px; /* Smaller rounded corners */
-  width: 200px; /* Reduced width of the form '*/
-  height: 500px;
+  width: 600px; /* Reduced width of the form '*/
+  height: 150px;
   margin: auto; /* Center the form on the page */
   font-size: 10px; /* Smaller font size for the entire form */
+}
+
+.input-container {
+  width: 100px; /* Make input container take the full width of the form */
+  margin-bottom: 10px; /* Space between each input-container */
 }
 
 /* Label styling */
@@ -23,7 +32,8 @@ form label {
 form input[type="number"],
 form input[type="text"],
 form select {
-  width: 100%;
+  width: 100px;
+  height: 20px;
   padding: 2px 10px; /* Reduced padding inside the inputs/select */
   margin: 2px 0; /* Reduced margin for vertical spacing */
   /*box-sizing: border-box;*/
@@ -70,7 +80,7 @@ form input[type="range"]::-moz-range-thumb {
 
 /* Button styling */
 form button {
-  width: 100%;
+  width: 100px;
   padding: 3px; /* Further reduced padding inside the button */
   background-color: #BB86FC;
   color: white;
@@ -78,7 +88,6 @@ form button {
   height: 35px;
   border-radius: 40px; /* Semi-circular rounded borders for the button */
   cursor: pointer;
-  margin-top: 20px; /* Reduced margin at the top */
   transition: background-color 0.1s ease;
 }
 

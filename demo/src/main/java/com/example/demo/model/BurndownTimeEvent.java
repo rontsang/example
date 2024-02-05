@@ -2,10 +2,13 @@ package com.example.demo.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class BurndownTimeEvent implements Serializable {
     public AccountState accountState;
     public double year;
+
+    public List<Double> taxableAmount;
 
     public boolean isInfinite;
 

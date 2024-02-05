@@ -15,17 +15,52 @@ export class UserInputComponent {
   provinces = ['Ontario','Alberta','Yukon']; // Add actual province names
   tfsaAmount = 100000;
   sharedValue = 50;
+  repeat = 0;
+  updateNeeded = false;
 
   userForm = new FormGroup({
     linkedValue: new FormControl(),
-    tfsaAmount: new FormControl(100000),
-    rrspAmount: new FormControl(100000),
-    margAmountPrincipal: new FormControl(50000),
-    margAmountCapitalGain: new FormControl(50000),
-    interestRate: new FormControl(0.05),
-    amountPerYear: new FormControl(60000),
+    tfsaAmount: new FormControl(500000),
+    rrspAmount: new FormControl(650000),
+    income: new FormControl(5000),
+    margAmountPrincipal: new FormControl(500000),
+    margAmountCapitalGain: new FormControl(500000),
+    interestRate: new FormControl(0.04),
+    amountPerYear: new FormControl(75000),
     province: new FormControl(this.provinces[0])
   });
+
+  ngOnInit(): void {
+    this.sharedService.inputUpdateNeeded$.subscribe(updateNeeded => {
+      if (updateNeeded && this.repeat < 5) {
+        this.updateNeeded = true;
+        this.sharedService.notifyChartUsedNewData(true);
+
+        console.log("is red 1: ", this.updateNeeded);
+        const tfsaAmount = Number(this.userForm.get('tfsaAmount')?.value);
+        const rrspAmount = Number(this.userForm.get('rrspAmount')?.value);
+        const margAmountPrincipal = Number(this.userForm.get('margAmountPrincipal')?.value);
+        const margAmountCapitalGain = Number(this.userForm.get('margAmountCapitalGain')?.value);
+        const total = tfsaAmount + rrspAmount + margAmountPrincipal + margAmountCapitalGain;
+        const interestRate = Number(this.userForm.get('interestRate')?.value);
+        const newAmountPerYear = Number(this.userForm.get('amountPerYear')?.value) * 2;
+        console.log("Yo whats up", newAmountPerYear);
+        if (total * interestRate * 1.5 < Number(this.userForm.get('amountPerYear')?.value)) {
+          console.log("Yo whats up 2");
+          this.userForm.patchValue({
+            amountPerYear: total * interestRate * 1.5
+          });
+        } else {
+          console.log("Yo whats up 3");
+          this.userForm.patchValue({
+            amountPerYear: newAmountPerYear
+          });
+        }
+        this.repeat++;
+        this.sendForm();
+      }
+    });
+  }
 
   onInputChange() {
     this.userForm.get('linkedValue')?.updateValueAndValidity();
@@ -80,11 +115,22 @@ export class UserInputComponent {
     this.userForm.valueChanges.subscribe(() => {
     // Notify that the chart needs to be updated (greyed out) on user input change
     this.sharedService.notifyChartUpdateNeeded(true);
+    console.log("User input changed");
+    const formData = this.userForm.value;
+    this.sharedDataService.updateInputData(formData);
   });}
+
 
   isSubmitted = false;
 
-  onSubmit() {
+  onSubmit(){
+    this.updateNeeded = false;
+    this.sharedService.notifyChartUsedNewData(false);
+    this.sendForm();
+  }
+
+  sendForm() {
+    console.log("isRed", this.updateNeeded);
     this.isSubmitted = true;
     this.sharedService.notifyChartUpdateNeeded(false);
     console.log('submitted!');
@@ -95,10 +141,14 @@ export class UserInputComponent {
       },
       error => console.error('Error!', error)
     );
+    console.log("isRed3", this.updateNeeded);
+
     this.http.post<any[]>('http://localhost:8081/submit-form', this.userForm.value).subscribe(data => {
       console.log("returned data: ")
       console.log(data)
       this.sharedDataService.updateChartData(data);
+      console.log("isRed4", this.updateNeeded);
     });
+    console.log("isRed5", this.updateNeeded);
   }
 }

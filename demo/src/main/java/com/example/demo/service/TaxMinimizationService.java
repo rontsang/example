@@ -71,6 +71,18 @@ public class TaxMinimizationService {
 
         // Append nextBurnDown to previousBurnDown
         for(BurndownTimeEvent event : nextBurnDown){
+            event.taxableAmount = new ArrayList<>();
+            for(int i = 0; i < event.accountState.accounts.size(); i++){
+                double totalTaxable = 0;
+                double ratio = event.accountState.accounts.get(i).principalAmount / (event.accountState.accounts.get(i).principalAmount + event.accountState.accounts.get(i).capitalGainsAmount);
+                if(event.accountState.accounts.get(i).isAmountTaxable) {
+                    totalTaxable += event.preTaxAmounts.get(i) * ratio;
+                }
+                if(event.accountState.accounts.get(i).isCapitalGainsTaxable) {
+                    totalTaxable += event.preTaxAmounts.get(i) * (1 - ratio);
+                }
+                event.taxableAmount.add(totalTaxable);
+            }
             burndown.add(event);
         }
 
