@@ -31,6 +31,8 @@ export class SelfTestChartComponent {
   totalTaxableIncome: number = 0;
   subscription?: Subscription;
 
+  stage = 1;
+
   constructor(
     private accountService: AccountService,
     private sharedDataService: SharedDataService,
@@ -38,9 +40,39 @@ export class SelfTestChartComponent {
   ) {}
 
   ngOnInit(): void {
-    this.subscription  = this.sharedDataService.currentInputData.subscribe((data) => {
+
+    this.subscription  = this.sharedDataService.currentInputData2$.subscribe((data) => {
       this.data = data; // Data received from sibling1
-      console.log("User test data received: ", this.data);
+      console.log("User test data received 123: ", data);
+    });
+    this.sharedDataService.chartStage$.subscribe(data => {
+      // CONCAT THE DATA FROM OUR OBJECTS
+      // REDRAW THE CHART BASED ON STAGE
+    });
+
+    this.sharedDataService.chartData2$.subscribe(data => {
+      console.log("Received new data from the shared data service:", data);
+      // UPDATE THE CHART DATA ARRAY
+
+      if(this.chart == null){
+        this.data = this.transformDataForChart(data);
+        this.createChart(this.data);
+      } else {
+        if (data == null) {
+          this.sharedService.notifyUserUpdateNeeded(true);
+
+          //redo calculations with higher income value
+          if (this.chart) {
+            this.chart.data.datasets = [];
+            this.chart.update();
+          }
+          this.tooHighIncome = true;
+        } else {
+          this.sharedService.notifyUserUpdateNeeded(false);
+          this.tooHighIncome = false;
+          this.updateChart(data);
+        }
+      }
     });
   }
 

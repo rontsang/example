@@ -18,6 +18,7 @@ export class UserInputComponent {
   repeat = 0;
   updateNeeded = false;
 
+
   userForm = new FormGroup({
     linkedValue: new FormControl(),
     tfsaAmount: new FormControl(500000),
@@ -31,6 +32,8 @@ export class UserInputComponent {
   });
 
   ngOnInit(): void {
+    const formData = this.userForm.value;
+    this.sharedDataService.updateInputData(formData);
     this.sharedService.inputUpdateNeeded$.subscribe(updateNeeded => {
       if (updateNeeded && this.repeat < 5) {
         this.updateNeeded = true;

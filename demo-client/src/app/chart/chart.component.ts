@@ -62,19 +62,24 @@ export class ChartComponent {
 
     this.sharedDataService.chartData$.subscribe(data => {
       console.log("Received new data from the shared data service:", data);
-      if(data == null){
-        this.sharedService.notifyUserUpdateNeeded(true);
+      if(this.chart == null) {
+        this.data = this.transformDataForChart(data);
+        this.createChart(this.data);
+      } else {
+        if (data == null) {
+          this.sharedService.notifyUserUpdateNeeded(true);
 
-        //redo calculations with higher income value
-        if (this.chart) {
-          this.chart.data.datasets = [];
-          this.chart.update();
+          //redo calculations with higher income value
+          if (this.chart) {
+            this.chart.data.datasets = [];
+            this.chart.update();
+          }
+          this.tooHighIncome = true;
+        } else {
+          this.sharedService.notifyUserUpdateNeeded(false);
+          this.tooHighIncome = false;
+          this.updateChart(data);
         }
-        this.tooHighIncome = true;
-      } else{
-        this.sharedService.notifyUserUpdateNeeded(false);
-        this.tooHighIncome = false;
-        this.updateChart(data);
       }
     });
 

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Scenario {
-
-    // Inputs
     ArrayList<Double> calculationPoint = new ArrayList<>();
 
     // Intermediate Calculations

@@ -22,6 +22,10 @@ export class SharedService {
     this.userUpdateNeededSource.next(isNeeded);
   }
 
+  notifyUserUpdateNeeded2(isNeeded: boolean) {
+    this.userUpdateNeededSource.next(isNeeded);
+  }
+
   notifyChartUsedNewData(isNeeded: boolean) {
     this.chartUsedNewData.next(isNeeded);
   }
