@@ -1,9 +1,9 @@
 import {Component, ElementRef, ViewChild} from '@angular/core';
-import { ReactiveFormsModule, FormGroup, FormControl, FormsModule } from '@angular/forms';
+import { FormGroup, FormControl } from '@angular/forms';
 import { DataService } from './../data.service';
 import {HttpClient} from "@angular/common/http";
 import {SharedDataService} from "../services/SharedDataService";
-import { CurrencyFormatDirective } from './currency-format.directive';
+// import { CurrencyFormatDirective } from './currency-format.directive';
 import {SharedService} from "../services/SharedService";
 
 @Component({
@@ -13,14 +13,22 @@ import {SharedService} from "../services/SharedService";
 })
 export class UserInputComponent {
   provinces = ['Ontario','Alberta','Yukon']; // Add actual province names
-  tfsaAmount = 100000;
-  sharedValue = 50;
+
   repeat = 0;
   updateNeeded = false;
+  isSubmitted = false;
 
+  sliderValueTfsa = 0;
+  sliderValueRrsp = 0;
+  sliderValueMargPrincipal = 0;
+  sliderValueMargCapitalGain = 0;
+  sliderValueIncome = 0;
+  sliderValueInterestRate = 0;
+  sliderValueAmountPerYear = 0;
+
+  // @ViewChild('currencyFormatter') currencyFormatterDirective!: CurrencyFormatDirective;
 
   userForm = new FormGroup({
-    linkedValue: new FormControl(),
     tfsaAmount: new FormControl(500000),
     rrspAmount: new FormControl(650000),
     income: new FormControl(5000),
@@ -31,9 +39,23 @@ export class UserInputComponent {
     province: new FormControl(this.provinces[0])
   });
 
+
+  constructor(
+    private dataService: DataService,
+    private http: HttpClient,
+    private sharedDataService: SharedDataService,
+    private sharedService: SharedService
+  ) {
+    // Grey out chart on user input change
+    this.userForm.valueChanges.subscribe(() => {
+      this.sharedService.notifyChartIsObsolete(true);
+      this.sharedDataService.updateInputData(this.userForm.value);
+    });}
+
   ngOnInit(): void {
     const formData = this.userForm.value;
     this.sharedDataService.updateInputData(formData);
+
     this.sharedService.inputUpdateNeeded$.subscribe(updateNeeded => {
       if (updateNeeded && this.repeat < 5) {
         this.updateNeeded = true;
@@ -65,22 +87,23 @@ export class UserInputComponent {
     });
   }
 
-  onInputChange() {
-    this.userForm.get('linkedValue')?.updateValueAndValidity();
-    // this.cdRef.detectChanges();
-    this.http.post<any[]>('http://localhost:8081/submit-form', this.userForm.value).subscribe(data => {
-      console.log("returned data: ")
-      console.log(data)
-      this.sharedDataService.updateChartData(data);
-    });
-  }
+  onSliderChange(event: Event, formControlName: string) {
+    const input = event.target as HTMLInputElement;
+    const numericValue = Number(input.value);
 
-  logToLinear(logValue: number): number {
-    return Math.pow(2, logValue / 2000);
-  }
-  sliderValue = 50; // Default value
+    // Update the form control value
+    this.userForm.get(formControlName)?.setValue(numericValue);
 
-  @ViewChild('currencyInput') textInput!: ElementRef;
+    // Format the display value manually for now
+    const formattedValue = this.formatCurrency(numericValue);
+
+    // Directly update the corresponding text input (if needed)
+    const textInputId = `${formControlName}Number`; // Ensure the ID matches your input's ID
+    const textInput: HTMLInputElement | null = document.getElementById(textInputId) as HTMLInputElement;
+    if (textInput) {
+      textInput.value = formattedValue;
+    }
+  }
 
   private formatCurrency(value: number): string {
     return new Intl.NumberFormat('en-US', {
@@ -91,41 +114,6 @@ export class UserInputComponent {
     }).format(value);
   }
 
-  onSliderChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const numericValue = Number(input.value);
-    this.userForm.get('tfsaAmount')?.setValue(numericValue);
-    this.formatTextInput(numericValue);
-  }
-
-  private formatTextInput(value: number): void {
-    if (this.textInput) {
-      this.textInput.nativeElement.value = this.formatCurrency(value);
-    }
-  }
-
-  onTextChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.sliderValue = Number(input.value);
-  }
-
-  constructor(
-    private dataService: DataService,
-    private http: HttpClient,
-    private sharedDataService: SharedDataService,
-    private sharedService: SharedService
-  ) {
-    this.userForm.valueChanges.subscribe(() => {
-    // Notify that the chart needs to be updated (greyed out) on user input change
-    this.sharedService.notifyChartUpdateNeeded(true);
-    console.log("User input changed");
-    const formData = this.userForm.value;
-    this.sharedDataService.updateInputData(formData);
-  });}
-
-
-  isSubmitted = false;
-
   onSubmit(){
     this.updateNeeded = false;
     this.sharedService.notifyChartUsedNewData(false);
@@ -133,25 +121,17 @@ export class UserInputComponent {
   }
 
   sendForm() {
-    console.log("isRed", this.updateNeeded);
     this.isSubmitted = true;
-    this.sharedService.notifyChartUpdateNeeded(false);
-    console.log('submitted!');
-    console.log(this.userForm.value);
+    this.sharedService.notifyChartIsObsolete(false);
     this.dataService.sendData(this.userForm.value).subscribe(
       response => {
         console.log('Success!', response);
       },
       error => console.error('Error!', error)
     );
-    console.log("isRed3", this.updateNeeded);
 
     this.http.post<any[]>('http://localhost:8081/submit-form', this.userForm.value).subscribe(data => {
-      console.log("returned data: ")
-      console.log(data)
       this.sharedDataService.updateChartData(data);
-      console.log("isRed4", this.updateNeeded);
     });
-    console.log("isRed5", this.updateNeeded);
   }
 }

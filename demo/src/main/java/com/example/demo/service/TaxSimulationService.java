@@ -1,16 +1,11 @@
 package com.example.demo.service;
 
-import com.example.demo.FinanceUtility;
 import com.example.demo.model.Account;
 import com.example.demo.model.AccountState;
 import com.example.demo.model.BurndownTimeEvent;
-import com.example.demo.model.OptimizationWindow;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import static com.example.demo.service.ScenarioUtility.generatePermutations;
 
 // TODO Optimize infinite money case
 // TODO recalculate taxes ever withdrawal based on capital gain differences
@@ -25,7 +20,7 @@ public class TaxSimulationService {
     static int intervalSize = 2;
     static int iterationsPerScenario = 4;
 
-    public static ScenarioNode main(AccountState startingState, ArrayList withdrawals) {
+    public static ScenarioNode main(AccountState startingState, ArrayList withdrawals, double startingYear) {
         Scenario scenario = new Scenario();
         scenario.preTaxAmounts = withdrawals;
 
@@ -44,7 +39,7 @@ public class TaxSimulationService {
             ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
             root.getOptimalChildAndYearsToDepletion();
         if(root.scenario.yearsToDepletion < 100) {
-            burndownStageN(root, burndown);
+            burndownStageN(root, burndown, startingYear);
             root.displayResults();
 
 //            root.saveToFile(root, "root.ser");
@@ -60,9 +55,9 @@ public class TaxSimulationService {
         return null;
     }
 
-    private static void burndownStageN(ScenarioNode currentScenarioNode, ArrayList<BurndownTimeEvent> burndown) {
+    private static void burndownStageN(ScenarioNode currentScenarioNode, ArrayList<BurndownTimeEvent> burndown, double startingYear) {
 
-        ArrayList<BurndownTimeEvent> nextBurnDown = Postprocessor.generateBurndownUntilFirstAccountDepletes(currentScenarioNode.startingAccountState, (ArrayList<Double>) currentScenarioNode.scenario.preTaxAmounts, burndown);
+        ArrayList<BurndownTimeEvent> nextBurnDown = Postprocessor.generateBurndownUntilFirstAccountDepletes(currentScenarioNode.startingAccountState, (ArrayList<Double>) currentScenarioNode.scenario.preTaxAmounts, burndown, startingYear);
 
         // Print accounts in burn down
         for (BurndownTimeEvent event : nextBurnDown) {
@@ -90,7 +85,7 @@ public class TaxSimulationService {
 
         // Recurse
         if (currentScenarioNode.optimalChild != null){
-            burndownStageN(currentScenarioNode.optimalChild, burndown);
+            burndownStageN(currentScenarioNode.optimalChild, burndown, startingYear);
         }
     }
 

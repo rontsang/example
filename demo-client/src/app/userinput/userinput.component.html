@@ -2,14 +2,16 @@
 
 <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
   <label for="tfsaAmountNumber">TFSA Balance</label>
-  <input #currencyInput appCurrencyFormat type="text" id="tfsaAmountNumber" formControlName="tfsaAmount">
-  <input type="range" id="tfsaAmountRange" formControlName="tfsaAmount" [value]="sliderValue" (input)="onSliderChange($event)" min="0" max="2000000" step="10000">
+  <input appCurrencyFormat type="text" id="tfsaAmountNumber" formControlName="tfsaAmount">
+  <input type="range" id="tfsaAmountRange" formControlName="tfsaAmount" [value]="sliderValueTfsa" (input)="onSliderChange($event, 'tfsaAmount')" min="0" max="2000000" step="10000">
 
-  <label for="rrspAmount">RRSP Balance</label>
-  <input appCurrencyFormat type="text" id="rrspAmount" formControlName="rrspAmount" placeholder="Input 2">
+  <label for="rrspAmountNumber">RRSP Balance</label>
+  <input appCurrencyFormat #currencyFormatter="appCurrencyFormat" type="text" id="rrspAmountNumber" formControlName="rrspAmount">
+  <input type="range" id="rrspAmountRange" formControlName="rrspAmount" [value]="sliderValueRrsp" (input)="onSliderChange($event,'rrspAmount')" min="0" max="2000000" step="10000">
 
   <label for="margAmountPrincipal">Standard Principal Balance</label>
-  <input appCurrencyFormat type="text" id="margAmountPrincipal" formControlName="margAmountPrincipal" placeholder="Input 3">
+  <input appCurrencyFormat type="text" id="margAmountPrincipal" formControlName="margAmountPrincipal">
+  <input type="range" id="margPrincipalAmountRange" formControlName="margAmountPrincipal" [value]="sliderValueMargPrincipal" (input)="onSliderChange($event, 'margAmountPrincipal')" min="0" max="2000000" step="10000">
 
   <label for="margAmountCapitalGain">Standard Capital Gain Balance</label>
   <input appCurrencyFormat type="text" id="margAmountCapitalGain" formControlName="margAmountCapitalGain" placeholder="Input 4">

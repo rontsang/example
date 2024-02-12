@@ -10,6 +10,17 @@ public class UserTestFormData {
     private double margAmountCapitalGain;
     private double amountPerYear;
     private double income;
+    private double startingYear;
+
+    public double getStartingYear() {
+        return startingYear;
+    }
+
+    public void setStartingYear(double startingYear) {
+        this.startingYear = startingYear;
+    }
+
+
     public double getIncome() {
         return income;
     }

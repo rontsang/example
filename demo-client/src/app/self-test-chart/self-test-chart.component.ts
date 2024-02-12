@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {Chart} from "chart.js";
 import {AccountService} from "../services/AccountService";
 import {SharedDataService} from "../services/SharedDataService";
@@ -7,6 +7,7 @@ import {CurrencyPipe, DecimalPipe, NgForOf, CommonModule} from "@angular/common"
 import {SharedService} from "../services/SharedService";
 import {Subscription} from "rxjs";
 import {Usertestinput} from "../userTestInput/usertestinput";
+import {FormControl} from "@angular/forms";
 
 @Component({
   selector: 'app-chart-self-test',
@@ -24,6 +25,8 @@ import {Usertestinput} from "../userTestInput/usertestinput";
 export class SelfTestChartComponent {
 
   data: ChartData[] = [];
+  stagesData: ChartData[][] = [];
+
   strategies: WithdrawalStrategy[] = [];
   summaries: Summary[] = [];
   tooHighIncome: boolean = false;
@@ -31,7 +34,20 @@ export class SelfTestChartComponent {
   totalTaxableIncome: number = 0;
   subscription?: Subscription;
 
+  @Input() states: State[] = [];
   stage = 1;
+
+  initState: State = {
+    income: 0,
+    interestRate: 0,
+    margAmountCapitalGain: 0,
+    margAmountPrincipal: 0,
+    province: null,
+    tfsaAmount: 0,
+    rrspAmount: 0,
+    startingYear: 0,
+    endingYear: 0
+  };
 
   constructor(
     private accountService: AccountService,
@@ -39,8 +55,40 @@ export class SelfTestChartComponent {
     private sharedService: SharedService
   ) {}
 
-  ngOnInit(): void {
+  // handleDataFromChild(stage: number) {
+  //   console.log('Received data from child:', stage);
+  //   this.stage = stage;
+  //   // Do something with the data
+  // }
 
+  handleDataFromChild(state: State) {
+    console.log('Received data from child:', state);
+    state.province = this.initState.province;
+    state.interestRate = this.initState.interestRate;
+    this.states.push(state);
+    console.log('Parent State Array: ', this.states);
+    this.stage++;
+    // Do something with the data
+  }
+
+  getAllStagesData(): ChartData[] {
+    // Flatten the array of arrays into a single array containing all ChartData
+    return this.stagesData.flat();
+  }
+  ngOnInit(): void {
+    this.subscription = this.sharedDataService.currentInputData$.subscribe((data) => {
+      console.log("GOT HERE 3: ", this.data);
+      this.initState.tfsaAmount = data.tfsaAmount;
+      this.initState.rrspAmount = data.rrspAmount;
+      this.initState.income = data.income;
+      this.initState.margAmountPrincipal = data.margAmountPrincipal;
+      this.initState.margAmountCapitalGain = data.margAmountCapitalGain;
+      this.initState.interestRate = data.interestRate;
+      this.initState.province = data.province;
+      console.log("User test data received 3: ", this.data);
+      console.log("USER TEST FORM 3: ", this.initState);
+    });
+    this.states.push(this.initState);
     this.subscription  = this.sharedDataService.currentInputData2$.subscribe((data) => {
       this.data = data; // Data received from sibling1
       console.log("User test data received 123: ", data);
@@ -53,6 +101,10 @@ export class SelfTestChartComponent {
     this.sharedDataService.chartData2$.subscribe(data => {
       console.log("Received new data from the shared data service:", data);
       // UPDATE THE CHART DATA ARRAY
+      this.stagesData.push(data);
+      console.log("STAGES DATA: ", this.stagesData);
+      this.data = this.getAllStagesData();
+      console.log("DATA: ", this.data);
 
       if(this.chart == null){
         this.data = this.transformDataForChart(data);
@@ -237,3 +289,14 @@ interface Summary {
   accNames: string[];
 }
 
+interface State {
+  tfsaAmount?: number;
+  rrspAmount?: number;
+  income?: number;
+  margAmountPrincipal?: number;
+  margAmountCapitalGain?: number;
+  interestRate?: number;
+  province?: string | null;
+  startingYear?: number;
+  endingYear?: number;
+}

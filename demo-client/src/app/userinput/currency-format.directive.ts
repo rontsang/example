@@ -1,21 +1,19 @@
-import {Directive, HostListener, ElementRef, Self, AfterViewInit} from '@angular/core';
+import {Directive, HostListener, ElementRef, Self, AfterViewInit, SimpleChanges, Input} from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 @Directive({
-  selector: '[appCurrencyFormat]'
+  selector: '[appCurrencyFormat]',
+  exportAs: 'appCurrencyFormat'  // Add this line
 })
 export class CurrencyFormatDirective implements AfterViewInit{
-
   constructor(@Self() private ngControl: NgControl, private el: ElementRef) {}
 
   @HostListener('input', ['$event.target.value'])
   onInput(value: string): void {
-    const numericValue = this.parseValue(value);
-    const formattedValue = this.formatCurrency(numericValue);
-    if (this.ngControl.valueAccessor) {
-      this.ngControl.valueAccessor.writeValue(formattedValue);
-    }
+    const numericValue = parseFloat(value.replace(/[^\d.-]/g, ''));
     this.ngControl.control?.setValue(numericValue, { emitEvent: false });
+    const formattedValue = this.formatCurrency(numericValue);
+    this.el.nativeElement.value = formattedValue;
   }
 
   private parseValue(value: string): number {
@@ -31,6 +29,15 @@ export class CurrencyFormatDirective implements AfterViewInit{
     }).format(value);
   }
 
+  public formatAndSetValue(value: number): void {
+    console.log("formatAndSetValue: ", value);
+    const formattedValue = this.formatCurrency(value);
+    this.el.nativeElement.value = formattedValue;
+    console.log(`Formatted value: ${formattedValue}`);
+    // Update the form control's value without emitting an event to avoid an infinite loop
+    this.ngControl.control?.setValue(value, { emitEvent: false });
+  }
+
   @HostListener('blur')
   onBlur(): void {
     const value = this.ngControl.control?.value;
@@ -44,9 +51,14 @@ export class CurrencyFormatDirective implements AfterViewInit{
   }
 
   ngAfterViewInit(): void {
-    const value = this.ngControl.control?.value;
-    if (value != null) {
-      this.el.nativeElement.value = this.formatCurrency(value);
+    this.ngControl.control?.valueChanges.subscribe(value => {
+      const numericValue = this.parseValue(value);
+      const formattedValue = this.formatCurrency(numericValue);
+      this.el.nativeElement.value = formattedValue;
+    });
+    const initialValue = this.ngControl.control?.value;
+    if (initialValue != null) {
+      this.el.nativeElement.value = this.formatCurrency(initialValue);
     }
   }
 }

@@ -1,10 +1,10 @@
 /* Container styling */
 form {
   background-color: #202020; /* Light grey background */
-  padding: 15px; /* Reduced padding around the form */
-  border-radius: 15px; /* Smaller rounded corners */
+  padding: 5px 15px; /* Reduced padding around the form */
+  border-radius: 30px; /* Smaller rounded corners */
   width: 200px; /* Reduced width of the form '*/
-  height: 500px;
+  height: 550px;
   margin: auto; /* Center the form on the page */
   font-size: 10px; /* Smaller font size for the entire form */
 }
@@ -53,7 +53,7 @@ form input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; /* Override default appearance */
   width: 15px; /* Size of the slider thumb */
   height: 15px; /* Size of the slider thumb, equal to width to make it circular */
-  background: #4CAF50; /* Color of the slider thumb */
+  background: #BB86FC; /* Color of the slider thumb */
   cursor: pointer; /* Change cursor to pointer when hovering over the slider thumb */
   border-radius: 50%; /* Fully rounded edges to create a circle */
   border: 0px solid #ccc; /* Optional: adds a border to the slider thumb */
@@ -62,7 +62,7 @@ form input[type="range"]::-webkit-slider-thumb {
 form input[type="range"]::-moz-range-thumb {
   width: 20px; /* Size of the slider thumb */
   height: 20px; /* Size of the slider thumb, equal to width to make it circular */
-  background: #4CAF50; /* Color of the slider thumb */
+  background: #BB86FC; /* Color of the slider thumb */
   cursor: pointer; /* Change cursor to pointer when hovering over the slider thumb */
   border-radius: 50%; /* Fully rounded edges to create a circle */
   border: 1px solid #ccc; /* Optional: adds a border to the slider thumb */

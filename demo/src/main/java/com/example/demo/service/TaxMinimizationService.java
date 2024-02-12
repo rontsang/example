@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.demo.service.ScenarioUtility.generatePermutations;
-import static com.example.demo.service.ScenarioUtility.printOptimalStrategy;
 
 // TODO Optimize infinite money case
 // TODO recalculate taxes ever withdrawal based on capital gain differences

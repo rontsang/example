@@ -29,6 +29,27 @@ public class Postprocessor {
 
         return newBurndown;
     }
+    static ArrayList<BurndownTimeEvent> generateBurndownUntilFirstAccountDepletes(AccountState startingAccountState, ArrayList<Double> withdrawalsPerYear, ArrayList<BurndownTimeEvent> currentBurnDown, double startingYear2) {
+        double startingYear = startingYear2;
+
+        if(currentBurnDown != null && currentBurnDown.size() > 0){
+            BurndownTimeEvent lastEvent = currentBurnDown.get(currentBurnDown.size()-1);
+            startingYear = lastEvent.year;
+        }
+
+        ArrayList<BurndownTimeEvent> newBurndown = new ArrayList<>();
+        BurndownTimeEvent startingEvent = new BurndownTimeEvent(startingAccountState, startingYear, withdrawalsPerYear);
+        newBurndown.add(startingEvent);
+
+        double yearsToFirstAccountDepletion = calculateYearsUntilFirstAccountDepletes(startingAccountState, withdrawalsPerYear);
+        if(yearsToFirstAccountDepletion < 1){
+            return newBurndown;
+        }
+
+        calculateResultStatePerYear(startingAccountState, withdrawalsPerYear, newBurndown, yearsToFirstAccountDepletion);
+
+        return newBurndown;
+    }
 
     private static void calculateResultStatePerYear(AccountState startingAccountState, ArrayList<Double> withdrawalsPerYear, ArrayList<BurndownTimeEvent> burndown, double yearsToFirstAccountDepletion) {
         AccountState currentState = startingAccountState.cloneAccountState();

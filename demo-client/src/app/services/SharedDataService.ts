@@ -27,7 +27,6 @@ export class SharedDataService {
 
   // We changed input form data
   updateInputData(data: any) {
-    console.log("SharedDataService.updateInputData: ", data);
     this.inputDataSource.next(data); // Update the data
   }
 

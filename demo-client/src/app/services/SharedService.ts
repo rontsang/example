@@ -14,7 +14,7 @@ export class SharedService {
   private userUpdateNeededSource = new BehaviorSubject<boolean>(false);
   inputUpdateNeeded$ = this.userUpdateNeededSource.asObservable();
 
-  notifyChartUpdateNeeded(isNeeded: boolean) {
+  notifyChartIsObsolete(isNeeded: boolean) {
     this.chartUpdateNeededSource.next(isNeeded);
   }
 

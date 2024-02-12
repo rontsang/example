@@ -85,7 +85,7 @@ public class Controller {
         withdrawal.add(formData.getMargWithdraw());
 
 
-        ScenarioNode root = TaxSimulationService.main(startingAccountState, withdrawal);
+        ScenarioNode root = TaxSimulationService.main(startingAccountState, withdrawal, formData.getStartingYear());
 
         // return burndown (contains burndown)
         // return post tax amount total
