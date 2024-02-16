@@ -11,6 +11,10 @@ import { NgChartsModule } from 'ng2-charts';
 import { UserInputComponent } from "./userinput/userinput.component";
 import { CurrencyFormatDirective } from './userinput/currency-format.directive';
 import { DisplaywindowComponent } from './displaywindow/displaywindow.component';
+import { MatSliderModule } from "@angular/material/slider";
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {RoundToTenPipe} from "./round-to-ten.pipe";
+
 
 @NgModule({
   declarations: [
@@ -18,18 +22,21 @@ import { DisplaywindowComponent } from './displaywindow/displaywindow.component'
     // Component1Component,
     // Component2Component,
     UserInputComponent,
-    CurrencyFormatDirective
+    CurrencyFormatDirective,
   ],
-  imports: [
-    BrowserModule,
-    // AppRoutingModule,
-    HttpClientModule,
-    // RouterModule,
-    ReactiveFormsModule,
-    FormsModule,
-    NgChartsModule,
-    DisplaywindowComponent,
-  ],
+    imports: [
+        BrowserModule,
+        // AppRoutingModule,
+        HttpClientModule,
+        // RouterModule,
+        ReactiveFormsModule,
+        FormsModule,
+        NgChartsModule,
+        DisplaywindowComponent,
+        MatSliderModule,
+        BrowserAnimationsModule,
+        RoundToTenPipe
+    ],
   providers: [],
   bootstrap: [AppComponent]
 })

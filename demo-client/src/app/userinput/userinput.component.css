@@ -117,3 +117,26 @@ form button:hover {
 .red-border {
   border: 5px solid red !important;
 }
+
+mat-slider {
+  width: 250px; /* Adjust the width as needed */
+  height: 40px; /* Adjust the height as needed */
+}
+
+.mat-slider-track-fill {
+  background-color: red;
+}
+
+.mat-slider-thumb {
+  background-color: blue;
+}
+
+.mat-slider {
+  min-width: 350px;
+}
+
+.mat-slider-thumb {
+  width: 30px;
+  height: 30px;
+}
+

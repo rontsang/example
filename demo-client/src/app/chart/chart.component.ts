@@ -5,6 +5,10 @@ import {SharedDataService} from "../services/SharedDataService";
 import {WithdrawalStrategy} from "../optimal-strategy-widget/optimal-strategy-widget.component";
 import {CurrencyPipe, DecimalPipe, NgForOf, CommonModule} from "@angular/common";
 import {SharedService} from "../services/SharedService";
+import { getChartOptions } from '../chart/chart-options';
+import { RoundToTenPipe} from "../round-to-ten.pipe";
+import { MatTooltipModule } from '@angular/material/tooltip';
+import {MatIcon} from "@angular/material/icon";
 
 @Component({
   selector: 'app-chart',
@@ -13,7 +17,10 @@ import {SharedService} from "../services/SharedService";
     CurrencyPipe,
     DecimalPipe,
     NgForOf,
-    CommonModule
+    CommonModule,
+    RoundToTenPipe,
+    MatTooltipModule,
+    MatIcon
   ],
   templateUrl: './chart.component.html',
   styleUrl: './chart.component.css'
@@ -26,6 +33,7 @@ export class ChartComponent {
   tooHighIncome: boolean = false;
   warning: boolean = false; //duplicate
   totalTaxableIncome: number = 0;
+  totalAfter: number = 0;
 
   constructor(
     private accountService: AccountService,
@@ -83,17 +91,24 @@ export class ChartComponent {
       }
     });
 
-    this.strategies = [
-      {
-        "startYear": 0,
-        "endYear": 38.28350747910805,
-        "withdrawals": [
-          8500,
-          18899.371268656716,
-          43630.578136105185
-        ]
-      }
-    ];
+    // this.strategies = [
+    //   {
+    //     "startYear": 0,
+    //     "endYear": 38.28350747910805,
+    //     "withdrawals": [
+    //       8500,
+    //       18899.371268656716,
+    //       43630.578136105185
+    //     ]
+    //   }
+    // ];
+  }
+
+  getTooltipContent(strategy: Summary): string {
+    // Total tax is: income + tfsa + rrsp + nonReg
+    return strategy.withdrawals
+      .map(detail => `${(detail?.taxableAmount ?? 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 })} is taxable`)
+      .join('\n'); // Assuming line breaks work for your tooltip; otherwise, adjust as needed
   }
 
   updateChart(data: any[]): void {
@@ -140,67 +155,22 @@ export class ChartComponent {
 
   public chart: any;
 
-  getRandomColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  }
-
   createChart(chartData: any[]): void {
-    console.log("dasdsa");
     console.log(chartData);
-    console.log("dasdsa");
     this.chart = new Chart("MyChart", {
-      type: 'line', //this denotes tha type of chart
+      type: 'line',
       data: {
         datasets: chartData.map((dataset:ChartData) => ({
           label: dataset.name,
           data: dataset.series.map((seriesItem: SeriesItem) => ({
-            x: seriesItem.name, // Use the actual value from seriesItem
-            y: seriesItem.value  // Use the actual value from seriesItem
-          })),
-          fill: false
+            x: seriesItem.name,
+            y: seriesItem.value
+          }))
         }))
       },
-      options: {
-        responsive: true,
-        animation: {
-          duration: 0, // general animation time
-        },
-        plugins: {
-          tooltip: {
-            animation: false,
-            mode: 'index',
-            intersect: false
-          },
-        },
-        hover: {
-          mode: 'nearest',
-          intersect: false
-        },
-        aspectRatio:2.5,
-        scales: {
-          x: {
-            type: 'linear', // Specify the scale type as linear
-            position: 'bottom', // Position can be 'left', 'right', 'top', 'bottom'
-            grid: {
-              display: false // Hide grid lines for x-axis
-            }
-          },
-          y: {
-            grid: {
-              display: false // Hide grid lines for y-axis
-            }
-          }
-        }
-      },
-
+      options: getChartOptions(),
     });
   }
-
 
   getWithdrawalStrategy(rawData: RawDataItem[]){
     let summaries: Summary[] = [];

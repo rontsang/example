@@ -1,27 +1,54 @@
-<p>chart works!</p>
+<!--<p>chart works!</p>-->
 <div class="chart-container">
   <canvas id="MyChart" >{{ chart }}</canvas>
+  <div id="chartjs-tooltip" style="opacity: 0; position: absolute; background-color: white; padding: 10px; border-radius: 3px; color: black; font-size: 12px; transform: translate(-50%, 0); pointer-events: none; transition: opacity 0.3s;"></div>
 </div>
 
 <div *ngIf="tooHighIncome === false"  class="results-container">
-  <h3>Optimal Withdrawal Strategy</h3>
+  <p>Optimized Withdrawal Strategy. Years to Depletion: </p>
+  <div class="grid-header">
+    <div class="grid-item paragraph">Year</div>
+    <div class="grid-item withdrawals">Withdrawals</div>
+  </div>
+
   <div *ngFor="let strategy of summaries">
-    <p>
-      <strong>Years:</strong> {{ strategy.startYear }} - {{ strategy.endYear | number: '1.0-2' }}
-    </p>
-    <p>
-      Total tax is: income + tfsa + rrsp + nonReg
-      {{totalTaxableIncome}}
-    </p>
-    <ul>
-      <p> Withdrawal amounts </p>
-      <li *ngFor="let detail of strategy.withdrawals">
-        {{ detail?.accountName }}: {{ detail?.amount | currency:'USD':'symbol-narrow':'1.2-2' }}
-      </li>
-      <li *ngFor="let detail of strategy.withdrawals">
-        {{ detail?.accountName }}: {{ detail?.taxableAmount | currency:'USD':'symbol-narrow':'1.2-2' }}
-      </li>
-    </ul>
+    <div class="grid-container">
+      <div class="grid-item paragraph">
+        <div class="side-by-side-container">
+          <div class="year-container">
+            {{ strategy.startYear| number: '1.1-1' }} -
+            {{ strategy.endYear | number: '1.1-1' }}
+          </div>
+
+          <div class="tooltip-container">
+            &#9432; Tax
+            <div class="tooltip-content">
+              <div class="tooltip-divider">
+                <div class="column-1">
+                  <div>Total Taxable Income: </div>
+                  <div>Tax Owed:</div>
+                  <div>After Tax Total: </div>
+                </div>
+                <div class="column-2">
+                  <div>{{totalTaxableIncome | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
+                </div>
+              </div>
+              <div>
+                 Tax Breakdown:
+                 Income: {{strategy.income | currency:'USD':'symbol-narrow':'1.0-0'}}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="grid-item withdrawals">
+        <ul>
+          <li *ngFor="let detail of strategy.withdrawals">
+            {{ detail?.accountName }}: {{ (detail?.amount ?? 0) | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}
+          </li>
+        </ul>
+      </div>
   </div>
 </div>
 

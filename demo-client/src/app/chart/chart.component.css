@@ -1,6 +1,34 @@
 .chart-container {
   width: 600px; /* or any other fixed size */
-  height: 200px;
+  height: 250px;
+}
+
+.results-container{
+  color: white;
+  font-size: 12px;
+}
+
+.grid-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Adjust the fraction as needed */
+  gap: 20px; /* Space between columns */
+  margin-top: 10px;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Adjust the fraction as needed */
+  gap: 20px; /* Space between columns */
+  border-top: 1px solid white;
+  margin-top: 10px;
+}
+
+.grid-item.paragraph {
+  margin-top: 5px;
+}
+
+.grid-item.withdrawals {
+  margin-top: 5px;
 }
 
 .tooltip-container {
@@ -30,7 +58,59 @@
   transition: opacity 0.6s;
 }
 
-.tooltip-container:hover .tooltip-text {
-  visibility: visible;
-  opacity: 1;
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+  border: 1px solid white; /* Optional styling */
+  height: 18px;
+  border-radius: 9px;
+  font-size: 10px;
+  padding: 1px 5px 1px 3px;
+  cursor: pointer;
+}
+
+.tooltip-content {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 5px;
+  padding: 10px;
+  background-color: black;
+  color: white;
+  text-align: center;
+  border-radius: 6px;
+  z-index: 1;
+}
+
+.column-1 {
+  width: 150px;
+  padding: 5px; /* Adjust as needed */
+  text-align: right;
+}
+
+.column-2 {
+  width: 50px;
+  padding: 5px; /* Adjust as needed */
+  text-align: left;
+}
+
+.tooltip-container:hover .tooltip-content {
+  display: block;
+  width: 200px;
+}
+
+.tooltip-divider {
+  display: flex;
+  justify-content: space-between;
+}
+
+.side-by-side-container {
+  display: flex;
+  align-items: center; /* Vertically center the items if they have different heights */
+  gap: 5px; /* Space between the two divs */
+}
+
+.year-container {
+  width: 60px;
 }

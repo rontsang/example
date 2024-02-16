@@ -5,6 +5,7 @@ import {HttpClient} from "@angular/common/http";
 import {SharedDataService} from "../services/SharedDataService";
 // import { CurrencyFormatDirective } from './currency-format.directive';
 import {SharedService} from "../services/SharedService";
+import { PipeHelperService } from '../services/PipeHelperService';
 
 @Component({
   selector: 'app-userinput',
@@ -26,6 +27,11 @@ export class UserInputComponent {
   sliderValueInterestRate = 0;
   sliderValueAmountPerYear = 0;
 
+  inputValues = [
+    { id: 1, value: 50 },
+    // You can add more entries here as needed
+  ];
+
   // @ViewChild('currencyFormatter') currencyFormatterDirective!: CurrencyFormatDirective;
 
   userForm = new FormGroup({
@@ -38,13 +44,15 @@ export class UserInputComponent {
     amountPerYear: new FormControl(75000),
     province: new FormControl(this.provinces[0])
   });
+  currentValue = 0;
 
 
   constructor(
     private dataService: DataService,
     private http: HttpClient,
     private sharedDataService: SharedDataService,
-    private sharedService: SharedService
+    private sharedService: SharedService,
+    private pipeHelper: PipeHelperService
   ) {
     // Grey out chart on user input change
     this.userForm.valueChanges.subscribe(() => {
@@ -95,14 +103,15 @@ export class UserInputComponent {
     this.userForm.get(formControlName)?.setValue(numericValue);
 
     // Format the display value manually for now
-    const formattedValue = this.formatCurrency(numericValue);
+    const formattedValue = this.getFormattedValue(numericValue);
 
     // Directly update the corresponding text input (if needed)
     const textInputId = `${formControlName}Number`; // Ensure the ID matches your input's ID
     const textInput: HTMLInputElement | null = document.getElementById(textInputId) as HTMLInputElement;
-    if (textInput) {
-      textInput.value = formattedValue;
-    }
+    // if (textInput) {
+      // textInput.value = formattedValue;
+    // }
+    textInput.value = this.getFormattedValue(numericValue);
   }
 
   private formatCurrency(value: number): string {
@@ -112,6 +121,10 @@ export class UserInputComponent {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(value);
+  }
+
+  getFormattedValue(value: number): string {
+    return this.pipeHelper.formatCurrency(value);
   }
 
   onSubmit(){

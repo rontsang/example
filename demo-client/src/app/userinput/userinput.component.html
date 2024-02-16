@@ -1,4 +1,18 @@
 <!--<p>userinput works!</p>-->
+<!--<mat-slider [(ngModel)]="currentValue" min="1" max="100" step="1" value="50"></mat-slider>-->
+<!--<form [formGroup]="userForm" (ngSubmit)="onSubmit()">-->
+<!--  <div *ngFor="let item of inputValues; let i = index">-->
+<!--    <input type="text" [id]="'input_' + i" [(ngModel)]="item.value" #myInput [value]="getFormattedValue(item.value)">-->
+<!--&lt;!&ndash;    <mat-slider&ndash;&gt;-->
+<!--&lt;!&ndash;      [id]="'slider_' + i"&ndash;&gt;-->
+<!--&lt;!&ndash;      min="0"&ndash;&gt;-->
+<!--&lt;!&ndash;      max="100"&ndash;&gt;-->
+<!--&lt;!&ndash;      step="1"&ndash;&gt;-->
+<!--&lt;!&ndash;      [(ngModel)]="item.value"&ndash;&gt;-->
+<!--&lt;!&ndash;      (input)="item.value = +myInput.value">&ndash;&gt;-->
+<!--&lt;!&ndash;    </mat-slider>&ndash;&gt;-->
+<!--  </div>-->
+<!--</form>-->
 
 <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
   <label for="tfsaAmountNumber">TFSA Balance</label>
@@ -10,7 +24,7 @@
   <input type="range" id="rrspAmountRange" formControlName="rrspAmount" [value]="sliderValueRrsp" (input)="onSliderChange($event,'rrspAmount')" min="0" max="2000000" step="10000">
 
   <label for="margAmountPrincipal">Standard Principal Balance</label>
-  <input appCurrencyFormat type="text" id="margAmountPrincipal" formControlName="margAmountPrincipal">
+  <input type="text" id="margAmountPrincipal" formControlName="margAmountPrincipal">
   <input type="range" id="margPrincipalAmountRange" formControlName="margAmountPrincipal" [value]="sliderValueMargPrincipal" (input)="onSliderChange($event, 'margAmountPrincipal')" min="0" max="2000000" step="10000">
 
   <label for="margAmountCapitalGain">Standard Capital Gain Balance</label>
