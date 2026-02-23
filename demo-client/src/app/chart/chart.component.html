@@ -1,0 +1,88 @@
+<!--<p>chart works!</p>-->
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
+
+<div class="chart-container">
+  <canvas id="MyChart" >{{ chart }}</canvas>
+  <div id="chartjs-tooltip" style="opacity: 0; position: absolute; background-color: white; padding: 10px; border-radius: 3px; color: black; font-size: 12px; transform: translate(-50%, 0); pointer-events: none; transition: opacity 0.3s;"></div>
+</div>
+
+<div *ngIf="tooHighIncome === false"  class="results-container">
+  <p>Optimized Withdrawal Strategy. Years to Depletion: </p>
+  <div class="grid-header">
+    <div class="grid-item paragraph">Year</div>
+    <div class="grid-item withdrawals">Withdrawals</div>
+  </div>
+
+  <div *ngFor="let strategy of summaries">
+    <div class="grid-container money">
+      <div class="grid-item paragraph">
+        <div class="side-by-side-container">
+          <div class="year-container">
+            {{ strategy.startYear| number: '1.1-1' }} -
+            {{ strategy.endYear | number: '1.1-1' }}
+          </div>
+
+          <div class="tooltip-container money" >
+            &#9432; Tax
+            <div class="tooltip-content">
+              <u>Tax breakdown</u>
+              <div class="tooltip-divider">
+                <div class="column-1">
+                  <div>Total Withdrawal</div>
+                  <div>Total Income: </div>
+                  <div>Total Taxable Income: </div>
+                  <div>Tax Owed:</div>
+                  <div>After Tax Total: </div>
+                </div>
+                <div class="column-2">
+                  <div class="money">{{ strategy.totalWithdrawal | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
+                  <div class="money">{{ strategy.income | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
+                  <div class="money">{{ strategy.taxableAmount | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
+                  <div class="money">{{ strategy.taxesOwed | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
+                  <div class="money">{{ postTaxTotal | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
+                </div>
+              </div>
+
+              <u>Income breakdown</u>
+              <div class="tooltip-divider">
+                <div class="column-1">
+                  <div>Income: </div>
+                  <div *ngFor="let account of strategy.withdrawals">
+                    <div *ngIf="account.accountName == 'RRSP'">RRSP Withdraw: </div>
+                    <div *ngIf="account.accountName == 'MARG'">MARG Cap Gain: </div>
+                  </div>
+                </div>
+                <div class="column-2">
+                  <div>{{strategy.income | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
+                  <div *ngFor="let account of strategy.withdrawals">
+                    <div *ngIf="account.accountName == 'RRSP' || account.accountName === 'MARG'">{{account.taxableAmount| roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}} </div>
+                  </div>
+<!--                  <div>{{strategy.withdrawals[1].taxableAmount | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>-->
+<!--                  <div>{{strategy.withdrawals[2].taxableAmount | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>-->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="grid-item withdrawals">
+        <ul>
+          <li *ngFor="let detail of strategy.withdrawals">
+<!--            {{}}-->
+            {{ detail?.accountName }}: {{ (detail?.amount ?? 0) | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}
+          </li>
+        </ul>
+      </div>
+  </div>
+</div>
+
+<div *ngIf="warning === true"  class="results-container">
+  <h3>Warning: User input leads to money not draining in 50 years</h3>
+  <p>You are so rich we cannot simulate your scenario properly</p>
+  <p>We increased your income needed per year to perform the simulation</p>
+  <div class="tooltip-container">
+    Hover over me
+    <span class="tooltip-text">TODO: Optimize for inheritence or donation</span>
+  </div>
+</div>

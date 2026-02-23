@@ -1,0 +1,17 @@
+<div class="window">
+  <div class="tab-container">
+    <button (click)="showComponent = 'A'" [class.selected]="showComponent === 'A'">Optimal Strategy</button>
+    <button (click)="showComponent = 'B'" [class.selected]="showComponent === 'B'">Test Strategy</button>
+    <button (click)="showComponent = 'C'" [class.selected]="showComponent === 'C'">Monte Carlo Sims</button>
+  </div>
+
+  <div class="component-container" *ngIf="showComponent === 'A'" style="height: 400px; width: 600px;">
+   <app-chart></app-chart>
+  </div>
+  <div class="component-container" *ngIf="showComponent === 'B'" style="height: 400px; width: 600px;">
+    <app-chart-self-test></app-chart-self-test>
+  </div>
+  <div class="component-container" *ngIf="showComponent === 'C'" style="height: 400px; width: 600px;">
+    <app-bar-chart></app-bar-chart>
+  </div>
+</div>

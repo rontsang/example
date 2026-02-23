@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.model.AbstractTaxBracket;
 import com.example.demo.model.TaxBracket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -1,14 +1,15 @@
 package service;
 
-import com.example.demo.service.TaxBracketService;
+import com.example.demo.model.TaxDeferredAccount;
+import com.example.demo.model.AccountState;
+import com.example.demo.model.TaxFreeAccount;
+import com.example.demo.model.TaxableAccount;
 import com.example.demo.service.TaxMinimizationService;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -27,7 +28,14 @@ public class TaxMinimizationServiceTest {
     public void testReadTaxBrackets() {
         while(true){
             try{
-                TaxMinimizationService.main(500000,500000,200000);
+                AccountState user = new AccountState.Builder()
+                        .withPostTaxAmountNeededPerYear(175000)
+                        .withInterestRate(0.05)
+                        .addAccount(new TaxFreeAccount(500000, 0))
+                        .addAccount(new TaxDeferredAccount(500000, 0))
+                        .addAccount(new TaxableAccount(300000, 500000))
+                        .build();
+                TaxMinimizationService.main(user);
             } catch(Exception e){
                 System.out.println(e);
             }

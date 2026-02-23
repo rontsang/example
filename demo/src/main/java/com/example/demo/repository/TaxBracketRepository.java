@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.model.AbstractTaxBracket;
 import com.example.demo.model.TaxBracket;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

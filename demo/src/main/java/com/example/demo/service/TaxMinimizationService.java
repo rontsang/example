@@ -5,9 +5,7 @@ import com.example.demo.model.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.example.demo.service.ScenarioUtility.generatePermutations;
 
@@ -20,285 +18,313 @@ import static com.example.demo.service.ScenarioUtility.generatePermutations;
 
 @Service
 public class TaxMinimizationService {
-    static int majorCombination = 0;
-    static int minorCombination = 1;
-    static int debugScenario = 0;
-    static int intervalSize = 4;
+    static int debugScenario;
+    static int intervalSize = 2;
     static int iterationsPerScenario = 4;
 
-    public static void main(double TAX_FREE, double TAX_DEFERRED, double TAXABLE) {
-        User account = new User(TAX_FREE, TAX_DEFERRED, TAXABLE, 175000, 0.05);
-        taxMinimization(account);
-    }
+    public static ScenarioNode main(AccountState startingState) {
+        debugScenario = 0;
 
-    public static void taxMinimization(User account){
-        ArrayList<OptimizationWindow> optimizationWindows = account.accounts.stream()
-                .map(acc -> OptimizationWindow.init()).collect(Collectors.toCollection(ArrayList::new));
-        List<Integer> debugChain = new ArrayList<>();
-        ResultsSummary resultsSummary = getOptimalBracketLooper(account, optimizationWindows, 0, debugChain);
-        resultsSummary.displayResults();
-        System.out.println(resultsSummary);
-    }
+        ScenarioNode root = new ScenarioNode.Builder()
+            .setStartingAccountState(startingState)
+            .setEndingAccountState(startingState)
+            .setAccounts(startingState.getAccountsList()) //TODO delete
+            .setLevel(1)
+            .setScenario(new Scenario())
+            .build();
+        generateChildrenAndCalculate(root);
 
-    private static ResultsSummary getOptimalBracketLooper(User account, ArrayList<OptimizationWindow> optimizationWindows, Integer level, List<Integer> debugChain) {
-        ArrayList<Double> optimalPoint;
 
-        ResultsSummary resultsSummary = new ResultsSummary();
-        resultsSummary.level = level;
-        resultsSummary.debugChain = debugChain;
-        resultsSummary.debugChain.add(debugScenario);
 
-        for(int i = 1; i <= iterationsPerScenario; i++) {
-            System.out.println("Optimization Level: " + i);
+//        printOptimalStrategy(root);
+            ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
+            root.getOptimalChildAndYearsToDepletion();
+        if(root.optimalChild.scenario.yearsToDepletion < 100 && root.scenario.yearsToDepletion < 100) {
+            burndownStageN(root.optimalChild, burndown);
+            root.getOptimalChildAndYearsToDepletion();
+                root.displayResults();
 
-            // Optimize: find window with the highest years to depletion
-            resultsSummary = getOptimalBracket(account, optimizationWindows, resultsSummary.level++, debugChain);
+            root.saveToFile(root, "root.ser");
+            root.saveToFile(burndown, "C:\\example\\demo\\burndown.ser");
 
-            // Setup next iteration: Take results and shrink optimization window around optimal window for next loop
-            // I.e. Fine tune the results to get a more accurate optimal window
-            int optimalBracketIndex = resultsSummary.getMaxValueIndex();
-            optimalPoint = resultsSummary.resultsList.get(optimalBracketIndex).calculationPoint;
+//        ScenarioNode readNode = (ScenarioNode) root.readToFile("root.ser");
+//        ArrayList<BurndownTimeEvent> burndownRead = root.readToFileAl("C:\\tax\\demo\\burndown.ser");
 
-            for (int j = 0; j < account.accounts.size(); j++) {
-                Double point = optimalPoint.get(j);
-                System.out.println("Optimal Point " + j + " is: " + point);
-                Double intervalShift = 1/(intervalSize*Math.pow(2, j+1));
-                optimizationWindows.get(j).upperBound = point == 1 ? 1:point + intervalShift;
-                optimizationWindows.get(j).lowerBound = point == 0 ? 0:point - intervalShift;
-            }
+            System.out.println(root);
+
+            return root;
         }
-        return resultsSummary;
+        return null;
     }
 
-    private static ResultsSummary getOptimalBracket(User account, ArrayList<OptimizationWindow> optimizationWindows, Integer level, List<Integer> debugChain) {
-        ResultsSummary resultsSummary = new ResultsSummary();
-        resultsSummary.level = level;
-        resultsSummary.debugChain = debugChain;
-        resultsSummary.debugChain.add(debugScenario);
+    private static void burndownStageN(ScenarioNode currentScenarioNode, ArrayList<BurndownTimeEvent> burndown) {
 
-        // Step 1. Calculate percentages of accounts
-        int numberOfAccounts = account.accounts.size();
+        ArrayList<BurndownTimeEvent> nextBurnDown = Postprocessor.generateBurndownUntilFirstAccountDepletes(currentScenarioNode.startingAccountState, (ArrayList<Double>) currentScenarioNode.scenario.preTaxAmounts, burndown);
 
-        // Step 1 part A
-        List<List<Float>> calculationPermutations = generatePermutations(numberOfAccounts, 4);
+        // Print accounts in burn down
+        for (BurndownTimeEvent event : nextBurnDown) {
+            System.out.println("Year: " + event.year);
+            System.out.println("Accounts Principle: " + event.accountState.accounts.stream().map(acc -> acc.principalAmount).toList());
+            System.out.println("Accounts Capital Gains: " + event.accountState.accounts.stream().map(acc -> acc.capitalGainsAmount).toList());
+        }
 
-        // Loop through combinations and adjust based on optimizationBrackets bounds
-        for(List<Float> calculation : calculationPermutations) {
-            if(debugScenario == 1962){
-                "".getClass();
+        // Append nextBurnDown to previousBurnDown
+        for(BurndownTimeEvent event : nextBurnDown){
+            event.taxableAmount = new ArrayList<>();
+            for(int i = 0; i < event.accountState.accounts.size(); i++){
+                if(i == 90){
+                    "".getClass();
+                }
+                double totalTaxable = 0;
+                double ratio = event.accountState.accounts.get(i).principalAmount / (event.accountState.accounts.get(i).principalAmount + event.accountState.accounts.get(i).capitalGainsAmount);
+                if(event.accountState.accounts.get(i).isAmountTaxable) {
+                    totalTaxable += event.preTaxAmounts.get(i) * ratio;
+                }
+                if(event.accountState.accounts.get(i).isCapitalGainsTaxable) {
+                    totalTaxable += event.preTaxAmounts.get(i) * (1 - ratio) * event.accountState.accounts.get(i).capitalGainsTaxablePercentage;
+                }
+                event.taxableAmount.add(totalTaxable);
             }
+            burndown.add(event);
+        }
+
+        // Recurse
+        if (currentScenarioNode.optimalChild != null){
+            burndownStageN(currentScenarioNode.optimalChild, burndown);
+        }
+    }
+
+
+    private static void generateChildrenAndCalculate(ScenarioNode parent) {
+        generateChildren(parent);
+        calculateChildren(parent);
+
+        while(parent.children.size() > 1
+                && parent.optimalNodes.size() <  iterationsPerScenario
+                && parent.scenario.yearsToDepletion != Double.MAX_VALUE
+        ){
+            setupNextOptimizationNode(parent);
+            generateChildren(parent.getCurrentOptimizationNode());
+            calculateChildren(parent.getCurrentOptimizationNode());
+        }
+    }
+
+    private static void setupNextOptimizationNode(ScenarioNode nodeToOptimize) {
+        nodeToOptimize.getOptimalChildAndYearsToDepletion();
+        setNextOptimalNode(nodeToOptimize);
+        shrinkOptimizationWindow(nodeToOptimize);
+    }
+
+    private static void setNextOptimalNode(ScenarioNode nodeToOptimize) {
+        ScenarioNode nextOptimizationIteration = nodeToOptimize.cloneNodeWithoutChildren();
+        nodeToOptimize.optimalNodes.add(nextOptimizationIteration);
+        nodeToOptimize.getCurrentOptimizationNode().optimizationWindows = new ArrayList<>();
+        nextOptimizationIteration.startingAccountState = nodeToOptimize.startingAccountState;
+        nextOptimizationIteration.endingAccountState = nodeToOptimize.endingAccountState;
+    }
+
+    private static void shrinkOptimizationWindow(ScenarioNode nodeToOptimize) {
+        ArrayList<Double> prevOptimalPoint = nodeToOptimize.optimalChild.scenario.calculationPoint;
+        int iteration = nodeToOptimize.optimalNodes.size();
+
+        for (int j = 0; j < nodeToOptimize.optimalChild.getNumAccounts(); j++) {
+            Double prevAccountOptimalPoint = prevOptimalPoint.get(j);
+            System.out.println("Previous optimal point for account: " + j + " is: " + prevAccountOptimalPoint);
+            Double intervalShift = 1 / (intervalSize * Math.pow(2, iteration));
+            Double lowerBound = prevAccountOptimalPoint == 0 ? 0 : prevAccountOptimalPoint - intervalShift;
+            Double upperBound = prevAccountOptimalPoint == 1 ? 1 : prevAccountOptimalPoint + intervalShift;
+
+            if(prevAccountOptimalPoint == 0) upperBound += intervalShift; //shift edge case by extra interval
+            if(prevAccountOptimalPoint == 1) lowerBound -= intervalShift; // shift edge case by extra interval
+
+            nodeToOptimize.getCurrentOptimizationNode().optimizationWindows.add(new OptimizationWindow(lowerBound, upperBound));
+            System.out.println("New lower bound for account: " + " is: " + lowerBound);
+            System.out.println("New upper bound for account: " + " is: " + upperBound);
+        }
+    }
+
+    private static void generateChildren(ScenarioNode parent) {
+        debugStopOnScenario(745);
+
+        int numAccounts = parent.endingAccountState.accounts.size();
+        if(numAccounts == 0){
+            return;
+        }
+
+        // Generate the scenarios to calculate (how much percent to withdraw from each account)
+        List<List<Float>> scenarioPermutations = generatePermutations(numAccounts, intervalSize);
+
+        // Loop through each scenario, adjust optimization window bounds, and create a child node
+        for (List<Float> scenario : scenarioPermutations) {
             System.out.println("Scenario: " + debugScenario++);
+            debugStopOnScenario(1322);
+            ScenarioNode child = new ScenarioNode.Builder()
+                    .setStartingAccountState(parent.endingAccountState)
+                    .setEndingAccountState(new AccountState())
+                    .setOptimizationWindows(parent.getOptimizationWindows())
+                    .setLevel(parent.level + 1)
+                    .setScenario(new Scenario())
+                    .setDebugScenario(debugScenario)
+                    .build();
 
-            Results result = new Results(); // Create new results object for this optimization bracket
-            result.debugScenario = debugScenario;
+            TaxCalculationService.calculatePostTaxAmounts(child, scenario);
+//            TaxCalculationService.calculatePreTaxAmounts(child);
+            System.out.println("Computing: " + debugScenario++);
+            TaxCalculationService.calculatePreTaxAmount(child, scenario);
 
-            ArrayList<Double> postTaxAmounts = new ArrayList<>(calculation.size());
-
-            syslog1(account, calculationPermutations, calculation);
-
-            List<Float> adjustedCalculation = new ArrayList<>(Collections.nCopies(calculation.size(), (float) 0.0));
-            // Step 1 part B
-            // Calculate the adjusted percentages for each account + bracket
-            for(int accountNumber = 0; accountNumber < calculation.size(); accountNumber++) {
-                double lowerBound = optimizationWindows.get(accountNumber).lowerBound;
-                double upperBound = optimizationWindows.get(accountNumber).upperBound;
-                double range = upperBound-lowerBound;
-                double adjustedPercentage = 0;
-
-
-                if(accountNumber == calculation.size()-1) {
-                    adjustedPercentage = 1 - adjustedCalculation.stream().mapToDouble(Float::doubleValue).sum();
-                    adjustedCalculation.set(accountNumber, (float) adjustedPercentage);
-                } else {
-                    adjustedPercentage = lowerBound + (calculation.get(accountNumber)*range);
-                    adjustedCalculation.set(accountNumber, (float) adjustedPercentage);
-                }
-
-                calculation.set(accountNumber, (float) adjustedPercentage);
-                result.calculationPoint.add(adjustedPercentage);
-                // Used calculated percentages to calculate how much to withdraw from each account
-                postTaxAmounts.add(account.postTaxAmountNeededPerYear * adjustedPercentage);
-            }
-            System.out.println(result.calculationPoint);
-            System.out.println("Post Tax Amounts for each account: " + postTaxAmounts);
-
-            double year = calculateYearsUntilAccountsAreEmpty(account, postTaxAmounts, result);
-
-            resultsSummary.user = account;
-            resultsSummary.accounts = account.accounts.stream().map(acc -> acc.accountName).collect(Collectors.toList());
-            resultsSummary.saveResults(result, postTaxAmounts, year);
+            parent.addChild(child);
         }
-        System.out.println("=============================================");
-
-        resultsSummary.findMaximumYearsToDepletionFromResults();
-
-        return resultsSummary;
     }
 
-    private static void syslog1(User account, List<List<Float>> combinationsMatrix, List<Float> combination) {
-        System.out.println("=============================================");
-
-        if(combination.size() == 3) {
-            majorCombination++;
-            System.out.println("Calculating Major Combination: " + majorCombination + " of " + combinationsMatrix.size());
+    private static void calculateChildren(ScenarioNode parent) {
+        if(debugStopOnScenario(99999)){
+            "".getClass();
         }
-        else if(combination.size() == 2) {
-            System.out.println("Major combination: " + majorCombination + " of 15");
-            System.out.println("Calculating Minor Combination " + minorCombination + " of " + combinationsMatrix.size());
-            minorCombination++;
-            if (minorCombination == 6) {
-                minorCombination = 1;
-            }
-        }
-
-        // Print name of accounts being calculated
-        for(int accountNumber = 0; accountNumber < combination.size(); accountNumber++) {
-            System.out.println("Account " + accountNumber + " = " + account.accounts.get(accountNumber).accountName);
-        }
-//        System.out.println(combination);
-    }
-
-    // Calculate years until accounts are empty, given:
-    // 1. Starting amounts
-    // 2. Annual withdrawal amount
-    public static double calculateYearsUntilAccountsAreEmpty(User user, ArrayList<Double> postTaxAmounts, Results result) {
-        double years = 0;
-        ArrayList<Double> taxableAmounts = new ArrayList<>();
-
-        double afterTaxTotalTaxable = 0;
-
-        // Step 2. Calculate taxable amounts for each account
-        // Step 2 part A
-        for(int i = 0; i < user.accounts.size(); i++){
-            Account account = user.accounts.get(i);
-            double taxableAmount = 0.0;
-            double accountTotal = account.principalAmount + account.capitalGainsAmount;
-            double amountFromPrincipal = postTaxAmounts.get(i) * (account.principalAmount/accountTotal);
-            double amountFromCapitalGains = postTaxAmounts.get(i) * (account.capitalGainsAmount/accountTotal);
-
-            if(account.isAmountTaxable){
-                taxableAmount += amountFromPrincipal;
-            }
-            if(account.isCapitalGainsTaxable){
-                taxableAmount += amountFromCapitalGains * account.capitalGainsTaxablePercentage;
-            }
-            taxableAmounts.add(taxableAmount);
-            afterTaxTotalTaxable += taxableAmount;
-        }
-
-        // Step 2 Part B
-        // Sum up taxable amounts and calculate pre-tax withdrawal amounts per account
-        double preTaxTotal = TaxCalculationService.calculatePreTaxAmount(afterTaxTotalTaxable);
-
-        // Step 2 Part C
-        // Calculate withdrawal amounts. Withdrawal amounts = (1) + (2)
-        // 1. postTaxAmount
-        // 2. Distribute the taxes proportionally to all accounts
-        ArrayList<Double> withdrawalAmounts = new ArrayList<>();
-        for(int i = 0; i < user.accounts.size(); i++){
-            Double withdrawalAmount = postTaxAmounts.get(i);
-            // If there are taxes to add
-            if(afterTaxTotalTaxable > 0){
-                withdrawalAmount += (taxableAmounts.get(i)/afterTaxTotalTaxable) * (preTaxTotal-afterTaxTotalTaxable);
-            }
-            withdrawalAmounts.add(withdrawalAmount);
-        }
-        System.out.println("Pre Tax Amounts for each account: " + withdrawalAmounts);
-        System.out.println("Starting Principal for each account: " + user.accounts.stream().map(acc -> acc.principalAmount).toList());
-        System.out.println("Starting Capital Gains for each account: " + user.accounts.stream().map(acc -> acc.capitalGainsAmount).toList());
-        result.preTaxAmounts = withdrawalAmounts;
-
-        // Step 3
-        if(user.accounts.size() == 1){
-            //return FT of single account
-            years = ScenarioUtility.getYearsUntilDepletion(user.accounts.get(0), withdrawalAmounts.get(0), user.interestRate);
-            System.out.println("Years until depletion: " + years);
-            result.resultsSummary.yearsToDepletion = 0; // no need to calculate next level
-        }
-        else {
-            // Calculate time to depletion of each account
-
-            double[] yearsToDepletion = ScenarioUtility.calculateYearsUntilFirstAccountDepletes(user, withdrawalAmounts);
-
-            if(yearsToDepletion[0] == Double.MAX_VALUE){
-                return Double.MAX_VALUE; // You have infinite money glitch
-            }
-
-            double yearsToFirstAccountDepletion = yearsToDepletion[0];
-            int indexOfFirstAccountDepletion = (int) yearsToDepletion[1];
-
-            years += yearsToFirstAccountDepletion;
-            result.yearsToDepletion = years;
-            result.indexOfFirstAccountDepletion = indexOfFirstAccountDepletion;
-
-            System.out.println("Years until depletion: " + years);
-            System.out.println("Depleted account: " + user.accounts.get(indexOfFirstAccountDepletion).accountName);
-
-            // Calculate FV of remaining account (create new account object)
-            // Create new interval object using FV
-            // Calculate optimal bracket for remaining accounts (remove depleted account)
-            User newAccountRecursion = new User();
-            newAccountRecursion.postTaxAmountNeededPerYear = user.postTaxAmountNeededPerYear;
-            newAccountRecursion.interestRate = user.interestRate;
-
-            ArrayList<OptimizationWindow> recursiveOptimization = new ArrayList<OptimizationWindow>();
-
-            for (int i = 0; i < user.accounts.size(); i++) {
-                if(i != indexOfFirstAccountDepletion && user.accounts.get(i).getTotalValue() > 0){
-                    // Calculate FV of each account
-
-                    Account startingAccount = user.accounts.get(i);
-                    double startingAmount = startingAccount.principalAmount + startingAccount.capitalGainsAmount;
-                    double ratioPrincipal = startingAccount.principalAmount/startingAmount;
-                    double ratioCapitalGains = startingAccount.capitalGainsAmount/startingAmount;
-
-                    // TODO calculate capital grains during the period to account for ratio
-                    // Otherwise we can get negative numbers in principal
-                    double futureValue = FinanceUtility.calcFinalValue(startingAmount, user.interestRate, yearsToFirstAccountDepletion, withdrawalAmounts.get(i));
-
-                    double totalTakenFromPrincipal = withdrawalAmounts.get(i)*ratioPrincipal*yearsToFirstAccountDepletion;
-                    double futureValuePrincipal = startingAccount.principalAmount - totalTakenFromPrincipal;
-                    double futureValueCapitalGains;
-
-                    if(futureValue > startingAmount){
-                        // Account has grown
-                        double growth = futureValue - startingAmount;
-                        futureValueCapitalGains = startingAccount.capitalGainsAmount + growth + totalTakenFromPrincipal;
-                    } else {
-                        // Account has shrunk
-                        futureValueCapitalGains = startingAccount.capitalGainsAmount - withdrawalAmounts.get(i)*ratioCapitalGains*yearsToFirstAccountDepletion;
-                        if(futureValuePrincipal < 0){
-                            // Account has been depleted
-                            // Take money from capital gains
-                            futureValueCapitalGains -= futureValuePrincipal;
-                            futureValuePrincipal = 0;
-                        }
+        if(parent != null){
+            for (int i = 0; i < parent.children.size(); i++) {
+                ScenarioNode child = parent.getChild(i);
+                calculateYearsUntilAccountsAreEmpty(child);
+                if(child.scenario.yearsToDepletion == Double.MAX_VALUE){
+                    if(parent.scenario == null){
+                        parent.scenario = new Scenario();
                     }
-
-
-                    recursiveOptimization.add(OptimizationWindow.init());
-
-                    //set flags
-                    // need to computer future value of prinicpal and capital gains
-
-                    Account endingAccount = new Account(futureValuePrincipal, futureValueCapitalGains, startingAccount.accountName);
-                    endingAccount.isAmountTaxable = startingAccount.isAmountTaxable;
-                    endingAccount.isCapitalGainsTaxable = startingAccount.isCapitalGainsTaxable;
-                    endingAccount.capitalGainsTaxablePercentage = startingAccount.capitalGainsTaxablePercentage;
-
-                    newAccountRecursion.accounts.add(endingAccount);
+                    parent.scenario.yearsToDepletion = Double.MAX_VALUE;
+                    return;
                 }
             }
-            System.out.println("End Principal for each remaining account: " + newAccountRecursion.accounts.stream().map(acc -> acc.principalAmount).toList());
-            System.out.println("End Capital Gains for each remaining account: " + newAccountRecursion.accounts.stream().map(acc -> acc.capitalGainsAmount).toList());
+        }
+    }
 
-            if(newAccountRecursion.accounts.size() >= 2){
-                result.resultsSummary = getOptimalBracketLooper(newAccountRecursion, recursiveOptimization, result.resultsSummary.level++, result.resultsSummary.debugChain); // Add a new level that calculates the optimal bracket for the remaining accounts
-            } else {
-                result.resultsSummary = getOptimalBracket(newAccountRecursion, recursiveOptimization, result.resultsSummary.level++, result.resultsSummary.debugChain);
+    public static double calculateYearsUntilAccountsAreEmpty(ScenarioNode parent) {
+        if(parent.debugScenario == 1322){
+            "".getClass();
+        }
+        calculateYearsUntilFirstAccountDepletes(parent); // CREATE RESULTS OBJECT TO STORE RESULTS OF CURRENT PARENT NODE
+        if(parent.scenario.yearsToDepletion != Double.MAX_VALUE){
+            calculateEndingAccountState(parent); // CALCULATE ENDING STATE OF ACCOUNTS AFTER FIRST ACCOUNT DEPLETES
+            generateChildrenAndCalculate(parent); // GENERATE CHILD NODE TO CALCULATE FOR REMAINING ACCOUNTS
+        }
+        return parent.scenario.yearsToDepletion;
+    }
+
+    private static void calculateYearsUntilFirstAccountDepletes(ScenarioNode node) {
+        // Calculate time to depletion of each account and find first account that depletes
+        ScenarioUtility.calculateYearsUntilFirstAccountDepletes(node);
+
+        if (node.scenario.yearsToFirstAccountDepletion == Double.MAX_VALUE) {
+            //TODO code infinite money case
+            node.scenario.yearsToDepletion = Double.MAX_VALUE; // You have infinite money glitch
+            return;
+        }
+
+        System.out.println("=============================================");
+        System.out.println("Scenario: " + node.debugScenario);
+        System.out.println("Accounts: " + node.startingAccountState.accounts.stream().map(acc -> acc.principalAmount).toList());
+        System.out.println("Calculation Point: " + node.scenario.calculationPoint);
+        System.out.println("Post Tax Amounts for each account: " + node.scenario.postTaxAmounts);
+        System.out.println("Pre Tax Amounts for each account: " + node.scenario.preTaxAmounts);
+        System.out.println("Years until first account depletion: " + node.scenario.yearsToFirstAccountDepletion);
+        System.out.println("Depleted account: " + node.startingAccountState.accounts.get(node.scenario.indexOfFirstAccountDepletion).accountName);
+    }
+
+    // Generate a single child node for the scenario after the first account depletes
+    private static void calculateEndingAccountState(ScenarioNode parent) {
+        parent.endingAccountState = new AccountState.Builder()
+                .withPostTaxAmountNeededPerYear(parent.startingAccountState.postTaxAmountNeededPerYear)
+                .withInterestRate(parent.startingAccountState.interestRate)
+                .withIncome(parent.startingAccountState.income)
+                .build();
+
+        // For each non-depleted account, calculate the end state of that account after the first account depletes
+        for (int i = 0; i < parent.getNumAccounts(); i++) {
+            if (i != parent.scenario.indexOfFirstAccountDepletion && parent.startingAccountState.accounts.get(i).getTotalValue() > 0) {
+                // Calculate FV of account i
+                Account endingAccount = calculateEndingAccount(parent, i);
+                parent.endingAccountState.accounts.add(endingAccount);
             }
         }
-        return years;
+
+        System.out.println("End Principal for each remaining account: " + parent.endingAccountState.accounts.stream().map(acc -> acc.principalAmount).toList());
+        System.out.println("End Capital Gains for each remaining account: " + parent.endingAccountState.accounts.stream().map(acc -> acc.capitalGainsAmount).toList());
+        System.out.println("=============================================");
+    }
+    private static Account calculateEndingAccount(ScenarioNode parent, int i) {
+        Account startingAccount = parent.startingAccountState.accounts.get(i);
+        double startingAmount = startingAccount.principalAmount + startingAccount.capitalGainsAmount;
+        double ratioPrincipal = startingAccount.principalAmount / startingAmount;
+        double ratioCapitalGains = startingAccount.capitalGainsAmount / startingAmount;
+
+        // TODO calculate capital gains during the period to account for ratio
+        // TODO Otherwise we can get negative numbers in principal
+
+        double preTaxAmount = parent.scenario.preTaxAmounts.get(i);
+        double years = parent.scenario.yearsToFirstAccountDepletion;
+        double futureValue = FinanceUtility.calcFinalValue(startingAmount, parent.startingAccountState.interestRate, years, preTaxAmount);
+
+        double totalTakenFromPrincipal = preTaxAmount * ratioPrincipal * years;
+//        double futureValuePrincipal = startingAccount.principalAmount - totalTakenFromPrincipal;
+//        double futureValueCapitalGains;
+
+//        if (futureValue > startingAmount) {
+//            // Account has grown
+//            double growth = futureValue - startingAmount;
+//            futureValueCapitalGains = startingAccount.capitalGainsAmount + growth + totalTakenFromPrincipal;
+//        } else {
+//            // Account has shrunk
+//            futureValueCapitalGains = startingAccount.capitalGainsAmount - (preTaxAmount * ratioCapitalGains * years);
+//            if (futureValuePrincipal < 0) {
+//                // Account has been depleted
+//                // Take money from capital gains
+//                futureValueCapitalGains -= futureValuePrincipal;
+//                futureValuePrincipal = 0;
+//            }
+//        }
+        double futureValuePrincipal= startingAccount.principalAmount;
+        double futureValueCapitalGains = startingAccount.capitalGainsAmount;
+
+        for(int year = 1; year < parent.scenario.yearsToFirstAccountDepletion; year++) {
+            double totalValue = futureValuePrincipal + futureValueCapitalGains;
+            double capitalGains = futureValueCapitalGains;
+            double principal = futureValuePrincipal;
+
+            futureValueCapitalGains += (principal + capitalGains) * (parent.startingAccountState.interestRate);
+//                capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
+            totalValue = futureValuePrincipal + futureValueCapitalGains;
+            futureValuePrincipal -= preTaxAmount * futureValuePrincipal / totalValue;
+            futureValueCapitalGains -= preTaxAmount * futureValueCapitalGains / totalValue;
+            if(futureValuePrincipal + futureValueCapitalGains == 0){
+                System.out.println(futureValuePrincipal + futureValueCapitalGains);
+            }
+        }
+
+        double partialYear = parent.scenario.yearsToFirstAccountDepletion - Math.floor(parent.scenario.yearsToFirstAccountDepletion);
+
+        double totalValue = futureValuePrincipal + futureValueCapitalGains;
+        double capitalGains = futureValueCapitalGains;
+        double principal = futureValuePrincipal;
+
+        futureValueCapitalGains += (principal+capitalGains)*(parent.startingAccountState.interestRate)*partialYear;
+        totalValue = futureValuePrincipal + futureValueCapitalGains;
+//            capitalGains = yearEndState.accounts.get(account).capitalGainsAmount;
+
+        futureValuePrincipal -= preTaxAmount * futureValuePrincipal/totalValue * partialYear;
+        futureValueCapitalGains -= preTaxAmount * futureValueCapitalGains/totalValue * partialYear;
+
+
+        //set flags
+        // need to computer future value of prinicpal and capital gains
+        Account endingAccount = new Account(futureValuePrincipal, futureValueCapitalGains, startingAccount.accountName);
+        endingAccount.isAmountTaxable = startingAccount.isAmountTaxable;
+        endingAccount.isCapitalGainsTaxable = startingAccount.isCapitalGainsTaxable;
+        endingAccount.capitalGainsTaxablePercentage = startingAccount.capitalGainsTaxablePercentage;
+        return endingAccount;
+    }
+    private static boolean debugStopOnScenario(int n) {
+        if (debugScenario == n) {
+            "".getClass();
+            return true;
+        }
+        return false;
     }
 }
 

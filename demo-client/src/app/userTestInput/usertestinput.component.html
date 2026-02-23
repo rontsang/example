@@ -1,0 +1,60 @@
+<!--<p>userinput works!</p>-->
+
+<form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+  <div class="input-container">
+    <label for="tfsaWithdraw">TFSA</label>
+    <div *ngIf="userForm.get('tfsaWithdraw')?.disabled; else enabledInput">
+      Disabled
+    </div>
+    <ng-template #enabledInput>
+      <input [placeholder]="isInputTFSADisabled ? 'TFSA 0 Balance' : 'Enter Withdrawal'"
+             [ngClass]="{'disabled-input': isInputTFSADisabled}"
+             #currencyInput
+             appCurrencyFormat type="text"
+             id="tfsaWithdraw"
+             formControlName="tfsaWithdraw">
+    </ng-template>
+  </div>
+
+  <div class="input-container">
+    <label for="rrspWithdraw">RRSP</label>
+    <div *ngIf="userForm.get('rrspWithdraw')?.disabled; else enabledInput">
+      Disabled
+    </div>
+    <ng-template #enabledInput>
+      <input [placeholder]="isInputRRSPDisabled ? 'RRSP 0 Balance' : 'Enter Withdrawal'"
+             [ngClass]="{'disabled-input': isInputRRSPDisabled}"
+             #currencyInput
+             appCurrencyFormat type="text"
+             id="rrspWithdraw"
+             formControlName="rrspWithdraw">
+    </ng-template>
+  </div>
+
+  <div class="input-container">
+    <label for="tfsaWithdraw">TFSA</label>
+    <div *ngIf="userForm.get('tfsaWithdraw')?.disabled; else enabledInput">
+      Disabled
+    </div>
+    <ng-template #enabledInput>
+      <input [placeholder]="isInputTFSADisabled ? 'TFSA 0 Balance' : 'Enter Withdrawal'"
+             [ngClass]="{'disabled-input': isInputTFSADisabled}"
+             #currencyInput
+             appCurrencyFormat type="text"
+             id="tfsaWithdraw"
+             formControlName="tfsaWithdraw">
+    </ng-template>
+  </div>
+<!--  <input type="range" id="tfsaAmountRange" formControlName="tfsaAmount" [value]="sliderValue" (input)="onSliderChange($event)" min="0" max="2000000" step="10000">-->
+<!--  <div class="input-container">-->
+<!--    <label for="rrspWithdraw">RRSP</label>-->
+<!--    <input [ngClass]="{'disabled-input': isInputRRSPDisabled}" appCurrencyFormat type="text" id="rrspWithdraw" formControlName="rrspWithdraw" placeholder="Input 2">-->
+<!--  </div>-->
+
+<!--  <div class="input-container">-->
+<!--    <label for="margWithdraw">Standard</label>-->
+<!--    <input [ngClass]="{'disabled-input': isInputMARGDisabled}" appCurrencyFormat type="text" id="margWithdraw" formControlName="margWithdraw" placeholder="Input 3">-->
+<!--  </div>-->
+
+  <button type="submit">{{ isSubmitted ? 'Recalculate' : 'Run' }}</button>
+</form>

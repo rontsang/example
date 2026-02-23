@@ -1,0 +1,67 @@
+/* Component container styling */
+:host {
+  display: block;
+  margin: 0; /* Remove default margin */
+  width: 700px; /* Adjust as needed */
+  height: 550px; /* Adjust as needed */
+  padding: 20px; /* Adjust as needed for internal spacing */
+  border-radius: 35px;
+  box-sizing: border-box; /* Include padding in the width and height */
+  background-color: #202020; /* Light grey background */
+}
+
+/* Style for buttons */
+button {
+  background-color: #634087; /* Green background */
+  border: none;
+  width: 120px;
+  height: 40px;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 10px;
+  cursor: pointer;
+  border-radius: 20px; /* Rounded borders for oblong shape */
+  transition: background-color 0.1s; /* Smooth transition for hover effect */
+}
+
+/* Hover effect for buttons */
+button:hover {
+  background-color: #a86add;
+}
+
+/* Highlighting the selected button */
+button.selected {
+  background-color: #8549A7; /* Darker shade for selected button */
+}
+
+/* Styling for select elements, if any */
+select {
+  padding: 0px;
+  margin: 0px 0;
+  border-radius: 4px;
+}
+
+.tab-container {
+  display: flex;
+  justify-content: space-around;
+  height: 40px;
+  width: 360px;
+  background-color: #634087; /* Your preferred background color */
+  border-radius: 20px; /* Adjust for rounded corners */
+  box-shadow: 0 2px 2px rgba(0.5,0.5,0.5,0.5); /* Optional: for a slight shadow */
+}
+
+.component-container {
+  height: 400px; /* Adjust as needed */
+  width: 100%; /* Adjust if you want a specific width */
+  /* Additional styles (e.g., padding, border) can be added here if needed */
+}
+
+.window {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers children horizontally */
+  /* Add any additional styling as needed */
+}

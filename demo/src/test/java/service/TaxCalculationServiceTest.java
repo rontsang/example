@@ -26,8 +26,15 @@ public class TaxCalculationServiceTest {
     private TaxCalculationService taxCalculationService;
 
     @Test
+    public void testCalculatePostTax() {
+        double afterTaxAmount = taxCalculationService.calculatePostTaxAmount(20000);
+        System.out.println(afterTaxAmount);
+    }
+
+
+    @Test
     public void testCalculatePreTax() {
-        double afterTaxAmount = taxCalculationService.calculatePreTaxAmount(50000);
+        double afterTaxAmount = taxCalculationService.calculatePreTaxAmount(50000, 50000);
         System.out.println(afterTaxAmount);
     }
 }

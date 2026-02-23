@@ -2,27 +2,51 @@ package com.example.demo.service;
 
 import com.example.demo.FinanceUtility;
 import com.example.demo.model.Account;
-import com.example.demo.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ScenarioUtility {
-    static double[] calculateYearsUntilFirstAccountDepletes(User user, ArrayList<Double> annualWithdrawalAmounts) {
-        // Array to store
-        // [0] = years until depletion
-        // [1] = index of account that depletes first
-        double[] yearsToDepletion = {Double.MAX_VALUE, 0};
+    static void printOptimalStrategy(ScenarioNode root){
+        System.out.println("Optimal Strategy:");
+        ScenarioNode optimalChild = root.optimalChild;
+        System.out.println("Years to Depletion: " + optimalChild.yearsToDepletion);
+        int stage = 1;
 
-        for (int i = 0; i < user.accounts.size(); i++) {
-            double yearsTemp = getYearsUntilDepletion(user.accounts.get(i), annualWithdrawalAmounts.get(i), user.interestRate);
-            if(yearsTemp < yearsToDepletion[0]){
-                yearsToDepletion[0] = yearsTemp; //yearsToFirstAccountDepletion
-                yearsToDepletion[1] = i; //indexOfFirstAccountDepletion
+        while(optimalChild != null){
+            System.out.println("====================================");
+            System.out.println("STAGE " + stage++ + " STRATEGY");
+            System.out.println("Optimal Window: " + optimalChild.scenario.calculationPoint);
+            System.out.println("Post Tax: " + optimalChild.scenario.postTaxAmounts);
+            // iterate through each account and print the withdrawal amount
+            for(int i = 0; i < optimalChild.scenario.preTaxAmounts.size(); i++){
+                String accountName = optimalChild.startingAccountState.accounts.get(i).accountName;
+                long withdrawalAmount = Math.round(optimalChild.scenario.preTaxAmounts.get(i));
+                System.out.println(accountName + " withdrawal: " + withdrawalAmount);
+            }
+            int years = (int) optimalChild.scenario.yearsToFirstAccountDepletion; // Extracts the year part
+            int months = (int) Math.round((optimalChild.scenario.yearsToFirstAccountDepletion - years) * 12); // Converts fractional part to months
+            System.out.println("Years to Depletion: " + years + " years and " + months + " months");
+            optimalChild = optimalChild.optimalChild;
+        }
+        System.out.println("====================================");
+    }
+
+    static void calculateYearsUntilFirstAccountDepletes(ScenarioNode parent) {
+        double minYearsToDepletion = Double.MAX_VALUE;
+
+        for (int i = 0; i < parent.startingAccountState.accounts.size(); i++) {
+
+            double yearsUntilAccountDepletes = getYearsUntilDepletion(parent.startingAccountState.accounts.get(i), parent.scenario.preTaxAmounts.get(i), parent.startingAccountState.interestRate);
+
+            if(yearsUntilAccountDepletes < minYearsToDepletion){
+                minYearsToDepletion = yearsUntilAccountDepletes;
+                parent.scenario.yearsToFirstAccountDepletion = yearsUntilAccountDepletes;
+                parent.scenario.indexOfFirstAccountDepletion = i;
             }
         }
-        return yearsToDepletion;
     }
+
     static double getYearsUntilDepletion(Account account, Double annualWithdrawal, Double interestRate) {
         double years;
         double accountTotal = account.principalAmount + account.capitalGainsAmount;

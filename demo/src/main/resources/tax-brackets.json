@@ -1,0 +1,6 @@
+[
+  {"index": 0, "lower_bound": 0.0, "upper_bound": 10000.0, "rate": 0.10},
+  {"index": 1, "lower_bound": 10000.0, "upper_bound": 40000.0, "rate": 0.20},
+  {"index": 2, "lower_bound": 40000.0, "upper_bound": 90000.0, "rate": 0.30},
+  {"index": 3, "lower_bound": 90000.0, "upper_bound": null, "rate": 0.40}
+]
