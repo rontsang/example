@@ -31,7 +31,7 @@ Defined in **`demo/src/main/java/com/example/demo/Controller.java`**.
   - Returns: plain text `"Hello, World!"`
   - CORS: allows `http://localhost:4200`
 - **`GET /all`**
-  - Returns: JSON array of `TaxBracket` rows (currently loaded from `demo/src/main/resources/tax-brackets.json`)
+  - Returns: JSON array of `TaxBracket` rows (currently loaded from `demo/src/main/resources/tax-brackets.txt`)
   - CORS: allows `http://localhost:4200`
 
 ### Persistence model
@@ -63,7 +63,7 @@ These are currently implemented as utility-style services with a lot of static m
   - Server port: `8081`
   - Datasource: currently disabled (backend is file-backed for now)
 
-- **`demo/src/main/resources/tax-brackets.json`**
+- **`demo/src/main/resources/tax-brackets.txt`**
   - Dummy tax bracket data used when running without a DB.
 
 **Important:** the current `application.properties` includes credentials. For real usage, move these to environment variables (or a secrets manager) and keep them out of git history.

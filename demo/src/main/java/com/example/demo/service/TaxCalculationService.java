@@ -1,8 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.model.*;
-import com.example.demo.repository.TaxBracketFederalRepository;
-import com.example.demo.repository.TaxBracketRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,20 +13,27 @@ import java.util.List;
 public class TaxCalculationService {
     private static List<TaxBracket> taxBrackets;
     private static List<FederalTaxBracket> taxBracketsFederal;
-    private static TaxBracketRepository taxBracketRepository;
-    private final TaxBracketFederalRepository taxBracketFederalRepository;
+    private final TaxBracketStore taxBracketStore;
 
 
     @Autowired
-    public TaxCalculationService(TaxBracketRepository taxBracketRepository, TaxBracketFederalRepository federalTaxBracketRepository) {
-        this.taxBracketRepository = taxBracketRepository;
-        this.taxBracketFederalRepository = federalTaxBracketRepository;
+    public TaxCalculationService(TaxBracketStore taxBracketStore) {
+        this.taxBracketStore = taxBracketStore;
     }
 
     @PostConstruct
     private void loadTaxBrackets() {
-        taxBracketsFederal = taxBracketFederalRepository.findAll();
-        taxBrackets = taxBracketRepository.findAll();
+        taxBrackets = taxBracketStore.getTaxBrackets();
+        taxBracketsFederal = taxBrackets.stream()
+                .map(bracket -> {
+                    FederalTaxBracket federal = new FederalTaxBracket();
+                    federal.setIndex(bracket.getIndex());
+                    federal.setLower_bound(bracket.getLower_bound());
+                    federal.setUpper_bound(bracket.getUpper_bound());
+                    federal.setRate(bracket.getRate());
+                    return federal;
+                })
+                .toList();
     }
 
 //    public static double calculateWithdrawalAmounts(double postTaxTotal) {

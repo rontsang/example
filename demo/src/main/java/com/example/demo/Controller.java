@@ -1,11 +1,13 @@
 package com.example.demo;
 
 import com.example.demo.model.*;
-import com.example.demo.repository.TaxBracketRepository;
 import com.example.demo.service.ScenarioNode;
+import com.example.demo.service.TaxBracketStore;
 
 import com.example.demo.service.TaxMinimizationService;
 import com.example.demo.service.TaxSimulationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,28 +16,30 @@ import java.util.ArrayList;
 
 @RestController
 public class Controller {
+    private static final Logger log = LoggerFactory.getLogger(Controller.class);
+
     @Autowired
-    private TaxBracketRepository taxBracketRepository;
+    private TaxBracketStore taxBracketStore;
 
     @GetMapping("/hello")
-    @CrossOrigin(origins = "http://localhost:4200")
+    @CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4021"})
     public ResponseEntity<String> helloWorld() {
         return ResponseEntity.ok("Hello, World!");
     }
 
     @GetMapping(path = "/all")
-    @CrossOrigin(origins = "http://localhost:4200")
+    @CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4021"})
     public @ResponseBody Iterable<TaxBracket> getAllBrackets() {
         // This returns a JSON or XML with the users
-        System.out.println("hello");
-        return taxBracketRepository.findAll();
+        log.info("hello");
+        return taxBracketStore.getTaxBrackets();
     }
 
     @PostMapping("/submit-form")
-    @CrossOrigin(origins = "http://localhost:4200")
+    @CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4021"})
     public @ResponseBody ArrayList<BurndownTimeEvent> handleSubmit(@RequestBody FormData formData) {
         // Process formData
-        System.out.println(formData);
+        log.info("{}", formData);
         // create new account and run tax minimization
         AccountState startingAccountState = new AccountState.Builder()
                 .withPostTaxAmountNeededPerYear(formData.getAmountPerYear())
@@ -46,30 +50,16 @@ public class Controller {
                 .addAccount(new TaxableAccount(formData.getMargAmountPrincipal(), formData.getMargAmountCapitalGain()))
                 .build();
 
-        ScenarioNode root = TaxMinimizationService.main(startingAccountState);
-        System.out.println("burndown getting");
-//        ScenarioNode root = new ScenarioNode();
-        if(root == null){
-            return null;
-//            Double allAccountsTotal = startingAccountState.accounts.stream().mapToDouble(account -> account.getTotalValue()).sum();
-//            Double interestPerYearEstimate = allAccountsTotal * startingAccountState.interestRate;
-//            startingAccountState.postTaxAmountNeededPerYear = interestPerYearEstimate*1.5;
-//            root = TaxMinimizationService.main(startingAccountState);
-//            ArrayList<BurndownTimeEvent> burndown = (ArrayList<BurndownTimeEvent>) root.readToFile("C:\\example\\demo\\burndown.ser");
-//            return burndown;
-        }
-
-
-        ArrayList<BurndownTimeEvent> burndown = (ArrayList<BurndownTimeEvent>) root.readToFile("C:\\example\\demo\\burndown.ser");
-        return burndown;
+        log.info("burndown getting");
+        return TaxMinimizationService.computeBurndown(startingAccountState);
 //        return "{\"message\": \"Form submitted successfully\"}";
     }
 
     @PostMapping("/user-test")
-    @CrossOrigin(origins = "http://localhost:4200")
+    @CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4021"})
     public @ResponseBody ArrayList<BurndownTimeEvent> handleTest(@RequestBody UserTestFormData formData) {
         // Process formData
-        System.out.println(formData);
+        log.info("{}", formData);
         // create new account and run tax minimization
         AccountState startingAccountState = new AccountState.Builder()
                 .withInterestRate(formData.getInterestRate())
@@ -83,33 +73,15 @@ public class Controller {
         withdrawal.add(formData.getTfsaWithdraw());
         withdrawal.add(formData.getRrspWithdraw());
         withdrawal.add(formData.getMargWithdraw());
-
-
-        ScenarioNode root = TaxSimulationService.main(startingAccountState, withdrawal, formData.getStartingYear());
-
-        // return burndown (contains burndown)
-        // return post tax amount total
-
-
-//        System.out.println("burndown getting");
-//        ScenarioNode root = new ScenarioNode();
-        if(root == null){
-            return null;
-        }
-
-
-        ArrayList<BurndownTimeEvent> burndown = (ArrayList<BurndownTimeEvent>) root.readToFile("C:\\example\\demo\\burndown.ser");
-        return burndown;
+        return TaxSimulationService.computeBurndown(startingAccountState, withdrawal, formData.getStartingYear());
     }
 
     @GetMapping(path = "/results")
-    @CrossOrigin(origins = "http://localhost:4200")
+    @CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4021"})
     public @ResponseBody ArrayList<BurndownTimeEvent> getBurndown() {
         // This returns a JSON or XML with the users
-        System.out.println("burndown getting");
-        ScenarioNode root = new ScenarioNode();
-//        ArrayList<BurndownTimeEvent> burndown = null;
-        ArrayList<BurndownTimeEvent> burndown = root.readToFileAl("C:\\example\\demo\\burndown.ser");
-        return burndown;
+        log.info("burndown getting");
+        log.warn("/results is not available without the filesystem-backed burndown.ser");
+        return null;
     }
 }

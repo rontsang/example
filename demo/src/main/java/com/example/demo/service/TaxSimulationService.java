@@ -42,17 +42,22 @@ public class TaxSimulationService {
             burndownStageN(root, burndown, startingYear);
             root.displayResults();
 
-//            root.saveToFile(root, "root.ser");
-            root.saveToFile(burndown, "C:\\example\\demo\\burndown.ser");
-
-//        ScenarioNode readNode = (ScenarioNode) root.readToFile("root.ser");
-//        ArrayList<BurndownTimeEvent> burndownRead = root.readToFileAl("C:\\tax\\demo\\burndown.ser");
-
             System.out.println(root);
 
             return root;
         }
         return null;
+    }
+
+    public static ArrayList<BurndownTimeEvent> computeBurndown(AccountState startingState, ArrayList withdrawals, double startingYear) {
+        ScenarioNode root = main(startingState, withdrawals, startingYear);
+        if (root == null) {
+            return null;
+        }
+
+        ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
+        burndownStageN(root, burndown, startingYear);
+        return burndown;
     }
 
     private static void burndownStageN(ScenarioNode currentScenarioNode, ArrayList<BurndownTimeEvent> burndown, double startingYear) {

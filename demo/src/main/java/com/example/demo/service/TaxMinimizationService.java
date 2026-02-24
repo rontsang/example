@@ -36,25 +36,30 @@ public class TaxMinimizationService {
 
 
 
-//        printOptimalStrategy(root);
-            ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
+        root.getOptimalChildAndYearsToDepletion();
+        if (root.optimalChild != null
+                && root.optimalChild.scenario != null
+                && root.optimalChild.scenario.yearsToDepletion < 100
+                && root.scenario != null
+                && root.scenario.yearsToDepletion < 100) {
+            burndownStageN(root.optimalChild, new ArrayList<>());
             root.getOptimalChildAndYearsToDepletion();
-        if(root.optimalChild.scenario.yearsToDepletion < 100 && root.scenario.yearsToDepletion < 100) {
-            burndownStageN(root.optimalChild, burndown);
-            root.getOptimalChildAndYearsToDepletion();
-                root.displayResults();
-
-            root.saveToFile(root, "root.ser");
-            root.saveToFile(burndown, "C:\\example\\demo\\burndown.ser");
-
-//        ScenarioNode readNode = (ScenarioNode) root.readToFile("root.ser");
-//        ArrayList<BurndownTimeEvent> burndownRead = root.readToFileAl("C:\\tax\\demo\\burndown.ser");
-
+            root.displayResults();
             System.out.println(root);
-
             return root;
         }
         return null;
+    }
+
+    public static ArrayList<BurndownTimeEvent> computeBurndown(AccountState startingState) {
+        ScenarioNode root = main(startingState);
+        if (root == null || root.optimalChild == null) {
+            return null;
+        }
+
+        ArrayList<BurndownTimeEvent> burndown = new ArrayList<>();
+        burndownStageN(root.optimalChild, burndown);
+        return burndown;
     }
 
     private static void burndownStageN(ScenarioNode currentScenarioNode, ArrayList<BurndownTimeEvent> burndown) {
