@@ -259,7 +259,7 @@ export class BarChartComponent implements OnInit {
       let year = 0;
       let p = 0; // start at phase index 0
 
-      while (year < 100) {
+      while (year < 150) {
         // 1. Grow accounts
         const r = this.randomNormal(meanReturn, stdDev);
         tfsa = tfsa > 0 ? tfsa * (1 + r) : 0;
@@ -339,13 +339,14 @@ export class BarChartComponent implements OnInit {
 
     this.hasRun = true;
 
-    // Build frequency distribution for chart
+    // Build frequency distribution for chart dynamically based on max lifespan in results
+    const maxLimit = Math.max(1, Math.max(...results));
     const distribution: { [key: number]: number } = {};
-    for (let y = 1; y <= 100; y++) {
+    for (let y = 1; y <= maxLimit; y++) {
       distribution[y] = 0;
     }
     results.forEach(year => {
-      const rounded = Math.min(100, Math.max(1, Math.round(year)));
+      const rounded = Math.min(maxLimit, Math.max(1, Math.round(year)));
       distribution[rounded]++;
     });
 
@@ -356,11 +357,11 @@ export class BarChartComponent implements OnInit {
 
     // Draw / update chart
     setTimeout(() => {
-      this.createOrUpdateChart(chartData);
+      this.createOrUpdateChart(chartData, maxLimit);
     }, 0);
   }
 
-  createOrUpdateChart(chartData: any[]): void {
+  createOrUpdateChart(chartData: any[], maxLimit: number): void {
     if (this.chart) {
       this.chart.destroy();
     }
@@ -368,7 +369,7 @@ export class BarChartComponent implements OnInit {
     this.chart = new Chart('MonteCarloChart', {
       type: 'bar',
       data: {
-        labels: chartData.map(d => d.x === 100 ? '100+ yr' : `${d.x} yr`),
+        labels: chartData.map(d => d.x === maxLimit && maxLimit === 150 ? '150+ yr' : `${d.x} yr`),
         datasets: [{
           label: 'Number of Runs',
           data: chartData.map(d => d.y),
@@ -403,7 +404,9 @@ export class BarChartComponent implements OnInit {
               color: '#bababa',
               font: {
                 size: 10
-              }
+              },
+              autoSkip: true,
+              maxTicksLimit: 20
             },
             title: {
               display: true,
