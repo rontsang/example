@@ -21,6 +21,7 @@ export class AppComponent implements OnInit {
 
 
   activeMobileView: 'input' | 'output' = 'input';
+  inputsCollapsed = false;
 
   constructor(
     private helloService: HelloService,
@@ -29,6 +30,10 @@ export class AppComponent implements OnInit {
 
   switchToInputView() {
     this.activeMobileView = 'input';
+  }
+
+  toggleInputs() {
+    this.sharedService.setInputsCollapsed(!this.inputsCollapsed);
   }
 
   ngOnInit(): void {
@@ -53,11 +58,14 @@ export class AppComponent implements OnInit {
       }
     });
 
-
+    this.sharedService.inputsCollapsed$.subscribe(collapsed => {
+      this.inputsCollapsed = collapsed;
+    });
 
     this.sharedService.calculateTriggered$.subscribe(triggered => {
       if (triggered) {
         this.activeMobileView = 'output';
+        this.sharedService.setInputsCollapsed(true);
       }
     });
   }

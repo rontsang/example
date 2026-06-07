@@ -129,39 +129,41 @@
     </div>
   </div>
 
-  <div class="chart-container" [style.display]="hasRun ? 'block' : 'none'">
-    <canvas id="MonteCarloChart"></canvas>
-  </div>
+  <div class="monte-carlo-results" *ngIf="hasRun || !hasStrategy">
+    <div class="chart-container" [style.display]="hasRun ? 'block' : 'none'">
+      <canvas id="MonteCarloChart"></canvas>
+    </div>
 
-  <div class="sim-results" *ngIf="hasRun">
-    <h3>Simulation Results ({{ simulations }} runs)</h3>
-    <p>Based on the proposed strategy and a return variance of <strong>{{ variance }}%</strong>:</p>
-    <ul>
-      <li>
-        <span>Average Portfolio Lifespan</span>
-        <strong>{{ avgYears | number:'1.1-1' }} years</strong>
-      </li>
-      <li>
-        <span>Probability of lasting 50+ years</span>
-        <strong>{{ successRate | percent:'1.0-0' }}</strong>
-      </li>
-      <li>
-        <span>10th Percentile (Worst 10% case)</span>
-        <strong>{{ p10 | number:'1.0-0' }} years</strong>
-      </li>
-      <li>
-        <span>50th Percentile (Median case)</span>
-        <strong>{{ p50 | number:'1.0-0' }} years</strong>
-      </li>
-      <li>
-        <span>90th Percentile (Best 10% case)</span>
-        <strong>{{ p90 | number:'1.0-0' }} years</strong>
-      </li>
-    </ul>
-  </div>
+    <div class="sim-results" *ngIf="hasRun">
+      <h3>Simulation Results ({{ simulations }} runs)</h3>
+      <p>Based on the proposed strategy and a return variance of <strong>{{ variance }}%</strong>:</p>
+      <ul class="metrics-grid">
+        <li>
+          <span>Average Lifespan</span>
+          <strong>{{ avgYears | number:'1.1-1' }} years</strong>
+        </li>
+        <li>
+          <span>Prob. lasting 50+ yrs</span>
+          <strong>{{ successRate | percent:'1.0-0' }}</strong>
+        </li>
+        <li>
+          <span>10th Percentile (Worst 10%)</span>
+          <strong>{{ p10 | number:'1.0-0' }} years</strong>
+        </li>
+        <li>
+          <span>50th Percentile (Median)</span>
+          <strong>{{ p50 | number:'1.0-0' }} years</strong>
+        </li>
+        <li>
+          <span>90th Percentile (Best 10%)</span>
+          <strong>{{ p90 | number:'1.0-0' }} years</strong>
+        </li>
+      </ul>
+    </div>
 
-  <div class="no-strategy-warning" *ngIf="!hasStrategy">
-    <h3>No Optimal Strategy Found</h3>
-    <p>Please run the <strong>Optimizer</strong> first to generate a proposed strategy for simulation.</p>
+    <div class="no-strategy-warning" *ngIf="!hasStrategy">
+      <h3>No Optimal Strategy Found</h3>
+      <p>Please run the <strong>Optimizer</strong> first to generate a proposed strategy for simulation.</p>
+    </div>
   </div>
 </div>

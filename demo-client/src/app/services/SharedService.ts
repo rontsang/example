@@ -17,6 +17,9 @@ export class SharedService {
   private calculateTriggeredSource = new BehaviorSubject<boolean>(false);
   calculateTriggered$ = this.calculateTriggeredSource.asObservable();
 
+  private inputsCollapsedSource = new BehaviorSubject<boolean>(false);
+  inputsCollapsed$ = this.inputsCollapsedSource.asObservable();
+
   notifyChartIsObsolete(isNeeded: boolean) {
     this.chartUpdateNeededSource.next(isNeeded);
   }
@@ -35,5 +38,9 @@ export class SharedService {
 
   notifyCalculateTriggered() {
     this.calculateTriggeredSource.next(true);
+  }
+
+  setInputsCollapsed(collapsed: boolean) {
+    this.inputsCollapsedSource.next(collapsed);
   }
 }

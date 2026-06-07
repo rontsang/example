@@ -491,3 +491,56 @@
   text-transform: uppercase;
   margin-bottom: 6px;
 }
+
+/* Desktop Side-by-Side Layout for Monte Carlo (prevent scrollbars) */
+@media (min-width: 768px) {
+  .monte-carlo-container {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 16px;
+    align-items: start;
+    height: 100%;
+  }
+
+  .monte-carlo-form {
+    padding: 12px;
+    margin-bottom: 0;
+  }
+
+  .monte-carlo-results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+  }
+
+  .chart-container {
+    height: 230px !important;
+    padding: 8px;
+  }
+
+  .sim-results {
+    padding: 12px;
+  }
+
+  .sim-results h3 {
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+  }
+
+  .sim-results p {
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .metrics-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px !important;
+  }
+
+  .sim-results li {
+    font-size: 12px;
+    padding-bottom: 2px;
+  }
+}
