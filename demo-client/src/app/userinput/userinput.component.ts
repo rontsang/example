@@ -6,6 +6,8 @@ import {SharedDataService} from "../services/SharedDataService";
 // import { CurrencyFormatDirective } from './currency-format.directive';
 import {SharedService} from "../services/SharedService";
 import { PipeHelperService } from '../services/PipeHelperService';
+import { debounceTime } from 'rxjs/operators';
+import { LocalOptimizerService } from '../services/local-optimizer.service';
 
 @Component({
   selector: 'app-userinput',
@@ -13,7 +15,21 @@ import { PipeHelperService } from '../services/PipeHelperService';
   styleUrls: ['./userinput.component.css']
 })
 export class UserInputComponent {
-  provinces = ['Ontario','Alberta','Yukon']; // Add actual province names
+  provinces = [
+    'Ontario',
+    'Quebec',
+    'British Columbia',
+    'Alberta',
+    'Manitoba',
+    'Saskatchewan',
+    'Nova Scotia',
+    'New Brunswick',
+    'Newfoundland and Labrador',
+    'Prince Edward Island',
+    'Northwest Territories',
+    'Yukon',
+    'Nunavut'
+  ];
 
   repeat = 0;
   updateNeeded = false;
@@ -23,6 +39,7 @@ export class UserInputComponent {
   sliderValueRrsp = 0;
   sliderValueMargPrincipal = 0;
   sliderValueMargCapitalGain = 0;
+  sliderValueDividendYield = 0;
   sliderValueIncome = 0;
   sliderValueInterestRate = 0;
   sliderValueAmountPerYear = 0;
@@ -34,65 +51,69 @@ export class UserInputComponent {
 
   // @ViewChild('currencyFormatter') currencyFormatterDirective!: CurrencyFormatDirective;
 
+  maxAdditionalIncomeSliderValue = 20000;
+
   userForm = new FormGroup({
-    tfsaAmount: new FormControl(500000),
-    rrspAmount: new FormControl(650000),
-    income: new FormControl(5000),
-    margAmountPrincipal: new FormControl(500000),
+    tfsaAmount: new FormControl(400000),
+    rrspAmount: new FormControl(500000),
+    income: new FormControl(0),
+    margAmountPrincipal: new FormControl(1100000),
     margAmountCapitalGain: new FormControl(500000),
-    interestRate: new FormControl(0.04),
-    amountPerYear: new FormControl(75000),
+    dividendYield: new FormControl(0.0),
+    interestRate: new FormControl(3.0),
+    amountPerYear: new FormControl(60000),
     province: new FormControl(this.provinces[0])
   });
   currentValue = 0;
 
+
+  syncSliderValues(val: any) {
+    this.sliderValueTfsa = Number(val.tfsaAmount || 0);
+    this.sliderValueRrsp = Number(val.rrspAmount || 0);
+    this.sliderValueMargPrincipal = Number(val.margAmountPrincipal || 0);
+    this.sliderValueMargCapitalGain = Number(val.margAmountCapitalGain || 0);
+    this.sliderValueDividendYield = Number(val.dividendYield || 0);
+    this.sliderValueIncome = Number(val.income || 0);
+    this.maxAdditionalIncomeSliderValue = Math.max(20000, this.sliderValueIncome);
+    this.sliderValueInterestRate = Number(val.interestRate || 0);
+    this.sliderValueAmountPerYear = Number(val.amountPerYear || 0);
+  }
 
   constructor(
     private dataService: DataService,
     private http: HttpClient,
     private sharedDataService: SharedDataService,
     private sharedService: SharedService,
-    private pipeHelper: PipeHelperService
+    private pipeHelper: PipeHelperService,
+    private localOptimizer: LocalOptimizerService
   ) {
-    // Grey out chart on user input change
-    this.userForm.valueChanges.subscribe(() => {
+    // Sync slider values on load
+    this.syncSliderValues(this.userForm.value);
+
+    // Grey out chart on user input change and trigger auto-optimization
+    this.userForm.valueChanges.pipe(
+      debounceTime(300)
+    ).subscribe((val) => {
+      this.syncSliderValues(val);
       this.sharedService.notifyChartIsObsolete(true);
       this.sharedDataService.updateInputData(this.userForm.value);
+      this.sendForm();
     });}
 
   ngOnInit(): void {
     const formData = this.userForm.value;
+    this.syncSliderValues(formData);
     this.sharedDataService.updateInputData(formData);
 
     this.sharedService.inputUpdateNeeded$.subscribe(updateNeeded => {
-      if (updateNeeded && this.repeat < 5) {
-        this.updateNeeded = true;
+      this.updateNeeded = updateNeeded;
+      if (updateNeeded) {
         this.sharedService.notifyChartUsedNewData(true);
-
-        console.log("is red 1: ", this.updateNeeded);
-        const tfsaAmount = Number(this.userForm.get('tfsaAmount')?.value);
-        const rrspAmount = Number(this.userForm.get('rrspAmount')?.value);
-        const margAmountPrincipal = Number(this.userForm.get('margAmountPrincipal')?.value);
-        const margAmountCapitalGain = Number(this.userForm.get('margAmountCapitalGain')?.value);
-        const total = tfsaAmount + rrspAmount + margAmountPrincipal + margAmountCapitalGain;
-        const interestRate = Number(this.userForm.get('interestRate')?.value);
-        const newAmountPerYear = Number(this.userForm.get('amountPerYear')?.value) * 2;
-        console.log("Yo whats up", newAmountPerYear);
-        if (total * interestRate * 1.5 < Number(this.userForm.get('amountPerYear')?.value)) {
-          console.log("Yo whats up 2");
-          this.userForm.patchValue({
-            amountPerYear: total * interestRate * 1.5
-          });
-        } else {
-          console.log("Yo whats up 3");
-          this.userForm.patchValue({
-            amountPerYear: newAmountPerYear
-          });
-        }
-        this.repeat++;
-        this.sendForm();
       }
     });
+
+    // Run initial optimization on page load
+    this.sendForm();
   }
 
   onSliderChange(event: Event, formControlName: string) {
@@ -107,11 +128,10 @@ export class UserInputComponent {
 
     // Directly update the corresponding text input (if needed)
     const textInputId = `${formControlName}Number`; // Ensure the ID matches your input's ID
-    const textInput: HTMLInputElement | null = document.getElementById(textInputId) as HTMLInputElement;
-    // if (textInput) {
-      // textInput.value = formattedValue;
-    // }
-    textInput.value = this.getFormattedValue(numericValue);
+    const textInput = document.getElementById(textInputId) as HTMLInputElement;
+    if (textInput) {
+      textInput.value = this.getFormattedValue(numericValue);
+    }
   }
 
   private formatCurrency(value: number): string {
@@ -131,20 +151,33 @@ export class UserInputComponent {
     this.updateNeeded = false;
     this.sharedService.notifyChartUsedNewData(false);
     this.sendForm();
+    this.sharedService.notifyCalculateTriggered();
   }
 
   sendForm() {
     this.isSubmitted = true;
     this.sharedService.notifyChartIsObsolete(false);
-    this.dataService.sendData(this.userForm.value).subscribe(
+
+    const payload = {
+      ...this.userForm.value,
+      interestRate: Number(this.userForm.get('interestRate')?.value) / 100
+    };
+
+    /* Commented out HTTP request to backend to offload calculations to local frontend optimizer
+    this.dataService.sendData(payload).subscribe(
       response => {
         console.log('Success!', response);
       },
       error => console.error('Error!', error)
     );
 
-    this.http.post<any[]>('http://localhost:8081/submit-form', this.userForm.value).subscribe(data => {
+    this.http.post<any[]>('http://localhost:8081/submit-form', payload).subscribe(data => {
       this.sharedDataService.updateChartData(data);
     });
+    */
+
+    // Compute locally using the ported optimizer service
+    const localData = this.localOptimizer.computeBurndownMinimization(payload);
+    this.sharedDataService.updateChartData(localData);
   }
 }

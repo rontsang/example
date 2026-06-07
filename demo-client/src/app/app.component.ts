@@ -4,29 +4,38 @@ import { DataService } from './data.service';
 import { LineChartComponent } from './line-chart/line-chart.component';
 import { ChartComponent} from "./chart/chart.component";
 import {Subscription} from "rxjs";
+import { SharedService } from './services/SharedService';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  // providers: [HelloService]
 })
 
 export class AppComponent implements OnInit {
 
   content?: string;
   errorMessage?: string;
-  sub?: Subscription; //the question mark is required, otherwise we need to initialize it (or explicitly keep it undefined)
+  sub?: Subscription;
   currentValue = 50;
 
-  constructor(private helloService: HelloService) { }
+
+  activeMobileView: 'input' | 'output' = 'input';
+
+  constructor(
+    private helloService: HelloService,
+    private sharedService: SharedService
+  ) { }
+
+  switchToInputView() {
+    this.activeMobileView = 'input';
+  }
 
   ngOnInit(): void {
     console.log("got here")
     this.sub = this.helloService.getServerMessage().subscribe({
       next: data => {
         this.content = data;
-        console.log(data);
         console.log(data);
       },
       error: err => {
@@ -43,7 +52,17 @@ export class AppComponent implements OnInit {
         }
       }
     });
+
+
+
+    this.sharedService.calculateTriggered$.subscribe(triggered => {
+      if (triggered) {
+        this.activeMobileView = 'output';
+      }
+    });
   }
+
+
 
   ngOnDestroy(): void {
     if (this.sub instanceof Subscription) {

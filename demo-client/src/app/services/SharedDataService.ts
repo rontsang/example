@@ -6,12 +6,12 @@ import {BehaviorSubject, Observable} from 'rxjs';
   providedIn: 'root'
 })
 export class SharedDataService {
-  private chartDataSubject = new BehaviorSubject<any[]>([]);
+  private chartDataSubject = new BehaviorSubject<any[] | null>([]);
   chartData$ = this.chartDataSubject.asObservable();
 
   chartUpdateNeeded$: boolean = false;
 
-  private chartDataSubject2 = new BehaviorSubject<any[]>([]);
+  private chartDataSubject2 = new BehaviorSubject<any[] | null>([]);
   chartData2$ = this.chartDataSubject2.asObservable();
 
   private chartStage = new BehaviorSubject<number>(0);
@@ -36,12 +36,12 @@ export class SharedDataService {
   }
 
   // Backend returned data
-  updateChartData(data: any[]): void {
+  updateChartData(data: any[] | null): void {
     this.chartDataSubject.next(data);
   }
 
   // Backend returned data
-  updateChartData2(data: any[], stage: number): void {
+  updateChartData2(data: any[] | null, stage: number): void {
     this.chartDataSubject2.next(data);
     this.chartStage.next(stage);
   }

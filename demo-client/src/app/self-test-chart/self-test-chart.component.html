@@ -3,11 +3,6 @@
   <canvas id="MyChart" >{{ chart }}</canvas>
 </div>
 
-<div *ngIf="warning === true"  class="results-container">
-  <h3>Warning: User input leads to money not draining in 50 years</h3>
-  <p>You are so rich we cannot simulate your scenario properly</p>
-  <p>We increased your income needed per year to perform the simulation</p>
-</div>
 
 <div *ngFor="let state of states; let i = index">
   <div *ngIf="i <= stage">

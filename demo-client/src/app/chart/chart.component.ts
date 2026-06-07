@@ -9,6 +9,8 @@ import { getChartOptions } from '../chart/chart-options';
 import { RoundToTenPipe} from "../round-to-ten.pipe";
 import { MatTooltipModule } from '@angular/material/tooltip';
 import {MatIcon} from "@angular/material/icon";
+import { BarChartComponent } from '../bar-chart/bar-chart.component';
+import { LocalOptimizerService } from '../services/local-optimizer.service';
 
 @Component({
   selector: 'app-chart',
@@ -20,13 +22,15 @@ import {MatIcon} from "@angular/material/icon";
     CommonModule,
     RoundToTenPipe,
     MatTooltipModule,
-    MatIcon
+    MatIcon,
+    BarChartComponent
   ],
   templateUrl: './chart.component.html',
   styleUrl: './chart.component.css'
 })
 export class ChartComponent {
 
+  currentView: string = 'graph';
   data: ChartData[] = [];
   strategies: WithdrawalStrategy[] = [];
   summaries: Summary[] = [];
@@ -34,11 +38,16 @@ export class ChartComponent {
   warning: boolean = false; //duplicate
   totalWithdrawal: number = 0;
   postTaxTotal: number = 0;
+  isObsolete: boolean = true;
+  rawData: RawDataItem[] = [];
+  inputData: any = null;
+  hoveredYearData: any = null;
 
   constructor(
     private accountService: AccountService,
     private sharedDataService: SharedDataService,
-    private sharedService: SharedService
+    private sharedService: SharedService,
+    private localOptimizerService: LocalOptimizerService
   ) {}
 
   calculateDifference(): number {
@@ -46,17 +55,8 @@ export class ChartComponent {
   }
 
   ngOnInit(): void {
-    this.accountService.getAccountData().subscribe(data => {
-      this.data = this.transformDataForChart(data);
-      if (this.data.length > 0) {
-        const firstDataset = [this.data[0]]; // Create an array with only the first dataset
-        console.log("updating chart with first dataset", firstDataset);
-        // console.log("our data is now:");
-        // console.log(firstDataset);
-        this.createChart(firstDataset);
-      } else {
-        console.log("No data available to create the chart.");
-      }
+    this.sharedDataService.currentInputData$.subscribe(input => {
+      this.inputData = input;
     });
 
     this.sharedService.userInputChanged$.subscribe(warning => {
@@ -65,6 +65,7 @@ export class ChartComponent {
     });
 
     this.sharedService.chartUpdateNeeded$.subscribe(updateNeeded => {
+      this.isObsolete = updateNeeded;
       if (updateNeeded) {
         this.greyOutChart();
       } else {
@@ -74,24 +75,27 @@ export class ChartComponent {
 
     this.sharedDataService.chartData$.subscribe(data => {
       console.log("Received new data from the shared data service:", data);
-      if(this.chart == null) {
-        this.createChart(this.data);
-      } else {
-        if (data == null) {
-          this.sharedService.notifyUserUpdateNeeded(true);
+      if (data == null) {
+        this.sharedService.notifyUserUpdateNeeded(true);
 
-          //redo calculations with higher income value
-          if (this.chart) {
-            this.chart.data.datasets = [];
-            this.chart.update();
-          }
-          this.tooHighIncome = true;
+        //redo calculations with higher income value
+        if (this.chart) {
+          this.chart.data.datasets = [];
+          this.chart.update();
+        }
+        this.tooHighIncome = true;
+      } else {
+        this.rawData = data;
+        this.isObsolete = false;
+        this.postTaxTotal = data[0].accountState.postTaxAmountNeededPerYear;
+        console.log("Post Tax Total: ", this.postTaxTotal);
+        this.data = this.transformDataForChart(data);
+        this.sharedService.notifyUserUpdateNeeded(false);
+        this.tooHighIncome = false;
+        this.hoveredYearData = this.getYearData(0);
+        if (this.chart == null) {
+          this.createChart(this.data);
         } else {
-          this.postTaxTotal = data[0].accountState.postTaxAmountNeededPerYear;
-          console.log("Post Tax Total: ", this.postTaxTotal);
-          this.data = this.transformDataForChart(data);
-          this.sharedService.notifyUserUpdateNeeded(false);
-          this.tooHighIncome = false;
           this.updateChart(data);
         }
       }
@@ -110,6 +114,120 @@ export class ChartComponent {
     // ];
   }
 
+  getSuggestedSpend(): number {
+    if (!this.inputData) return 75000;
+    const tfsa = Number(this.inputData.tfsaAmount || 0);
+    const rrsp = Number(this.inputData.rrspAmount || 0);
+    const margPrincipal = Number(this.inputData.margAmountPrincipal || 0);
+    const margCapitalGain = Number(this.inputData.margAmountCapitalGain || 0);
+    const margTotal = Math.max(0, margPrincipal - margCapitalGain) + margCapitalGain;
+    const total = tfsa + rrsp + margTotal;
+    const rate = Number(this.inputData.interestRate || 4.0) / 100;
+    const income = Number(this.inputData.income || 0);
+    const currentSpend = Number(this.inputData.amountPerYear || 0);
+
+    const growth = total * rate;
+    const formulaSuggest = Math.round(growth * 1.35 + income);
+    const minSuggest = Math.max(75000, Math.round(currentSpend * 1.15));
+    return Math.max(minSuggest, formulaSuggest);
+  }
+
+  updateHoveredYear(year: number) {
+    const data = this.getYearData(year);
+    if (data) {
+      this.hoveredYearData = data;
+    }
+  }
+
+  getYearData(year: number): any {
+    if (!this.rawData || this.rawData.length === 0) return null;
+    let closestItem = this.rawData[0];
+    let minDiff = Math.abs(this.rawData[0].year - year);
+    for (const item of this.rawData) {
+      const diff = Math.abs(item.year - year);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestItem = item;
+      }
+    }
+    return closestItem;
+  }
+
+  getHoveredDetails() {
+    if (!this.hoveredYearData) return null;
+
+    const data = this.hoveredYearData;
+    const accounts = data.accountState.accounts;
+    const accountsList = data.accountState.accountsList;
+
+    const tfsaIdx = accountsList.indexOf('TFSA');
+    const rrspIdx = accountsList.indexOf('RRSP');
+    const margIdx = accountsList.indexOf('MARG') !== -1 ? accountsList.indexOf('MARG') : accountsList.indexOf('NON-REG');
+
+    const tfsaAcc = accounts.find((a: any) => a.accountName === 'TFSA');
+    const rrspAcc = accounts.find((a: any) => a.accountName === 'RRSP');
+    const margAcc = accounts.find((a: any) => a.accountName === 'MARG' || a.accountName === 'NON-REG');
+
+    const tfsaBalance = tfsaAcc ? tfsaAcc.totalValue : 0;
+    const rrspBalance = rrspAcc ? rrspAcc.totalValue : 0;
+    const margBalance = margAcc ? margAcc.totalValue : 0;
+
+    const tfsaWithdrawn = tfsaIdx !== -1 ? data.preTaxAmounts[tfsaIdx] : 0;
+    const rrspWithdrawn = rrspIdx !== -1 ? data.preTaxAmounts[rrspIdx] : 0;
+    const margWithdrawn = margIdx !== -1 ? data.preTaxAmounts[margIdx] : 0;
+
+    const tfsaTaxable = tfsaIdx !== -1 ? data.taxableAmount[tfsaIdx] : 0;
+    const rrspTaxable = rrspIdx !== -1 ? data.taxableAmount[rrspIdx] : 0;
+    const margTaxable = margIdx !== -1 ? data.taxableAmount[margIdx] : 0;
+
+    const income = data.accountState.income || 0;
+    const dividends = data.dividends || 0;
+    const dividendTaxable = data.dividendTaxable || 0;
+    const totalWithdrawn = tfsaWithdrawn + rrspWithdrawn + margWithdrawn;
+    const effectiveIncome = totalWithdrawn + income + dividends;
+
+    const totalTaxable = income + rrspTaxable + margTaxable + dividendTaxable;
+    const provinceName = data.accountState.province || "Ontario";
+    const taxesOwed = this.localOptimizerService.calculateTaxesOwed(totalTaxable, provinceName, dividendTaxable);
+    const totalAfterTax = effectiveIncome - taxesOwed;
+
+    // Calculation details for margin (Non-Reg)
+    const margTotalValue = margAcc ? (margAcc.principalAmount + margAcc.capitalGainsAmount) : 0;
+    const margCapitalGains = margAcc ? margAcc.capitalGainsAmount : 0;
+    const capGainsPct = margTotalValue > 0 ? (margCapitalGains / margTotalValue) * 100 : 0;
+
+    const provincialDividendCreditPct = this.localOptimizerService.getProvincialDividendCreditRate(provinceName) * 100;
+
+    return {
+      year: data.year,
+      provinceName,
+      provincialDividendCreditPct,
+      balances: {
+        tfsa: tfsaBalance,
+        rrsp: rrspBalance,
+        nonReg: margBalance
+      },
+      withdrawals: {
+        tfsa: tfsaWithdrawn,
+        rrsp: rrspWithdrawn,
+        nonReg: margWithdrawn
+      },
+      effectiveIncome,
+      taxesOwed,
+      totalAfterTax,
+      calculation: {
+        income,
+        rrspTaxable,
+        margWithdrawn,
+        capGainsPct,
+        margTaxable,
+        dividendActual: dividends,
+        dividendTaxable,
+        totalTaxable
+      }
+    };
+  }
+
   getTooltipContent(strategy: Summary): string {
     // Total tax is: income + tfsa + rrsp + nonReg
     return strategy.withdrawals
@@ -119,36 +237,56 @@ export class ChartComponent {
 
   updateChart(data: any[]): void {
     if (this.chart) {
+      this.rawData = data;
       this.data = this.transformDataForChart(data);
       console.log("updating chart with new data", this.data);
-      // Assuming the new data is already in the correct format
-      // as required by the Chart.js datasets
+      
+      let maxYear = 0;
+      data.forEach(item => {
+        if (item.year > maxYear) {
+          maxYear = item.year;
+        }
+      });
+      maxYear = Math.ceil(maxYear || 20);
+
+      if (this.chart.options.plugins && this.chart.options.plugins.zoom) {
+        this.chart.options.plugins.zoom.limits = {
+          x: {
+            min: 0,
+            max: maxYear,
+            minRange: 1
+          }
+        };
+      }
+
       this.chart.data.datasets = this.data.map((dataset: ChartData) => ({
         label: dataset.name,
         data: dataset.series.map((seriesItem: SeriesItem) => ({
-          x: seriesItem.name, // Assuming 'name' is the x-axis value (like a date or category)
-          y: seriesItem.value  // y-axis value
-        })), // Or use a fixed color / existing color
+          x: Number(seriesItem.name),
+          y: seriesItem.value
+        })),
         fill: false
       }));
 
-      this.chart.update(); // Redraw the chart with the new data
+      if (this.chart.resetZoom) {
+        this.chart.resetZoom();
+      }
+      this.chart.update();
       this.getWithdrawalStrategy(data);
-    } else {
-      // If the chart does not exist, create it
-      // this.createChart(data);
     }
   }
 
   private transformDataForChart(rawData: RawDataItem[]): any[] {
     const chartData: ChartData[] = [];
-    // Assuming 'data' is an array of your results
     rawData.forEach(result => {
-      // console.log(result);
       result.accountState.accounts.forEach(account => {
-        let accountData = chartData.find(d => d.name === account.accountName);
+        let accountName = account.accountName;
+        if (accountName === 'MARG') {
+          accountName = 'NON-REG';
+        }
+        let accountData = chartData.find(d => d.name === accountName);
         if (!accountData) {
-          accountData = { name: account.accountName, series: [] };
+          accountData = { name: accountName, series: [] };
           chartData.push(accountData);
         }
         const roundedYear = Math.round(result.year * 100) / 100;
@@ -162,18 +300,65 @@ export class ChartComponent {
 
   createChart(chartData: any[]): void {
     console.log(chartData);
+    let maxYear = 0;
+    chartData.forEach(dataset => {
+      dataset.series.forEach((s: any) => {
+        const y = Number(s.name);
+        if (y > maxYear) {
+          maxYear = y;
+        }
+      });
+    });
+    maxYear = Math.ceil(maxYear || 20);
+
+    const options = getChartOptions(
+      (year) => {
+        if (!this.rawData || this.rawData.length === 0) return null;
+        const item = this.rawData.find(d => Math.round(d.year * 100) === Math.round(year * 100)) 
+                  || this.rawData.find(d => Math.abs(d.year - year) < 0.05);
+        if (!item) return null;
+
+        const income = item.accountState.income || 0;
+        const totalWithdrawn = item.preTaxAmounts ? item.preTaxAmounts.reduce((sum, val) => sum + val, 0) : 0;
+        const taxableWithdrawals = item.taxableAmount ? item.taxableAmount.reduce((sum, val) => sum + val, 0) : 0;
+        const totalTaxable = income + taxableWithdrawals;
+        const provinceName = item.accountState.province || "Ontario";
+        const taxesOwed = this.localOptimizerService.calculateTaxesOwed(totalTaxable, provinceName);
+        const totalAfterTax = totalWithdrawn + income - taxesOwed;
+
+        return {
+          effectiveIncome: totalWithdrawn + income,
+          taxesOwed: taxesOwed,
+          totalWithdrawn: totalWithdrawn,
+          totalAfterTax: totalAfterTax
+        };
+      },
+      (year) => {
+        this.updateHoveredYear(year);
+      }
+    );
+    if (options.plugins && options.plugins.zoom) {
+      options.plugins.zoom.limits = {
+        x: {
+          min: 0,
+          max: maxYear,
+          minRange: 1
+        }
+      };
+    }
+
     this.chart = new Chart("MyChart", {
       type: 'line',
       data: {
         datasets: chartData.map((dataset:ChartData) => ({
           label: dataset.name,
           data: dataset.series.map((seriesItem: SeriesItem) => ({
-            x: seriesItem.name,
+            x: Number(seriesItem.name),
             y: seriesItem.value
           }))
         }))
       },
-      options: getChartOptions(),
+      options: options,
     });
   }
 
@@ -206,13 +391,23 @@ export class ChartComponent {
             startYear: startYear,
             endYear: item.year,
             income: item.accountState.income,
-            withdrawals: lastPreTaxAmounts.map((amount, index) => ({
-              amount: amount,
-              accountName: lastAccounts ? lastAccounts[index] : 'Unknown',
-              taxableAmount: lastTaxableAmount ? lastTaxableAmount[index] : 0,
-              preTaxAmounts: 0
-            })),
-            accNames: item.accountState.accounts.map(acc => acc.accountName),
+            withdrawals: lastPreTaxAmounts.map((amount, index) => {
+              let accountName = lastAccounts ? lastAccounts[index] : 'Unknown';
+              if (accountName === 'MARG') {
+                accountName = 'NON-REG';
+              }
+              return {
+                amount: amount,
+                accountName: accountName,
+                taxableAmount: lastTaxableAmount ? lastTaxableAmount[index] : 0,
+                preTaxAmounts: 0
+              };
+            }),
+            accNames: item.accountState.accounts.map(acc => {
+              let name = acc.accountName;
+              if (name === 'MARG') name = 'NON-REG';
+              return name;
+            }),
             taxableAmount: taxableAmount2,
             totalWithdrawal: lastPreTaxAmounts.reduce((acc, withdrawal) => acc + withdrawal, 0),
             taxesOwed: 0
@@ -233,13 +428,23 @@ export class ChartComponent {
           startYear: startYear,
           endYear: item.year,
           income: item.accountState.income,
-          withdrawals: lastPreTaxAmounts.map((amount, index) => ({
-            amount: amount,
-            accountName: item.accountState.accountsList[index],
-            taxableAmount: item.taxableAmount[index],
-            preTaxAmounts: item.preTaxAmounts[index]
-          })),
-          accNames: item.accountState.accounts.map(acc => acc.accountName),
+          withdrawals: lastPreTaxAmounts.map((amount, index) => {
+            let accountName = item.accountState.accountsList[index];
+            if (accountName === 'MARG') {
+              accountName = 'NON-REG';
+            }
+            return {
+              amount: amount,
+              accountName: accountName,
+              taxableAmount: item.taxableAmount[index],
+              preTaxAmounts: item.preTaxAmounts[index]
+            };
+          }),
+          accNames: item.accountState.accounts.map(acc => {
+            let name = acc.accountName;
+            if (name === 'MARG') name = 'NON-REG';
+            return name;
+          }),
           taxableAmount: 0,
           totalWithdrawal: item.preTaxAmounts.reduce((acc, withdrawal) => acc + withdrawal, 0),
           taxesOwed: 0
@@ -301,6 +506,7 @@ interface AccountState {
   accountsList: string[];
   income: number;
   accounts: Account[];
+  province?: string;
 }
 
 interface RawDataItem {

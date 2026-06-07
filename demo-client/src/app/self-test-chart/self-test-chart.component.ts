@@ -8,6 +8,8 @@ import {SharedService} from "../services/SharedService";
 import {Subscription} from "rxjs";
 import {Usertestinput} from "../userTestInput/usertestinput";
 import {FormControl} from "@angular/forms";
+import { getChartOptions } from '../chart/chart-options';
+import { LocalOptimizerService } from '../services/local-optimizer.service';
 
 @Component({
   selector: 'app-chart-self-test',
@@ -26,6 +28,7 @@ export class SelfTestChartComponent {
 
   data: ChartData[] = [];
   stagesData: ChartData[][] = [];
+  rawStagesData: any[][] = [];
 
   strategies: WithdrawalStrategy[] = [];
   summaries: Summary[] = [];
@@ -52,7 +55,8 @@ export class SelfTestChartComponent {
   constructor(
     private accountService: AccountService,
     private sharedDataService: SharedDataService,
-    private sharedService: SharedService
+    private sharedService: SharedService,
+    private localOptimizerService: LocalOptimizerService
   ) {}
 
   // handleDataFromChild(stage: number) {
@@ -100,30 +104,34 @@ export class SelfTestChartComponent {
 
     this.sharedDataService.chartData2$.subscribe(data => {
       console.log("Received new data from the shared data service:", data);
+
+      if (data == null) {
+        this.sharedService.notifyUserUpdateNeeded(true);
+
+        //redo calculations with higher income value
+        if (this.chart) {
+          this.chart.data.datasets = [];
+          this.chart.update();
+        }
+        this.tooHighIncome = true;
+        return;
+      }
+
       // UPDATE THE CHART DATA ARRAY
+      this.rawStagesData.push(data);
       this.stagesData.push(data);
       console.log("STAGES DATA: ", this.stagesData);
       this.data = this.getAllStagesData();
       console.log("DATA: ", this.data);
 
+      this.sharedService.notifyUserUpdateNeeded(false);
+      this.tooHighIncome = false;
+
       if(this.chart == null){
         this.data = this.transformDataForChart(data);
         this.createChart(this.data);
       } else {
-        if (data == null) {
-          this.sharedService.notifyUserUpdateNeeded(true);
-
-          //redo calculations with higher income value
-          if (this.chart) {
-            this.chart.data.datasets = [];
-            this.chart.update();
-          }
-          this.tooHighIncome = true;
-        } else {
-          this.sharedService.notifyUserUpdateNeeded(false);
-          this.tooHighIncome = false;
-          this.updateChart(data);
-        }
+        this.updateChart(data);
       }
     });
   }
@@ -132,34 +140,52 @@ export class SelfTestChartComponent {
     if (this.chart) {
       this.data = this.transformDataForChart(data);
       console.log("updating chart with new data", this.data);
-      // Assuming the new data is already in the correct format
-      // as required by the Chart.js datasets
+      
+      let maxYear = 0;
+      data.forEach(item => {
+        if (item.year > maxYear) {
+          maxYear = item.year;
+        }
+      });
+      maxYear = Math.ceil(maxYear || 20);
+
+      if (this.chart.options.plugins && this.chart.options.plugins.zoom) {
+        this.chart.options.plugins.zoom.limits = {
+          x: {
+            min: 0,
+            max: maxYear,
+            minRange: 1
+          }
+        };
+      }
+
       this.chart.data.datasets = this.data.map((dataset: ChartData) => ({
         label: dataset.name,
         data: dataset.series.map((seriesItem: SeriesItem) => ({
-          x: seriesItem.name, // Assuming 'name' is the x-axis value (like a date or category)
-          y: seriesItem.value  // y-axis value
-        })), // Or use a fixed color / existing color
+          x: Number(seriesItem.name),
+          y: seriesItem.value
+        })),
         fill: false
       }));
 
-      this.chart.update(); // Redraw the chart with the new data
-    } else {
-      // If the chart does not exist, create it
-      // this.createChart(data);
+      if (this.chart.resetZoom) {
+        this.chart.resetZoom();
+      }
+      this.chart.update();
     }
   }
 
   private transformDataForChart(rawData: RawDataItem[]): any[] {
     const chartData: ChartData[] = [];
-
-    // Assuming 'data' is an array of your results
     rawData.forEach(result => {
-      // console.log(result);
       result.accountState.accounts.forEach(account => {
-        let accountData = chartData.find(d => d.name === account.accountName);
+        let accountName = account.accountName;
+        if (accountName === 'MARG') {
+          accountName = 'NON-REG';
+        }
+        let accountData = chartData.find(d => d.name === accountName);
         if (!accountData) {
-          accountData = { name: account.accountName, series: [] };
+          accountData = { name: accountName, series: [] };
           chartData.push(accountData);
         }
         const roundedYear = Math.round(result.year * 100) / 100;
@@ -171,56 +197,67 @@ export class SelfTestChartComponent {
 
   public chart: any;
 
-
   createChart(chartData: any[]): void {
     console.log("dasdsa");
     console.log(chartData);
     console.log("dasdsa");
+
+    let maxYear = 0;
+    chartData.forEach(dataset => {
+      dataset.series.forEach((s: any) => {
+        const y = Number(s.name);
+        if (y > maxYear) {
+          maxYear = y;
+        }
+      });
+    });
+    maxYear = Math.ceil(maxYear || 20);
+
+    const options = getChartOptions((year) => {
+      const flatData = this.rawStagesData.flat();
+      if (!flatData || flatData.length === 0) return null;
+      const item = flatData.find(d => Math.round(d.year * 100) === Math.round(year * 100))
+                || flatData.find(d => Math.abs(d.year - year) < 0.05);
+      if (!item) return null;
+
+      const income = item.accountState.income || 0;
+      const totalWithdrawn = item.preTaxAmounts ? item.preTaxAmounts.reduce((sum: number, val: number) => sum + val, 0) : 0;
+      const taxableWithdrawals = item.taxableAmount ? item.taxableAmount.reduce((sum: number, val: number) => sum + val, 0) : 0;
+      const totalTaxable = income + taxableWithdrawals;
+      const provinceName = item.accountState.province || "Ontario";
+      const taxesOwed = this.localOptimizerService.calculateTaxesOwed(totalTaxable, provinceName);
+      const totalAfterTax = totalWithdrawn + income - taxesOwed;
+
+      return {
+        effectiveIncome: totalWithdrawn + income,
+        taxesOwed: taxesOwed,
+        totalWithdrawn: totalWithdrawn,
+        totalAfterTax: totalAfterTax
+      };
+    });
+    if (options.plugins && options.plugins.zoom) {
+      options.plugins.zoom.limits = {
+        x: {
+          min: 0,
+          max: maxYear,
+          minRange: 1
+        }
+      };
+    }
+
     this.chart = new Chart("MyChart", {
-      type: 'line', //this denotes tha type of chart
+      type: 'line',
       data: {
         datasets: chartData.map((dataset:ChartData) => ({
           label: dataset.name,
           data: dataset.series.map((seriesItem: SeriesItem) => ({
-            x: seriesItem.name, // Use the actual value from seriesItem
-            y: seriesItem.value  // Use the actual value from seriesItem
+            x: Number(seriesItem.name),
+            y: seriesItem.value
           })),
           fill: false
         }))
       },
-      options: {
-        responsive: true,
-        animation: {
-          duration: 0, // general animation time
-        },
-        plugins: {
-          tooltip: {
-            animation: false,
-            mode: 'index',
-            intersect: false
-          },
-        },
-        hover: {
-          mode: 'nearest',
-          intersect: false
-        },
-        aspectRatio:2.5,
-        scales: {
-          x: {
-            type: 'linear', // Specify the scale type as linear
-            position: 'bottom', // Position can be 'left', 'right', 'top', 'bottom'
-            grid: {
-              display: false // Hide grid lines for x-axis
-            }
-          },
-          y: {
-            grid: {
-              display: false // Hide grid lines for y-axis
-            }
-          }
-        }
-      },
-
+      options: options,
     });
   }
 
@@ -255,6 +292,7 @@ interface AccountState {
   accountsList: string[];
   income: number;
   accounts: Account[];
+  province?: string;
 }
 
 interface RawDataItem {

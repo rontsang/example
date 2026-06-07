@@ -1,58 +1,336 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 :host {
-  display: block;
-  background-color: #121212;
-  font-family: 'Montserrat', sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-body {
-  margin: 0; /* Remove default margin */
-  height: auto; /* 100% of the viewport height */
-  width: 100vw; /* 100% of the viewport width */
+.top-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  height: 50px;
+  padding: 0 24px;
+  margin-bottom: 0;
+  background: linear-gradient(to bottom, #1e1c18 0%, #161512 100%);
+  flex: 0 0 50px;
 }
 
-/* global-styles.css */
+.logo-nav {
+  display: flex;
+  align-items: stretch;
+  gap: 32px;
+  height: 100%;
+}
+
+.nav-links {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+}
+
+.nav-links button {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-top: 3px solid transparent;
+  color: #bababa;
+  font-size: 13px;
+  font-weight: 700;
+  height: 100%;
+  padding: 0 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1;
+}
+
+.nav-links button:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.nav-links button.active {
+  color: #e67e22;
+  border-bottom: 3px solid #d56407;
+  border-top: 3px solid transparent;
+}
+
+.site-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+}
+
+.signin-btn {
+  background: transparent;
+  border: none;
+  color: #bababa;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.signin-btn:hover {
+  background-color: #262421;
+  color: #fff;
+}
+
+.settings-btn {
+  background: transparent;
+  border: none;
+  color: #bababa;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.settings-btn:hover {
+  background-color: #262421;
+  color: #fff;
+}
+
+.settings-icon {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.3s ease;
+}
+
+.settings-btn:hover .settings-icon {
+  transform: rotate(45deg);
+}
 
 .container {
   display: flex;
-  flex-wrap: wrap; /* Allows items to wrap onto the next line on small screens */
+  justify-content: center;
+  align-items: stretch;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px 24px 24px;
+  gap: 24px;
+  box-sizing: border-box;
+  height: calc(100vh - 50px);
+  overflow: hidden;
 }
 
-/* For mobile screens */
-@media (max-width: 600px) {
+app-userinput {
+  flex: 0 0 350px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.output-wrapper {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.back-to-input-btn {
+  display: none;
+}
+
+app-displaywindow {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  :host {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
   .container {
     flex-direction: column;
+    align-items: stretch;
+    height: calc(100vh - 50px);
+    overflow: hidden;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+  
+  app-userinput,
+  .output-wrapper {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  app-displaywindow {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+  .container.mobile-input-view .output-wrapper {
+    display: none !important;
+  }
+
+  .container.mobile-output-view app-userinput {
+    display: none !important;
+  }
+
+  .back-to-input-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #1e1c18;
+    color: #bababa;
+    border: 1px solid #363532;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 12px;
+    width: fit-content;
+    transition: all 0.15s ease;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    flex-shrink: 0;
+  }
+
+  .back-to-input-btn:hover {
+    color: #fff;
+    background-color: #2e2c29;
+    border-color: #bababa;
+  }
+
+  .back-to-input-btn:active {
+    background-color: #363532;
   }
 }
 
-/* Styles for each component - adjust as needed */
-app-userinput,
-app-displaywindow {
-  flex: 1; /* Each component takes equal width */
-  margin: 10px; /* Spacing between components */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .container {
+    gap: 16px;
+    padding: 12px;
+  }
+
+  app-userinput {
+    flex: 0 0 300px; /* Shrunk from 350px to optimize space on iPad-like viewports */
+  }
 }
 
-header {
-  background-color: #202020; /* Choose a background color */
-
-  letter-spacing: 0.25px;
-  text-align: center; /* Center the header content */
-  padding: 10px 0; /* Padding above and below the text */
-  margin-bottom: 20px; /* Spacing between header and the rest of the content */
+/* Toast styles */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 380px;
+  background-color: #262421;
+  border: 1px solid #363532;
+  border-left: 4px solid #e67e22; /* Warning orange */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: slideIn 0.25s ease-out;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Header title style */
-header h1 {
-  margin: 0; /* Remove default margin */
-  font-size: 34px; /* Adjust font size as needed */
-  color: white; /* Text color */
-  font-weight: lighter;
-  letter-spacing: -200;
+@keyframes slideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
+
+.toast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.toast-title {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-right: 12px;
+}
+
+.toast-close-btn {
+  background: transparent;
+  border: none;
+  color: #bababa;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.toast-close-btn:hover {
+  color: #ffffff;
+}
+
+.toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast-message {
+  color: #bababa;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.toast-tooltip-container {
+  background: #1e1c18;
+  border: 1px solid #363532;
+  border-radius: 8px;
+  padding: 6px 10px;
+  width: fit-content;
+}
+
+.toast-tooltip-text {
+  color: #8a8a8a;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+

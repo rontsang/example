@@ -47,7 +47,7 @@ public class Controller {
                 .withIncome(formData.getIncome())
                 .addAccount(new TaxFreeAccount(formData.getTfsaAmount(), 0))
                 .addAccount(new TaxDeferredAccount(formData.getRrspAmount(), 0))
-                .addAccount(new TaxableAccount(formData.getMargAmountPrincipal(), formData.getMargAmountCapitalGain()))
+                .addAccount(new TaxableAccount(Math.max(0, formData.getMargAmountPrincipal() - formData.getMargAmountCapitalGain()), formData.getMargAmountCapitalGain()))
                 .build();
 
         log.info("burndown getting");
@@ -66,7 +66,7 @@ public class Controller {
                 .withIncome(formData.getIncome())
                 .addAccount(new TaxFreeAccount(formData.getTfsaAmount(), 0))
                 .addAccount(new TaxDeferredAccount(formData.getRrspAmount(), 0))
-                .addAccount(new TaxableAccount(formData.getMargAmountPrincipal(), formData.getMargAmountCapitalGain()))
+                .addAccount(new TaxableAccount(Math.max(0, formData.getMargAmountPrincipal() - formData.getMargAmountCapitalGain()), formData.getMargAmountCapitalGain()))
                 .build();
 
         ArrayList<Double> withdrawal = new ArrayList<>();

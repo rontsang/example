@@ -8,6 +8,7 @@ import {SharedService} from "../services/SharedService";
 import {Subscription} from "rxjs";
 import {ChartData} from "chart.js";
 import { CommonModule } from '@angular/common';
+import { LocalOptimizerService } from '../services/local-optimizer.service';
 
 @Component({
   selector: 'app-userinput-test',
@@ -140,7 +141,8 @@ export class Usertestinput {
     private dataService: DataService,
     private http: HttpClient,
     private sharedDataService: SharedDataService,
-    private sharedService: SharedService
+    private sharedService: SharedService,
+    private localOptimizer: LocalOptimizerService
   ) {
     this.userForm.valueChanges.subscribe(() => {
     // Notify that the chart needs to be updated (greyed out) on user input change
@@ -165,6 +167,7 @@ export class Usertestinput {
 
   onSubmit(){
     this.sendForm();
+    this.sharedService.notifyCalculateTriggered();
   }
 
   sendStageToParent(stage: number) {
@@ -185,7 +188,13 @@ export class Usertestinput {
     console.log('submitted!');
     console.log(this.userForm.value);
 
-    this.http.post<any[]>('http://localhost:8081/user-test', this.userForm.value).subscribe(data => {
+    const payload = {
+      ...this.userForm.value,
+      interestRate: Number(this.userForm.get('interestRate')?.value) / 100
+    };
+
+    /* Commented out HTTP request to backend to offload calculations to local frontend optimizer
+    this.http.post<any[]>('http://localhost:8081/user-test', payload).subscribe(data => {
       console.log("returned data: ")
       console.log(data)
       this.sharedDataService.updateChartData2(data, this.stage);
@@ -206,7 +215,7 @@ export class Usertestinput {
         margAmountPrincipal: 0,
         margAmountCapitalGain: 0,
         income: endState.accountState.income,
-        interestRate: endState.accountState.interestRate,
+        interestRate: endState.accountState.interestRate * 100,
         province: endState.accountState.province,
         startingYear: endState.year
       };
@@ -220,7 +229,7 @@ export class Usertestinput {
             this.endingState.rrspAmount = account.principalAmount;
             break;
           case "MARG":
-            this.endingState.margAmountPrincipal = account.principalAmount;
+            this.endingState.margAmountPrincipal = account.totalValue ?? (account.principalAmount + (account.capitalGainAmount ?? 0));
             // Assuming capitalGainAmount is optional, use nullish coalescing operator to default to 0
             this.endingState.margAmountCapitalGain = account.capitalGainAmount ?? 0;
             break;
@@ -232,6 +241,60 @@ export class Usertestinput {
       });
       this.sendEndStateToParent(this.endingState);
     });
+    */
+
+    // Compute locally using the ported optimizer service
+    const data = this.localOptimizer.computeBurndownSimulation(payload);
+    if (data) {
+      console.log("returned data: ");
+      console.log(data);
+      this.sharedDataService.updateChartData2(data, this.stage);
+      // update stage
+      this.stage++;
+      console.log("Stage is" + this.stage);
+      // this.sendStageToParent(this.stage);
+
+      // update end state form
+      // need information from the previous user input
+      // get last data object from the array
+      const endState = data[data.length - 1];
+      console.log("End state: ", endState);
+
+      this.endingState = {
+        tfsaAmount: 0,
+        rrspAmount: 0,
+        margAmountPrincipal: 0,
+        margAmountCapitalGain: 0,
+        income: endState.accountState.income,
+        interestRate: endState.accountState.interestRate * 100,
+        province: endState.accountState.province,
+        startingYear: endState.year
+      };
+      endState.accountState.accounts.forEach((account: Account) => {
+        // Using switch-case to match the account name and assign values accordingly
+        switch (account.accountName) {
+          case "TFSA":
+            this.endingState.tfsaAmount = account.principalAmount;
+            break;
+          case "RRSP":
+            this.endingState.rrspAmount = account.principalAmount;
+            break;
+          case "MARG":
+            this.endingState.margAmountPrincipal = account.totalValue ?? (account.principalAmount + (account.capitalGainAmount ?? 0));
+            // Assuming capitalGainAmount is optional, use nullish coalescing operator to default to 0
+            this.endingState.margAmountCapitalGain = account.capitalGainAmount ?? 0;
+            break;
+          // Add cases for other account types as necessary
+          default:
+            // Handle unknown account names or log a warning
+            console.warn(`Unknown account name: ${account.accountName}`);
+        }
+      });
+      this.sendEndStateToParent(this.endingState);
+    } else {
+      console.warn('Local optimizer simulation returned null/empty result.');
+      this.sharedDataService.updateChartData2(null as any, this.stage);
+    }
   }
 
 }
@@ -263,4 +326,5 @@ interface Account {
   type: string;
   principalAmount: number;
   capitalGainAmount?: number;
+  totalValue?: number;
 }

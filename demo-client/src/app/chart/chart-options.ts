@@ -1,7 +1,35 @@
-import { ChartConfiguration, ChartOptions } from 'chart.js';
+import { Chart, ChartOptions } from 'chart.js';
+import zoomPlugin from 'chartjs-plugin-zoom';
+
+const legendMarginPlugin = {
+  id: 'legendMargin',
+  beforeUpdate(chart: any) {
+    const legend = chart.legend;
+    if (legend) {
+      if (!legend._fitOverridden) {
+        legend._fitOverridden = true;
+        const originalFit = legend.fit;
+        legend.fit = function(this: any) {
+          originalFit.bind(this)();
+          this.height += 25; // Reclaim 25px of vertical spacing below the legend items
+        };
+      }
+    }
+  }
+};
+
+Chart.register(zoomPlugin, legendMarginPlugin);
 
 // If you need to customize options based on parameters
-export function getChartOptions(): ChartOptions<'line'> {
+export function getChartOptions(
+  getExtraData?: (year: number) => {
+    effectiveIncome: number;
+    taxesOwed: number;
+    totalWithdrawn: number;
+    totalAfterTax: number;
+  } | null,
+  onHoverYear?: (year: number) => void
+): ChartOptions<'line'> {
   return {
     elements: {
       point: {
@@ -16,36 +44,30 @@ export function getChartOptions(): ChartOptions<'line'> {
       duration: 0, // general animation time
     },
     plugins: {
-      tooltip: {
-        animation: false,
-        usePointStyle: true,
-        borderWidth: 2000,
-        boxWidth: 8,
-        boxHeight: 8,
-        mode: 'index',
-        intersect: false,
-        callbacks: {
-          title: function(tooltipItems) {
-            // This will change the title. You can access the tooltipItems or data to customize it.
-            return 'Year ' + tooltipItems[0].label;
-          },
-          label: function(context) {
-            let label = context.dataset.label || '';
-
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed.y !== null) {
-              label += new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD' ,
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-              }).format(context.parsed.y);
-            }
-            return label;
+      zoom: {
+        limits: {
+          x: {
+            min: 0,
+            max: 50,
+            minRange: 1
           }
+        },
+        zoom: {
+          wheel: {
+            enabled: true,
+          },
+          pinch: {
+            enabled: true
+          },
+          mode: 'x',
+        },
+        pan: {
+          enabled: true,
+          mode: 'x',
         }
+      },
+      tooltip: {
+        enabled: false // Disable default tooltip popover as requested
       },
       legend: {
         labels: {
@@ -62,11 +84,26 @@ export function getChartOptions(): ChartOptions<'line'> {
         }
       },
     },
-    hover: {
-      mode: 'nearest',
+    onHover: (event, activeElements, chart) => {
+      if (onHoverYear && activeElements && activeElements.length > 0) {
+        const activeElement = activeElements[0];
+        const dataset = chart.data.datasets[activeElement.datasetIndex];
+        const dataPoint: any = dataset.data[activeElement.index];
+        if (dataPoint) {
+          const xVal = dataPoint.x !== undefined ? dataPoint.x : dataPoint;
+          onHoverYear(Number(xVal));
+        }
+      }
+    },
+    interaction: {
+      mode: 'index',
       intersect: false
     },
-    aspectRatio:2.5,
+    hover: {
+      mode: 'index',
+      intersect: false
+    },
+    maintainAspectRatio: false,
     scales: {
       x: {
         border: {
@@ -81,11 +118,16 @@ export function getChartOptions(): ChartOptions<'line'> {
         },
         ticks: {
           color: 'white',
+          includeBounds: false,
           callback: function(value, index, values) {
+            const numVal = Number(value);
+            if (Math.round(numVal) !== numVal) {
+              return null;
+            }
             if (index === values.length - 1) {
               return null;
             } else {
-              return value;
+              return numVal;
             }
           }
         },

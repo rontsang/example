@@ -8,6 +8,11 @@ export class PipeHelperService {
 
   formatCurrency(value: number): string {
     // Implementation based on your desired currency formatting logic
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
   }
 }

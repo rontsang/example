@@ -1,88 +1,198 @@
-<!--<p>chart works!</p>-->
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
 
-<div class="chart-container">
-  <canvas id="MyChart" >{{ chart }}</canvas>
-  <div id="chartjs-tooltip" style="opacity: 0; position: absolute; background-color: white; padding: 10px; border-radius: 3px; color: black; font-size: 12px; transform: translate(-50%, 0); pointer-events: none; transition: opacity 0.3s;"></div>
+<div class="view-toggle">
+  <button (click)="currentView = 'graph'" [class.active]="currentView === 'graph'">Graph</button>
+  <button (click)="currentView = 'table'" [class.active]="currentView === 'table'">Table</button>
+  <button (click)="currentView = 'monte-carlo'" [class.active]="currentView === 'monte-carlo'">Monte Carlo</button>
 </div>
 
-<div *ngIf="tooHighIncome === false"  class="results-container">
-  <p>Optimized Withdrawal Strategy. Years to Depletion: </p>
-  <div class="grid-header">
-    <div class="grid-item paragraph">Year</div>
-    <div class="grid-item withdrawals">Withdrawals</div>
+<div class="results-wrapper">
+
+  <div class="chart-container" [style.display]="currentView === 'graph' ? 'block' : 'none'">
+    <canvas id="MyChart" [style.display]="tooHighIncome ? 'none' : 'block'">{{ chart }}</canvas>
+    <div class="rich-warning-container" *ngIf="tooHighIncome">
+      <div class="rich-emoji">💰</div>
+      <p class="rich-text">
+        You're rich and based on inputs you never run out of money, try increasing annual spend amount to test this optimizer.
+      </p>
+    </div>
   </div>
 
-  <div *ngFor="let strategy of summaries">
-    <div class="grid-container money">
-      <div class="grid-item paragraph">
-        <div class="side-by-side-container">
-          <div class="year-container">
-            {{ strategy.startYear| number: '1.1-1' }} -
-            {{ strategy.endYear | number: '1.1-1' }}
+  <div class="details-box" *ngIf="currentView === 'graph' && tooHighIncome === false && getHoveredDetails() as details">
+    <div class="details-header">
+      <h4 class="details-title">Year {{ details.year | number:'1.0-0' }} Financial Details</h4>
+      <p class="details-subtitle">Hover over the graph to update details</p>
+    </div>
+    
+    <div class="details-grid">
+      <!-- Balances Column -->
+      <div class="details-col">
+        <span class="col-title">Balances (End of Year)</span>
+        <div class="details-row">
+          <span>TFSA:</span>
+          <strong class="money">{{ details.balances.tfsa | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="details-row">
+          <span>RRSP:</span>
+          <strong class="money">{{ details.balances.rrsp | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="details-row">
+          <span>Non-reg:</span>
+          <strong class="money">{{ details.balances.nonReg | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+      </div>
+
+      <!-- Withdrawals Column -->
+      <div class="details-col">
+        <span class="col-title">Withdrawing</span>
+        <div class="details-row">
+          <span>TFSA:</span>
+          <strong class="money">{{ details.withdrawals.tfsa | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="details-row">
+          <span>RRSP:</span>
+          <strong class="money">{{ details.withdrawals.rrsp | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="details-row">
+          <span>Non-reg:</span>
+          <strong class="money">{{ details.withdrawals.nonReg | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+      </div>
+
+      <!-- Summary Metrics Column -->
+      <div class="details-col">
+        <span class="col-title">Metrics</span>
+        <div class="details-row">
+          <span>Effective Income:</span>
+          <strong class="money">{{ details.effectiveIncome | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="details-row text-orange">
+          <span>Taxes Owed:</span>
+          <strong class="money">{{ details.taxesOwed | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="details-row text-green">
+          <span>Total After Taxes:</span>
+          <strong class="money font-bold">{{ details.totalAfterTax | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calculation Explanation Section -->
+    <div class="details-calc">
+      <span class="col-title">Taxable Income Calculation</span>
+      <div class="calc-formula">
+        <div class="calc-item">
+          <span class="calc-label">income</span>
+          <strong class="money">{{ details.calculation.income | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <span class="calc-plus">+</span>
+        <div class="calc-item">
+          <span class="calc-label">RRSP Income</span>
+          <strong class="money">{{ details.calculation.rrspTaxable | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <span class="calc-plus">+</span>
+        <div class="calc-item">
+          <span class="calc-label">Capital Gain Income</span>
+          <strong class="money">{{ details.calculation.margTaxable | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+          <span class="calc-subtext">
+            ({{ details.calculation.margWithdrawn | currency:'USD':'symbol-narrow':'1.0-0' }} w/d, 
+            {{ details.calculation.capGainsPct | number:'1.0-1' }}% gain, 
+            50% taxable)
+          </span>
+        </div>
+        <ng-container *ngIf="details.calculation.dividendActual > 0">
+          <span class="calc-plus">+</span>
+          <div class="calc-item">
+            <span class="calc-label">Dividend Income</span>
+            <strong class="money">{{ details.calculation.dividendTaxable | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+            <span class="calc-subtext">
+              ({{ details.calculation.dividendActual | currency:'USD':'symbol-narrow':'1.0-0' }} actual, 
+              38% gross-up)
+            </span>
+          </div>
+        </ng-container>
+        <span class="calc-equals">=</span>
+        <div class="calc-item highlight">
+          <span class="calc-label">Total Taxable Income</span>
+          <strong class="money">{{ details.calculation.totalTaxable | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+      </div>
+
+      <!-- Dividend Tax Explanation Note -->
+      <div class="dividend-explanation-note" *ngIf="details.calculation.dividendActual > 0">
+        <span class="note-icon">ℹ</span>
+        <span class="note-text">
+          <strong>Dividend Tax Credit:</strong> Canadian eligible dividends are grossed up by 38% (taxed at regular rates) but receive a Federal & Provincial Dividend Tax Credit (15.02% Fed + {{ details.provincialDividendCreditPct | number:'1.2-2' }}% {{ details.provinceName }}) directly reducing taxes owed, offering a lower net tax rate.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="currentView === 'monte-carlo' && tooHighIncome === false" class="results-container">
+    <app-bar-chart></app-bar-chart>
+  </div>
+
+  <div *ngIf="currentView === 'table' && tooHighIncome === false" class="results-container">
+    <p class="results-title">Optimized Withdrawal Strategy &bull; Years to Depletion: <span class="depletion-highlight">{{ summaries[summaries.length - 1]?.endYear | number: '1.1-1' }}</span></p>
+
+    <div class="strategy-cards-list">
+      <div *ngFor="let strategy of summaries" class="strategy-card">
+        
+        <!-- Card Header -->
+        <div class="card-header">
+          <span class="card-years-title">Years {{ strategy.startYear | number: '1.1-1' }} – {{ strategy.endYear | number: '1.1-1' }}</span>
+          <span class="card-total-withdrawal">Total: {{ strategy.totalWithdrawal | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }} / yr</span>
+        </div>
+
+        <!-- Card Content Columns -->
+        <div class="card-content">
+          <!-- Withdrawals List -->
+          <div class="card-column withdrawals-col">
+            <span class="col-title">Withdrawal Source</span>
+            <div class="withdrawals-list">
+              <div *ngFor="let detail of strategy.withdrawals" class="withdrawal-row">
+                <span class="acc-name">{{ detail?.accountName }}</span>
+                <span class="acc-amount money">{{ (detail?.amount ?? 0) | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+              </div>
+            </div>
           </div>
 
-          <div class="tooltip-container money" >
-            &#9432; Tax
-            <div class="tooltip-content">
-              <u>Tax breakdown</u>
-              <div class="tooltip-divider">
-                <div class="column-1">
-                  <div>Total Withdrawal</div>
-                  <div>Total Income: </div>
-                  <div>Total Taxable Income: </div>
-                  <div>Tax Owed:</div>
-                  <div>After Tax Total: </div>
-                </div>
-                <div class="column-2">
-                  <div class="money">{{ strategy.totalWithdrawal | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
-                  <div class="money">{{ strategy.income | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
-                  <div class="money">{{ strategy.taxableAmount | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
-                  <div class="money">{{ strategy.taxesOwed | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
-                  <div class="money">{{ postTaxTotal | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
-                </div>
+          <!-- Tax Breakdown Column -->
+          <div class="card-column tax-col">
+            <span class="col-title">Tax & Income Breakdown</span>
+            <div class="tax-table">
+              <div class="tax-row">
+                <span class="tax-label">Total Withdrawals <span class="info-icon" title="Sum of all scheduled account withdrawals for this segment">ⓘ</span></span>
+                <span class="tax-value money">{{ strategy.totalWithdrawal | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
               </div>
-
-              <u>Income breakdown</u>
-              <div class="tooltip-divider">
-                <div class="column-1">
-                  <div>Income: </div>
-                  <div *ngFor="let account of strategy.withdrawals">
-                    <div *ngIf="account.accountName == 'RRSP'">RRSP Withdraw: </div>
-                    <div *ngIf="account.accountName == 'MARG'">MARG Cap Gain: </div>
-                  </div>
-                </div>
-                <div class="column-2">
-                  <div>{{strategy.income | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>
-                  <div *ngFor="let account of strategy.withdrawals">
-                    <div *ngIf="account.accountName == 'RRSP' || account.accountName === 'MARG'">{{account.taxableAmount| roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}} </div>
-                  </div>
-<!--                  <div>{{strategy.withdrawals[1].taxableAmount | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>-->
-<!--                  <div>{{strategy.withdrawals[2].taxableAmount | roundToTen | currency:'USD':'symbol-narrow':'1.0-0'}}</div>-->
-                </div>
+              <div class="tax-row">
+                <span class="tax-label">Total Income <span class="info-icon" title="Fixed additional non-registered income">ⓘ</span></span>
+                <span class="tax-value money">{{ strategy.income | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+              </div>
+              <div class="tax-row highlighted">
+                <span class="tax-label">Total Taxable Income <span class="info-icon" title="Income subject to provincial/federal income tax rules">ⓘ</span></span>
+                <span class="tax-value money">{{ strategy.taxableAmount | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+              </div>
+              <div class="tax-row highlighted warning-text">
+                <span class="tax-label">Tax Owed <span class="info-icon" title="Estimated tax obligation based on calculated tax bracket">ⓘ</span></span>
+                <span class="tax-value money">{{ strategy.taxesOwed | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+              </div>
+              <div class="tax-row total-row">
+                <span class="tax-label font-bold">After-Tax Income <span class="info-icon" title="Net disposable income remaining to spend">ⓘ</span></span>
+                <span class="tax-value money font-bold">{{ postTaxTotal | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
               </div>
             </div>
           </div>
         </div>
 
       </div>
-      <div class="grid-item withdrawals">
-        <ul>
-          <li *ngFor="let detail of strategy.withdrawals">
-<!--            {{}}-->
-            {{ detail?.accountName }}: {{ (detail?.amount ?? 0) | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}
-          </li>
-        </ul>
-      </div>
+    </div>
   </div>
-</div>
 
-<div *ngIf="warning === true"  class="results-container">
-  <h3>Warning: User input leads to money not draining in 50 years</h3>
-  <p>You are so rich we cannot simulate your scenario properly</p>
-  <p>We increased your income needed per year to perform the simulation</p>
-  <div class="tooltip-container">
-    Hover over me
-    <span class="tooltip-text">TODO: Optimize for inheritence or donation</span>
+  <!-- Global Calculating Overlay -->
+  <div class="chart-overlay" *ngIf="isObsolete">
+    <div class="spinner"></div>
+    <span>Calculating optimal strategy...</span>
   </div>
+
 </div>

@@ -14,6 +14,9 @@ export class SharedService {
   private userUpdateNeededSource = new BehaviorSubject<boolean>(false);
   inputUpdateNeeded$ = this.userUpdateNeededSource.asObservable();
 
+  private calculateTriggeredSource = new BehaviorSubject<boolean>(false);
+  calculateTriggered$ = this.calculateTriggeredSource.asObservable();
+
   notifyChartIsObsolete(isNeeded: boolean) {
     this.chartUpdateNeededSource.next(isNeeded);
   }
@@ -28,5 +31,9 @@ export class SharedService {
 
   notifyChartUsedNewData(isNeeded: boolean) {
     this.chartUsedNewData.next(isNeeded);
+  }
+
+  notifyCalculateTriggered() {
+    this.calculateTriggeredSource.next(true);
   }
 }

@@ -15,35 +15,75 @@
 <!--</form>-->
 
 <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-  <label for="tfsaAmountNumber">TFSA Balance</label>
-  <input appCurrencyFormat type="text" id="tfsaAmountNumber" formControlName="tfsaAmount">
-  <input type="range" id="tfsaAmountRange" formControlName="tfsaAmount" [value]="sliderValueTfsa" (input)="onSliderChange($event, 'tfsaAmount')" min="0" max="2000000" step="10000">
+  <!-- Province Selector Group -->
+  <div class="input-group province-group">
+    <label for="provinceSelect">Province <span class="info-icon" data-tooltip="Select your province of residence to apply correct provincial tax brackets.">i</span></label>
+    <select id="provinceSelect" formControlName="province">
+      <option *ngFor="let province of provinces" [value]="province">{{ province }}</option>
+    </select>
+  </div>
 
-  <label for="rrspAmountNumber">RRSP Balance</label>
-  <input appCurrencyFormat #currencyFormatter="appCurrencyFormat" type="text" id="rrspAmountNumber" formControlName="rrspAmount">
-  <input type="range" id="rrspAmountRange" formControlName="rrspAmount" [value]="sliderValueRrsp" (input)="onSliderChange($event,'rrspAmount')" min="0" max="2000000" step="10000">
+  <!-- Starting Balances Group -->
+  <div class="input-group">
+    <h3 class="group-title">Starting Balances</h3>
+    
+    <div class="starting-balances-grid">
+      <div class="balance-item">
+        <label for="tfsaAmountNumber">TFSA <span class="info-icon" data-tooltip="Tax-Free Savings Account. Volatility is 0% inside, and all withdrawals are 100% tax-free.">i</span></label>
+        <input appCurrencyFormat type="text" id="tfsaAmountNumber" formControlName="tfsaAmount">
+        <input type="range" id="tfsaAmountRange" formControlName="tfsaAmount" [value]="sliderValueTfsa" (input)="onSliderChange($event, 'tfsaAmount')" min="0" max="2000000" step="10000">
+      </div>
 
-  <label for="margAmountPrincipal">Standard Principal Balance</label>
-  <input type="text" id="margAmountPrincipal" formControlName="margAmountPrincipal">
-  <input type="range" id="margPrincipalAmountRange" formControlName="margAmountPrincipal" [value]="sliderValueMargPrincipal" (input)="onSliderChange($event, 'margAmountPrincipal')" min="0" max="2000000" step="10000">
+      <div class="balance-item">
+        <label for="rrspAmountNumber">RRSP <span class="info-icon" data-tooltip="Registered Retirement Savings Plan. Withdrawals are fully taxable as income. Pension accounts (like RRIF or LIRA) go here.">i</span></label>
+        <input appCurrencyFormat #currencyFormatter="appCurrencyFormat" type="text" id="rrspAmountNumber" formControlName="rrspAmount">
+        <input type="range" id="rrspAmountRange" formControlName="rrspAmount" [value]="sliderValueRrsp" (input)="onSliderChange($event,'rrspAmount')" min="0" max="2000000" step="10000">
+      </div>
 
-  <label for="margAmountCapitalGain">Standard Capital Gain Balance</label>
-  <input appCurrencyFormat type="text" id="margAmountCapitalGain" formControlName="margAmountCapitalGain" placeholder="Input 4">
+      <div class="balance-item">
+        <label for="margAmountPrincipalNumber">Non-reg Principal <span class="info-icon" data-tooltip="Non-registered taxable account principal. Withdrawals of original cost basis principal are tax-free.">i</span></label>
+        <input appCurrencyFormat type="text" id="margAmountPrincipalNumber" formControlName="margAmountPrincipal">
+        <input type="range" id="margPrincipalAmountRange" formControlName="margAmountPrincipal" [value]="sliderValueMargPrincipal" (input)="onSliderChange($event, 'margAmountPrincipal')" min="0" max="2000000" step="10000">
+      </div>
 
-  <label for="margAmountCapitalGain">Additional Income</label>
-  <input appCurrencyFormat type="text" id="income" formControlName="income" placeholder="Input 4">
+      <div class="balance-item">
+        <label for="margAmountCapitalGain">Non-reg Cap Gain <span class="info-icon" data-tooltip="Accumulated capital gains. Realized capital gains are 50% taxable as income on withdrawal.">i</span></label>
+        <input appCurrencyFormat type="text" id="margAmountCapitalGain" formControlName="margAmountCapitalGain">
+        <input type="range" id="margCapitalGainAmountRange" formControlName="margAmountCapitalGain" [value]="sliderValueMargCapitalGain" (input)="onSliderChange($event, 'margAmountCapitalGain')" min="0" max="2000000" step="10000">
+      </div>
+    </div>
+  </div>
 
-  <label for="interestRate">Expected Interest Rate</label>
-  <input type="text" id="interestRate" formControlName="interestRate" placeholder="Input 5">
+  <!-- Annual Parameters Group -->
+  <div class="input-group">
+    <h3 class="group-title">Annual Parameters</h3>
 
-  <label for="amountPerYear">Post-Tax Amount Needed Per Year</label>
-  <input [class.red-border]="updateNeeded" appCurrencyFormat type="text" id="amountPerYear" formControlName="amountPerYear" placeholder="Input 6">
+    <div class="row row-income-return">
+      <div class="col">
+        <label for="income">Additional Income</label>
+        <input appCurrencyFormat type="text" id="income" formControlName="income">
+        <input type="range" id="incomeRange" formControlName="income" [value]="sliderValueIncome" (input)="onSliderChange($event, 'income')" min="0" [max]="maxAdditionalIncomeSliderValue" step="500">
+      </div>
+      <div class="col">
+        <label for="interestRate">Rate of Return (%)</label>
+        <input type="text" id="interestRate" formControlName="interestRate">
+        <input type="range" id="interestRateRange" formControlName="interestRate" [value]="sliderValueInterestRate" (input)="onSliderChange($event, 'interestRate')" min="0" max="15" step="0.5">
+      </div>
+    </div>
 
-  <label for="provinceSelect">Province</label>
-
-  <select id="provinceSelect" formControlName="province">
-    <option *ngFor="let province of provinces" [value]="province">{{ province }}</option>
-  </select>
+    <div class="row row-spend-dividend">
+      <div class="col">
+        <label for="amountPerYear">Post-Tax Amount Needed Per Year</label>
+        <input [class.red-border]="updateNeeded" appCurrencyFormat type="text" id="amountPerYear" formControlName="amountPerYear">
+        <input type="range" id="amountPerYearRange" formControlName="amountPerYear" [value]="sliderValueAmountPerYear" (input)="onSliderChange($event, 'amountPerYear')" min="10000" max="300000" step="5000">
+      </div>
+      <div class="col">
+        <label for="dividendYieldNumber">Dividend Yield (%) <span class="info-icon" data-tooltip="The annual dividend yield of the Non-registered account. Paid out cash will reduce other withdrawals and receive dividend tax treatment.">i</span></label>
+        <input type="text" id="dividendYieldNumber" formControlName="dividendYield">
+        <input type="range" id="dividendYieldRange" formControlName="dividendYield" [value]="sliderValueDividendYield" (input)="onSliderChange($event, 'dividendYield')" min="0" max="10" step="0.1">
+      </div>
+    </div>
+  </div>
 
   <button type="submit">{{ isSubmitted ? 'Recalculate' : 'Run' }}</button>
 </form>

@@ -1,14 +1,167 @@
-<p>bar-chart works!</p>
-<ngx-charts-bar-vertical
-  [view]="[1000,400]"
-  [results]="dataset"
-  [xAxisLabel]="'x-axis'"
-  [legendTitle]="'legend'"
-  [yAxisLabel]="'y-axis'"
-  [legend]="true"
-  [showXAxisLabel]="true"
-  [showYAxisLabel]="true"
-  [xAxis]="true"
-  [yAxis]="true"
-  [gradient]="true">
-</ngx-charts-bar-vertical>
+<div class="monte-carlo-container">
+  <div class="monte-carlo-form">
+    <div class="form-header-row">
+      <div class="input-group simulations-group">
+        <label for="simulations">Number of Simulations</label>
+        <input type="number" id="simulations" [(ngModel)]="simulations" min="10" max="10000" step="100">
+      </div>
+      <button (click)="runSimulation()" class="run-btn">Run Monte Carlo</button>
+    </div>
+
+    <!-- Variance/Risk Profile Section -->
+    <div class="variance-control-panel">
+      <div class="panel-header">
+        <label for="variance-slider">Risk Profile (Variance in Return)</label>
+        <span class="variance-badge">{{ variance }}% Std Dev</span>
+      </div>
+
+      <div class="slider-wrapper">
+        <input type="range" id="variance-slider" [(ngModel)]="variance" min="0" max="32" step="1" (input)="onVarianceSliderChange()">
+        <div class="slider-ticks">
+          <span [class.active]="variance === 0" (click)="setVarianceProfile(0)">Cash (0%)</span>
+          <span [class.active]="variance === 5" (click)="setVarianceProfile(5)">Bonds (5%)</span>
+          <span [class.active]="variance === 12" (click)="setVarianceProfile(12)">Balanced (12%)</span>
+          <span [class.active]="variance === 20" (click)="setVarianceProfile(20)">Growth (20%)</span>
+          <span [class.active]="variance === 32" (click)="setVarianceProfile(32)">Speculative (32%)</span>
+        </div>
+      </div>
+
+      <!-- Fun profile descriptive card -->
+      <div class="profile-card" [ngClass]="getProfileClass()">
+        <div class="profile-icon">{{ getProfileIcon() }}</div>
+        <div class="profile-text">
+          <h4>{{ getProfileTitle() }}</h4>
+          <p>{{ getProfileDescription() }}</p>
+        </div>
+      </div>
+
+      <!-- Expandable Mix Panel Toggle -->
+      <div class="mix-panel-toggle" (click)="toggleAssetMix()">
+        <span class="toggle-icon">{{ isAssetMixExpanded ? '▼' : '►' }}</span>
+        <span>Advanced Portfolio Allocator (HISA, Bonds, Stocks, Crypto)</span>
+      </div>
+
+      <!-- Custom Asset Allocation Mix -->
+      <div class="mix-panel-content" *ngIf="isAssetMixExpanded">
+        <div class="mix-info">
+          <span class="info-text">Adjust percentages. We'll compute the target Std Dev automatically.</span>
+          <span class="mix-total" [class.valid]="mixTotal === 100" [class.invalid]="mixTotal !== 100">Total: {{ mixTotal }}%</span>
+        </div>
+
+        <div class="asset-rows">
+          <!-- HISA -->
+          <div class="asset-row">
+            <div class="asset-label-col">
+              <span class="asset-name">HISA / Cash</span>
+              <span class="asset-sd">Volatility: 0%</span>
+            </div>
+            <div class="asset-slider-col">
+              <input type="range" [(ngModel)]="mix.hisa" min="0" max="100" step="5" (input)="calculateVarianceFromMix()">
+            </div>
+            <div class="asset-val-col">
+              <input class="mix-input" type="number" [(ngModel)]="mix.hisa" min="0" max="100" step="5" (change)="calculateVarianceFromMix()">%
+            </div>
+          </div>
+
+          <!-- Bonds -->
+          <div class="asset-row">
+            <div class="asset-label-col">
+              <span class="asset-name">Fixed Income / Bonds</span>
+              <span class="asset-sd">Volatility: 5%</span>
+            </div>
+            <div class="asset-slider-col">
+              <input type="range" [(ngModel)]="mix.bonds" min="0" max="100" step="5" (input)="calculateVarianceFromMix()">
+            </div>
+            <div class="asset-val-col">
+              <input class="mix-input" type="number" [(ngModel)]="mix.bonds" min="0" max="100" step="5" (change)="calculateVarianceFromMix()">%
+            </div>
+          </div>
+
+          <!-- US Equity -->
+          <div class="asset-row">
+            <div class="asset-label-col">
+              <span class="asset-name">US Equity (S&P 500)</span>
+              <span class="asset-sd">Volatility: 15%</span>
+            </div>
+            <div class="asset-slider-col">
+              <input type="range" [(ngModel)]="mix.usEquity" min="0" max="100" step="5" (input)="calculateVarianceFromMix()">
+            </div>
+            <div class="asset-val-col">
+              <input class="mix-input" type="number" [(ngModel)]="mix.usEquity" min="0" max="100" step="5" (change)="calculateVarianceFromMix()">%
+            </div>
+          </div>
+
+          <!-- International Equity -->
+          <div class="asset-row">
+            <div class="asset-label-col">
+              <span class="asset-name">International Equity</span>
+              <span class="asset-sd">Volatility: 18%</span>
+            </div>
+            <div class="asset-slider-col">
+              <input type="range" [(ngModel)]="mix.intlEquity" min="0" max="100" step="5" (input)="calculateVarianceFromMix()">
+            </div>
+            <div class="asset-val-col">
+              <input class="mix-input" type="number" [(ngModel)]="mix.intlEquity" min="0" max="100" step="5" (change)="calculateVarianceFromMix()">%
+            </div>
+          </div>
+
+          <!-- Speculative Stocks/Crypto -->
+          <div class="asset-row">
+            <div class="asset-label-col">
+              <span class="asset-name">Risky Stocks / Cryptos</span>
+              <span class="asset-sd">Volatility: 32%</span>
+            </div>
+            <div class="asset-slider-col">
+              <input type="range" [(ngModel)]="mix.speculative" min="0" max="100" step="5" (input)="calculateVarianceFromMix()">
+            </div>
+            <div class="asset-val-col">
+              <input class="mix-input" type="number" [(ngModel)]="mix.speculative" min="0" max="100" step="5" (change)="calculateVarianceFromMix()">%
+            </div>
+          </div>
+        </div>
+
+        <div class="mix-actions">
+          <button type="button" class="mix-btn" (click)="normalizeMix()">Normalize to 100%</button>
+          <button type="button" class="mix-btn reset" (click)="resetMix()">Reset Allocations</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="chart-container" [style.display]="hasRun ? 'block' : 'none'">
+    <canvas id="MonteCarloChart"></canvas>
+  </div>
+
+  <div class="sim-results" *ngIf="hasRun">
+    <h3>Simulation Results ({{ simulations }} runs)</h3>
+    <p>Based on the proposed strategy and a return variance of <strong>{{ variance }}%</strong>:</p>
+    <ul>
+      <li>
+        <span>Average Portfolio Lifespan</span>
+        <strong>{{ avgYears | number:'1.1-1' }} years</strong>
+      </li>
+      <li>
+        <span>Probability of lasting 50+ years</span>
+        <strong>{{ successRate | percent:'1.0-0' }}</strong>
+      </li>
+      <li>
+        <span>10th Percentile (Worst 10% case)</span>
+        <strong>{{ p10 | number:'1.0-0' }} years</strong>
+      </li>
+      <li>
+        <span>50th Percentile (Median case)</span>
+        <strong>{{ p50 | number:'1.0-0' }} years</strong>
+      </li>
+      <li>
+        <span>90th Percentile (Best 10% case)</span>
+        <strong>{{ p90 | number:'1.0-0' }} years</strong>
+      </li>
+    </ul>
+  </div>
+
+  <div class="no-strategy-warning" *ngIf="!hasStrategy">
+    <h3>No Optimal Strategy Found</h3>
+    <p>Please run the <strong>Optimizer</strong> first to generate a proposed strategy for simulation.</p>
+  </div>
+</div>

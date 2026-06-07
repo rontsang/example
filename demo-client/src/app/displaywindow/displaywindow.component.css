@@ -1,67 +1,71 @@
-/* Component container styling */
 :host {
   display: block;
-  margin: 0; /* Remove default margin */
-  width: 700px; /* Adjust as needed */
-  height: 550px; /* Adjust as needed */
-  padding: 20px; /* Adjust as needed for internal spacing */
-  border-radius: 35px;
-  box-sizing: border-box; /* Include padding in the width and height */
-  background-color: #202020; /* Light grey background */
-}
-
-/* Style for buttons */
-button {
-  background-color: #634087; /* Green background */
-  border: none;
-  width: 120px;
-  height: 40px;
-  color: white;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 10px;
-  cursor: pointer;
-  border-radius: 20px; /* Rounded borders for oblong shape */
-  transition: background-color 0.1s; /* Smooth transition for hover effect */
-}
-
-/* Hover effect for buttons */
-button:hover {
-  background-color: #a86add;
-}
-
-/* Highlighting the selected button */
-button.selected {
-  background-color: #8549A7; /* Darker shade for selected button */
-}
-
-/* Styling for select elements, if any */
-select {
-  padding: 0px;
-  margin: 0px 0;
-  border-radius: 4px;
-}
-
-.tab-container {
-  display: flex;
-  justify-content: space-around;
-  height: 40px;
-  width: 360px;
-  background-color: #634087; /* Your preferred background color */
-  border-radius: 20px; /* Adjust for rounded corners */
-  box-shadow: 0 2px 2px rgba(0.5,0.5,0.5,0.5); /* Optional: for a slight shadow */
-}
-
-.component-container {
-  height: 400px; /* Adjust as needed */
-  width: 100%; /* Adjust if you want a specific width */
-  /* Additional styles (e.g., padding, border) can be added here if needed */
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  box-sizing: border-box;
+  background: #262421;
+  border: 1px solid #363532;
+  box-shadow: none;
 }
 
 .window {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centers children horizontally */
-  /* Add any additional styling as needed */
+  align-items: center;
+  width: 100%;
+  height: 100%;
 }
+
+.tab-container {
+  display: flex;
+  background: #1e1c18;
+  border: 1px solid #363532;
+  border-radius: 12px;
+  padding: 2px;
+  width: 100%;
+  max-width: 500px;
+  height: 38px;
+  box-shadow: none;
+}
+
+button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  height: 100%;
+  color: #bababa;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+button:hover {
+  color: #fff;
+  background: #2e2c29;
+}
+
+button.selected {
+  background: #363532;
+  border: none;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.component-container {
+  margin-top: 12px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: block;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+
