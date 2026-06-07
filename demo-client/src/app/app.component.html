@@ -17,16 +17,11 @@
   </div>
 </header>
 <div class="container" 
-     [class.inputs-collapsed]="inputsCollapsed"
      [class.mobile-input-view]="activeMobileView === 'input'" 
      [class.mobile-output-view]="activeMobileView === 'output'">
 <!--    <mat-slider [(ngModel)]="currentValue"></mat-slider>-->
   <app-userinput></app-userinput>
   <div class="output-wrapper">
-    <button class="toggle-inputs-btn" (click)="toggleInputs()" [title]="inputsCollapsed ? 'Expand Inputs' : 'Collapse Inputs'">
-      <span class="toggle-arrow">{{ inputsCollapsed ? '▶' : '◀' }}</span>
-      <span class="toggle-text">{{ inputsCollapsed ? 'Show Inputs' : 'Hide Inputs' }}</span>
-    </button>
     <button class="back-to-input-btn" (click)="switchToInputView()">
       &larr; Return to Input
     </button>

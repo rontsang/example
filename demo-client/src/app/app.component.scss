@@ -145,15 +145,6 @@ app-userinput {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  transition: flex-basis 0.3s ease-in-out, opacity 0.3s ease-in-out, margin 0.3s ease-in-out;
-  overflow: hidden;
-}
-
-.container.inputs-collapsed app-userinput {
-  flex-basis: 0px !important;
-  opacity: 0;
-  pointer-events: none;
-  margin-right: -24px; /* offset container gap when collapsed */
 }
 
 .output-wrapper {
@@ -166,44 +157,6 @@ app-userinput {
 
 .back-to-input-btn {
   display: none;
-}
-
-.toggle-inputs-btn {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .toggle-inputs-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background-color: #1e1c18;
-    color: #bababa;
-    border: 1px solid #363532;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    margin-bottom: 12px;
-    width: fit-content;
-    transition: all 0.15s ease;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    flex-shrink: 0;
-    user-select: none;
-  }
-
-  .toggle-inputs-btn:hover {
-    color: #fff;
-    background-color: #262421;
-    border-color: #bababa;
-  }
-
-  .toggle-inputs-btn:active {
-    background-color: #363532;
-  }
 }
 
 app-displaywindow {
@@ -290,10 +243,6 @@ app-displaywindow {
 
   app-userinput {
     flex: 0 0 300px; /* Shrunk from 350px to optimize space on iPad-like viewports */
-  }
-
-  .container.inputs-collapsed app-userinput {
-    margin-right: -16px;
   }
 }
 
