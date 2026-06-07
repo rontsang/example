@@ -492,6 +492,62 @@
   margin-bottom: 6px;
 }
 
+.monte-carlo-explanation {
+  background: #1e1c18;
+  border: 1px solid #363532;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.explanation-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #363532;
+  padding-bottom: 6px;
+}
+
+.explanation-icon {
+  color: #e67e22;
+  font-weight: bold;
+}
+
+.explanation-header h4 {
+  color: #ffffff;
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.explanation-body p {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: #bababa;
+}
+
+.explanation-body ul {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style-type: disc !important;
+}
+
+.explanation-body li {
+  color: #bababa;
+  font-size: 12px;
+  line-height: 1.4;
+  display: list-item !important;
+}
+
+.explanation-body li strong {
+  color: #ffffff;
+}
+
 /* Desktop Side-by-Side Layout for Monte Carlo (prevent scrollbars) */
 @media (min-width: 768px) {
   .monte-carlo-container {
@@ -542,5 +598,29 @@
   .sim-results li {
     font-size: 12px;
     padding-bottom: 2px;
+  }
+
+  .monte-carlo-explanation {
+    padding: 12px;
+    margin-top: 0;
+  }
+
+  .explanation-header {
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+  }
+
+  .explanation-body p {
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+
+  .explanation-body ul {
+    gap: 6px;
+    padding-left: 16px;
+  }
+
+  .explanation-body li {
+    font-size: 11px;
   }
 }

@@ -165,5 +165,22 @@
       <h3>No Optimal Strategy Found</h3>
       <p>Please run the <strong>Optimizer</strong> first to generate a proposed strategy for simulation.</p>
     </div>
+
+    <!-- Monte Carlo Explanation Card -->
+    <div class="monte-carlo-explanation">
+      <div class="explanation-header">
+        <span class="explanation-icon">ℹ</span>
+        <h4>How the Simulation Works</h4>
+      </div>
+      <div class="explanation-body">
+        <p>This Monte Carlo simulation stress-tests your strategy against market volatility by running <strong>{{ simulations }}</strong> independent portfolio lifespans:</p>
+        <ul>
+          <li><strong>Random Annual Returns:</strong> Each year, a unique return is generated for your accounts using a normal distribution centered on your expected <strong>Rate of Return</strong> and skewed by your portfolio's <strong>Standard Deviation</strong>.</li>
+          <li><strong>Phase-Based Withdrawals:</strong> The simulator follows the exact withdrawal phases determined by the optimizer (e.g., drawing from Non-Reg principal/capital gains first).</li>
+          <li><strong>Automatic Transitions:</strong> The simulation runs each phase's withdrawal rules until the active accounts in that phase are depleted, then automatically transitions to the next phase (e.g., Phase 1 ➔ Phase 2 ➔ Phase 3).</li>
+          <li><strong>Depletion Track:</strong> Each run continues year-by-year until all account balances run out of money or the portfolio successfully survives past <strong>100 years</strong>.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </div>
