@@ -816,6 +816,18 @@
   font-size: 16px;
 }
 
+.result-zero-volatility {
+  font-size: 14px;
+  color: #bababa;
+  line-height: 1.6;
+}
+
+.result-zero-volatility strong {
+  color: #e67e22;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 18px;
+}
+
 .risk-explanation-text {
   font-size: 11px;
   color: #8a8a8a;
