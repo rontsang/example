@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nest Egg Optimizer - Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-darker: #161512;
+      --bg-dark: #1e1c18;
+      --border-color: #363532;
+      --text-muted: #bababa;
+      --text-main: #ffffff;
+      --accent: #e67e22;
+      --accent-hover: #d56407;
+      --sidebar-width: 280px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-darker);
+      color: var(--text-muted);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--bg-dark);
+      border-right: 1px solid var(--border-color);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding: 32px 24px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .logo-container {
+      margin-bottom: 32px;
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: 0.02em;
+    }
+
+    .logo-container span {
+      color: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .nav-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8a8a8a;
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .nav-links a:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .nav-links a.active {
+      background-color: var(--border-color);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Content Area */
+    .content-wrapper {
+      margin-left: var(--sidebar-width);
+      padding: 48px 64px;
+      max-width: 900px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    h1, h2, h3, h4 {
+      color: var(--text-main);
+      font-weight: 700;
+      margin-top: 32px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-top: 0;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+
+    h2 {
+      font-size: 22px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+    }
+
+    p {
+      line-height: 1.6;
+      margin-bottom: 16px;
+      font-size: 15px;
+    }
+
+    strong {
+      color: var(--text-main);
+    }
+
+    code {
+      font-family: 'Roboto Mono', monospace;
+      background-color: var(--bg-dark);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: var(--accent);
+      border: 1px solid var(--border-color);
+    }
+
+    pre {
+      background-color: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+
+    pre code {
+      background-color: transparent;
+      padding: 0;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 24px;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Diagram Styles */
+    .diagram-container {
+      background-color: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .diagram-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .diagram-node {
+      background-color: var(--bg-darker);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+      width: 80%;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .diagram-node.accent {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .diagram-arrow {
+      color: var(--accent);
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    /* Back link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 24px;
+      transition: color 0.15s ease;
+    }
+
+    .back-link:hover {
+      color: var(--accent-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="logo-container">nestegg<span>.org</span></div>
+    
+    <div class="nav-links">
+      <div class="nav-group-title">Overview</div>
+      <a href="#about" class="active">About Optimizer</a>
+      <a href="#layout">Repository Layout</a>
+      
+      <div class="nav-group-title">Architecture</div>
+      <a href="#architecture">System Architecture</a>
+      <a href="#algorithm">Optimization Algorithm</a>
+      
+      <div class="nav-group-title">Calculations</div>
+      <a href="#tax-logic">Tax Logic & Accounts</a>
+      <a href="#canadian-dividends">Eligible Dividends</a>
+      <a href="#monte-carlo">Monte Carlo Sims</a>
+    </div>
+  </div>
+
+  <div class="content-wrapper">
+    <a href="../index.html" class="back-link">&larr; Back to Application</a>
+
+    <section id="about">
+      <h1>Nest Egg Optimizer - System Documentation</h1>
+      <p>The <strong>Nest Egg Optimizer</strong> is a web application designed to model, simulate, and optimize retirement portfolio withdrawals. It helps users determine the most tax-efficient sequence and ratio of withdrawals from various account types (Tax-Free, Tax-Deferred, and Taxable) to maximize the longevity of their retirement nest egg.</p>
+    </section>
+
+    <section id="layout">
+      <h2>🗺️ Repository Layout</h2>
+      <p>The repository is organized as a monorepo containing the following components:</p>
+      <ul>
+        <li><strong><code>demo-client/</code></strong>: Angular frontend client. Contains the UI layouts, interactive Chart.js widgets, and the browser-based client-side math and optimization engine.</li>
+        <li><strong><code>demo-python/</code></strong>: Optional Python financial analysis/optimizer scripts used for backend verification.</li>
+        <li><strong><code>DOCUMENTATION.md</code></strong>: Markdown documentation of the system.</li>
+      </ul>
+    </section>
+
+    <section id="architecture">
+      <h2>⚙️ Architecture & Components</h2>
+      <p>All optimization and calculations are executed client-side inside the browser for zero-latency, private, and serverless operation.</p>
+
+      <div class="diagram-container">
+        <div class="diagram-flow">
+          <div class="diagram-node">User Inputs (Assets, Income, Spend)</div>
+          <div class="diagram-arrow">&darr;</div>
+          <div class="diagram-node accent">Local Optimizer Service (TypeScript engine)</div>
+          <div class="diagram-arrow">&darr;</div>
+          <div class="diagram-node">Marginal Tax Calculator (Progressive Tax Bracket Rules)</div>
+          <div class="diagram-arrow">&darr;</div>
+          <div class="diagram-node">Burndown Timeline Generator (Year-by-Year Assets & Withdrawals)</div>
+          <div class="diagram-arrow">&darr;</div>
+          <div class="diagram-node">Chart.js Visualization (Interactive Curves & Metrics)</div>
+        </div>
+      </div>
+
+      <h3>Key Frontend Modules:</h3>
+      <ul>
+        <li><strong><code>UserInputComponent</code></strong>: Collects parameters (TFSA, RRSP, Margin, Return Rates, Inflation, Spend) and supports spinner controls to adjust rates in 0.5% increments.</li>
+        <li><strong><code>LocalOptimizerService</code></strong>: The client-side optimization engine that calculates tax-minimized withdrawals and portfolio lifespans.</li>
+        <li><strong><code>ChartComponent</code></strong>: Renders progressive burndown lines, caps withdraws to prevent showing withdrawals exceeding starting balances, and clamps year hover navigation.</li>
+        <li><strong><code>BarChartComponent</code></strong>: Renders Monte Carlo simulation results, bell curves, typeable volatility parameters, and typeable success target years.</li>
+      </ul>
+    </section>
+
+    <section id="algorithm">
+      <h2>📈 Optimization Algorithm</h2>
+      <p>To find the optimal withdrawal strategy, the system uses a **recursive multi-stage local search**:</p>
+      <ol>
+        <li><strong>Permutation Testing</strong>: Generates combinations of withdrawal percentages across active accounts (e.g. Stage 1: TFSA 20%, RRSP 80%).</li>
+        <li><strong>Depletion Detection</strong>: Simulates the burndown timeline year-by-year until the first account runs out. This year is marked as a phase boundary.</li>
+        <li><strong>Recursion</strong>: Shrinks the active account set (excluding the depleted account), updates starting balances, and recursively invokes the optimizer for the next phase.</li>
+        <li><strong>Longevity Evaluation</strong>: Compares the total years survived across permutations, keeping the allocation path that yields the longest portfolio life.</li>
+      </ol>
+    </section>
+
+    <section id="tax-logic">
+      <h2>💵 Tax Logic & Account Types</h2>
+      <p>The system models Ontario and Federal tax rules to perform a **reverse tax calculation** (calculating the required pre-tax withdrawal needed to satisfy a post-tax spending target):</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Account Type</th>
+            <th>Description</th>
+            <th>Tax Treatment on Withdrawal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>TFSA</strong></td>
+            <td>Tax-Free Savings Account</td>
+            <td>100% Tax-Free. Withdrawals do not affect taxable income.</td>
+          </tr>
+          <tr>
+            <td><strong>RRSP</strong></td>
+            <td>Registered Retirement Savings Plan</td>
+            <td>100% Taxable. Treated as regular earned income.</td>
+          </tr>
+          <tr>
+            <td><strong>Non-Reg / Margin</strong></td>
+            <td>Taxable Investment Account</td>
+            <td>Only 50% of the capital gains portion is included in taxable income. Principal withdrawals are tax-free.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="canadian-dividends">
+      <h2>🇨🇦 Eligible Canadian Dividend Tax Rules</h2>
+      <p>For Non-Registered accounts, dividends are paid out annually and receive special tax treatment:</p>
+      <ul>
+        <li><strong>Gross-up (38%)</strong>: Dividend payments are grossed up by 38% and added to taxable income.</li>
+        <li><strong>Dividend Tax Credit (DTC)</strong>: A Federal tax credit of 15.02% of the grossed-up dividend plus an Ontario Provincial tax credit directly reduce taxes owed.</li>
+        <li><strong>Growth Adjustment</strong>: Because dividends are paid out rather than reinvested in the portfolio principal, the active growth rate inside the burndown loop for non-registered assets is adjusted to <code>Return Rate - Dividend Yield</code>.</li>
+      </ul>
+    </section>
+
+    <section id="monte-carlo">
+      <h2>🎲 Monte Carlo Simulations</h2>
+      <p>To stress-test your strategy against market volatility, the simulator runs <strong>1,000 independent runs</strong>:</p>
+      <ul>
+        <li><strong>Normal Distributions</strong>: Expectation returns are modeled using standard deviation standard deviations (Risk Profiles) ranging from 0% (Cash) to 25% (Aggressive).</li>
+        <li><strong>Statistical Metrics</strong>: Displays the 10th (Worst), 50th (Median), and 90th (Best) percentile survival periods.</li>
+        <li><strong>Dynamic Target success rates</strong>: Supports custom typeable target success years (e.g. 40+ years) to instantly recalculate confidence metrics.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    // Simple navigation highlighting
+    window.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('id');
+          if (entry.intersectionRatio > 0.5) {
+            document.querySelectorAll('.nav-links a').forEach(a => {
+              a.classList.remove('active');
+            });
+            const activeLink = document.querySelector(`.nav-links a[href="#${id}"]`);
+            if (activeLink) activeLink.classList.add('active');
+          }
+        });
+      }, { threshold: 0.6 });
+
+      document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+      });
+    });
+  </script>
+</body>
+</html>
