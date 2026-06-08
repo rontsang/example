@@ -103,6 +103,24 @@
   color: #fff;
 }
 
+.coffee-btn {
+  background-color: #ffdd00 !important;
+  color: #000000 !important;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(255, 221, 0, 0.2);
+}
+
+.coffee-btn:hover {
+  background-color: #ffea00 !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 12px rgba(255, 221, 0, 0.4);
+}
+
+.coffee-emoji {
+  font-size: 16px;
+  line-height: 1;
+}
+
 .settings-btn {
   background: transparent;
   border: none;

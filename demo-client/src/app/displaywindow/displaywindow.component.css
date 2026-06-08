@@ -63,7 +63,8 @@ button.selected {
   width: 100%;
   flex: 1;
   min-height: 0;
-  display: block;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
 }
