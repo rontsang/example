@@ -1,9 +1,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
 
-<div class="view-toggle">
-  <button (click)="currentView = 'graph'" [class.active]="currentView === 'graph'">Graph</button>
-  <button (click)="currentView = 'table'" [class.active]="currentView === 'table'">Table</button>
-  <button (click)="currentView = 'monte-carlo'" [class.active]="currentView === 'monte-carlo'">Monte Carlo</button>
+<div class="nav-container">
+  <div class="nav-group">
+    <span class="group-label">Optimizer</span>
+    <div class="view-toggle">
+      <button (click)="setView('graph')" [class.active]="currentView === 'graph'">Graph</button>
+      <button *ngIf="false" (click)="setView('table')" [class.active]="currentView === 'table'">Table</button>
+      <button (click)="setView('monte-carlo')" [class.active]="currentView === 'monte-carlo'">Monte Carlo</button>
+    </div>
+  </div>
+  <div class="nav-group">
+    <span class="group-label">Self Strat</span>
+    <div class="view-toggle">
+      <button (click)="setView('test')" [class.active]="currentView === 'test'">Test</button>
+    </div>
+  </div>
+
 </div>
 
 <div class="results-wrapper">
@@ -20,25 +32,49 @@
 
   <div class="details-box" *ngIf="currentView === 'graph' && tooHighIncome === false && getHoveredDetails() as details">
     <div class="details-header">
-      <h4 class="details-title">Year {{ details.year | number:'1.0-0' }} Financial Details</h4>
-      <p class="details-subtitle">Hover over the graph to update details</p>
+      <div class="details-title-nav">
+        <div class="details-title-group" style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+          <h4 class="details-title">Withdrawal Strategy: Year {{ details.year | number:'1.0-0' }}</h4>
+          <span class="details-subtitle">Hover graph or use arrows (&larr; / &rarr; or &lt; / &gt;) to change years</span>
+        </div>
+        <div class="header-nav-buttons">
+          <button class="pan-btn" (click)="panYear(-1)" [disabled]="isMinYear()" title="Previous Year (ArrowLeft or &lt;)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button class="pan-btn" (click)="panYear(1)" [disabled]="isMaxYear()" title="Next Year (ArrowRight or &gt;)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
     </div>
     
     <div class="details-grid">
       <!-- Balances Column -->
       <div class="details-col">
-        <span class="col-title">Balances (End of Year)</span>
+        <span class="col-title">Balances (Start &rarr; End of Year)</span>
         <div class="details-row">
           <span>TFSA:</span>
-          <strong class="money">{{ details.balances.tfsa | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+          <div class="balance-comparison-values">
+            <span class="val-start">{{ details.balances.tfsa | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+            <span class="balance-arrow">&rarr;</span>
+            <span class="val-end">{{ details.balancesEnd.tfsa | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+          </div>
         </div>
         <div class="details-row">
           <span>RRSP:</span>
-          <strong class="money">{{ details.balances.rrsp | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+          <div class="balance-comparison-values">
+            <span class="val-start">{{ details.balances.rrsp | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+            <span class="balance-arrow">&rarr;</span>
+            <span class="val-end">{{ details.balancesEnd.rrsp | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+          </div>
         </div>
         <div class="details-row">
           <span>Non-reg:</span>
-          <strong class="money">{{ details.balances.nonReg | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+          <div class="balance-comparison-values">
+            <span class="val-start">{{ details.balances.nonReg | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+            <span class="balance-arrow">&rarr;</span>
+            <span class="val-end">{{ details.balancesEnd.nonReg | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+          </div>
         </div>
       </div>
 
@@ -63,8 +99,12 @@
       <div class="details-col">
         <span class="col-title">Metrics</span>
         <div class="details-row">
-          <span>Effective Income:</span>
+          <span>Total Income:</span>
           <strong class="money">{{ details.effectiveIncome | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+        </div>
+        <div class="details-row text-blue">
+          <span>Taxable Income:</span>
+          <strong class="money">{{ details.calculation.totalTaxable | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
         </div>
         <div class="details-row text-orange">
           <span>Taxes Owed:</span>
@@ -85,30 +125,23 @@
           <span class="calc-label">income</span>
           <strong class="money">{{ details.calculation.income | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
         </div>
+        <ng-container *ngIf="details.calculation.rrspTaxable > 0">
+          <span class="calc-plus">+</span>
+          <div class="calc-item">
+            <span class="calc-label">RRSP</span>
+            <strong class="money">{{ details.calculation.rrspTaxable | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
+          </div>
+        </ng-container>
         <span class="calc-plus">+</span>
-        <div class="calc-item">
-          <span class="calc-label">RRSP Income</span>
-          <strong class="money">{{ details.calculation.rrspTaxable | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
-        </div>
-        <span class="calc-plus">+</span>
-        <div class="calc-item">
-          <span class="calc-label">Capital Gain Income</span>
+        <div class="calc-item" title="({{ details.calculation.margWithdrawn | currency:'USD':'symbol-narrow':'1.0-0' }} w/d, {{ details.calculation.capGainsPct | number:'1.0-1' }}% gain, 50% taxable)">
+          <span class="calc-label">Capital Gain <span class="info-icon" style="font-size: 8px; width: 11px; height: 11px; margin-left: 2px; line-height: 1;">ⓘ</span></span>
           <strong class="money">{{ details.calculation.margTaxable | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
-          <span class="calc-subtext">
-            ({{ details.calculation.margWithdrawn | currency:'USD':'symbol-narrow':'1.0-0' }} w/d, 
-            {{ details.calculation.capGainsPct | number:'1.0-1' }}% gain, 
-            50% taxable)
-          </span>
         </div>
         <ng-container *ngIf="details.calculation.dividendActual > 0">
           <span class="calc-plus">+</span>
-          <div class="calc-item">
-            <span class="calc-label">Dividend Income</span>
+          <div class="calc-item" title="({{ details.calculation.dividendActual | currency:'USD':'symbol-narrow':'1.0-0' }} actual, 38% gross-up) - Dividend Tax Credit: Canadian eligible dividends are grossed up by 38% (taxed at regular rates) but receive a Federal & Provincial Dividend Tax Credit (15.02% Fed + {{ details.provincialDividendCreditPct | number:'1.2-2' }}% {{ details.provinceName }}) directly reducing taxes owed, offering a lower net tax rate.">
+            <span class="calc-label">Dividend <span class="info-icon" style="font-size: 8px; width: 11px; height: 11px; margin-left: 2px; line-height: 1;">ⓘ</span></span>
             <strong class="money">{{ details.calculation.dividendTaxable | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
-            <span class="calc-subtext">
-              ({{ details.calculation.dividendActual | currency:'USD':'symbol-narrow':'1.0-0' }} actual, 
-              38% gross-up)
-            </span>
           </div>
         </ng-container>
         <span class="calc-equals">=</span>
@@ -117,75 +150,54 @@
           <strong class="money">{{ details.calculation.totalTaxable | currency:'USD':'symbol-narrow':'1.0-0' }}</strong>
         </div>
       </div>
-
-      <!-- Dividend Tax Explanation Note -->
-      <div class="dividend-explanation-note" *ngIf="details.calculation.dividendActual > 0">
-        <span class="note-icon">ℹ</span>
-        <span class="note-text">
-          <strong>Dividend Tax Credit:</strong> Canadian eligible dividends are grossed up by 38% (taxed at regular rates) but receive a Federal & Provincial Dividend Tax Credit (15.02% Fed + {{ details.provincialDividendCreditPct | number:'1.2-2' }}% {{ details.provinceName }}) directly reducing taxes owed, offering a lower net tax rate.
-        </span>
-      </div>
     </div>
+    
   </div>
 
   <div *ngIf="currentView === 'monte-carlo' && tooHighIncome === false" class="results-container">
     <app-bar-chart></app-bar-chart>
   </div>
 
+  <div *ngIf="currentView === 'test' && tooHighIncome === false" class="results-container">
+    <app-chart-self-test></app-chart-self-test>
+  </div>
+
+
+
   <div *ngIf="currentView === 'table' && tooHighIncome === false" class="results-container">
-    <p class="results-title">Optimized Withdrawal Strategy &bull; Years to Depletion: <span class="depletion-highlight">{{ summaries[summaries.length - 1]?.endYear | number: '1.1-1' }}</span></p>
+    <p class="results-title">Optimized Withdrawal Strategy &bull; Years to Depletion: <span class="depletion-highlight">{{ summaries[summaries.length - 1].endYear | number: '1.1-1' }}</span></p>
 
-    <div class="strategy-cards-list">
-      <div *ngFor="let strategy of summaries" class="strategy-card">
-        
-        <!-- Card Header -->
-        <div class="card-header">
-          <span class="card-years-title">Years {{ strategy.startYear | number: '1.1-1' }} – {{ strategy.endYear | number: '1.1-1' }}</span>
-          <span class="card-total-withdrawal">Total: {{ strategy.totalWithdrawal | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }} / yr</span>
-        </div>
-
-        <!-- Card Content Columns -->
-        <div class="card-content">
-          <!-- Withdrawals List -->
-          <div class="card-column withdrawals-col">
-            <span class="col-title">Withdrawal Source</span>
-            <div class="withdrawals-list">
-              <div *ngFor="let detail of strategy.withdrawals" class="withdrawal-row">
-                <span class="acc-name">{{ detail?.accountName }}</span>
-                <span class="acc-amount money">{{ (detail?.amount ?? 0) | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tax Breakdown Column -->
-          <div class="card-column tax-col">
-            <span class="col-title">Tax & Income Breakdown</span>
-            <div class="tax-table">
-              <div class="tax-row">
-                <span class="tax-label">Total Withdrawals <span class="info-icon" title="Sum of all scheduled account withdrawals for this segment">ⓘ</span></span>
-                <span class="tax-value money">{{ strategy.totalWithdrawal | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
-              </div>
-              <div class="tax-row">
-                <span class="tax-label">Total Income <span class="info-icon" title="Fixed additional non-registered income">ⓘ</span></span>
-                <span class="tax-value money">{{ strategy.income | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
-              </div>
-              <div class="tax-row highlighted">
-                <span class="tax-label">Total Taxable Income <span class="info-icon" title="Income subject to provincial/federal income tax rules">ⓘ</span></span>
-                <span class="tax-value money">{{ strategy.taxableAmount | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
-              </div>
-              <div class="tax-row highlighted warning-text">
-                <span class="tax-label">Tax Owed <span class="info-icon" title="Estimated tax obligation based on calculated tax bracket">ⓘ</span></span>
-                <span class="tax-value money">{{ strategy.taxesOwed | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
-              </div>
-              <div class="tax-row total-row">
-                <span class="tax-label font-bold">After-Tax Income <span class="info-icon" title="Net disposable income remaining to spend">ⓘ</span></span>
-                <span class="tax-value money font-bold">{{ postTaxTotal | roundToTen | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
+    <div class="table-wrapper">
+      <table class="burndown-table">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>TFSA Bal</th>
+            <th>RRSP Bal</th>
+            <th>Non-Reg Bal</th>
+            <th class="total-col">Total Bal</th>
+            <th>TFSA W/d</th>
+            <th>RRSP W/d</th>
+            <th>Non-Reg W/d</th>
+            <th class="total-col">Total W/d</th>
+            <th class="tax-col">Tax Paid</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of getTableRows()">
+            <td>{{ row.year | number:'1.0-1' }}</td>
+            <td [class.money-zero]="row.tfsaBalance < 1">{{ row.tfsaBalance | currency:'USD':'symbol-narrow':'1.0-0' }}</td>
+            <td [class.money-zero]="row.rrspBalance < 1">{{ row.rrspBalance | currency:'USD':'symbol-narrow':'1.0-0' }}</td>
+            <td [class.money-zero]="row.margBalance < 1">{{ row.margBalance | currency:'USD':'symbol-narrow':'1.0-0' }}</td>
+            <td class="total-col" [class.money-zero]="row.totalBalance < 1">{{ row.totalBalance | currency:'USD':'symbol-narrow':'1.0-0' }}</td>
+            <td [class.money-zero]="row.tfsaWithdraw < 1">{{ row.tfsaWithdraw | currency:'USD':'symbol-narrow':'1.0-0' }}</td>
+            <td [class.money-zero]="row.rrspWithdraw < 1">{{ row.rrspWithdraw | currency:'USD':'symbol-narrow':'1.0-0' }}</td>
+            <td [class.money-zero]="row.margWithdraw < 1">{{ row.margWithdraw | currency:'USD':'symbol-narrow':'1.0-0' }}</td>
+            <td class="total-col" [class.money-zero]="row.totalWithdraw < 1">{{ row.totalWithdraw | currency:'USD':'symbol-narrow':'1.0-0' }}</td>
+            <td class="tax-col" [class.money-zero]="row.totalTax < 1">{{ row.totalTax | currency:'USD':'symbol-narrow':'1.0-0' }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 

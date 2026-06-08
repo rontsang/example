@@ -8,6 +8,41 @@ export class SharedService {
   private chartUpdateNeededSource = new BehaviorSubject<boolean>(false);
   chartUpdateNeeded$ = this.chartUpdateNeededSource.asObservable();
 
+  private currentViewSource = new BehaviorSubject<string>(this.getInitialView());
+  currentView$ = this.currentViewSource.asObservable();
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('popstate', () => {
+        const view = this.getInitialView();
+        if (this.currentViewSource.value !== view) {
+          this.currentViewSource.next(view);
+        }
+      });
+    }
+  }
+
+  private getInitialView(): string {
+    if (typeof window !== 'undefined' && window.location) {
+      const path = window.location.pathname;
+      if (path === '/monte-carlo') return 'monte-carlo';
+      if (path === '/table') return 'table';
+      if (path === '/test') return 'test';
+      if (path === '/graph') return 'graph';
+    }
+    return 'graph';
+  }
+
+  setCurrentView(view: string) {
+    this.currentViewSource.next(view);
+    if (typeof window !== 'undefined' && window.location && window.history) {
+      const path = '/' + view;
+      if (window.location.pathname !== path) {
+        window.history.pushState({}, '', path);
+      }
+    }
+  }
+
   private chartUsedNewData = new BehaviorSubject<boolean>(false);
   userInputChanged$ = this.chartUsedNewData.asObservable();
 

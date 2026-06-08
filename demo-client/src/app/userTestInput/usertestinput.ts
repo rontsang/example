@@ -78,33 +78,43 @@ export class Usertestinput {
         interestRate: this.startState.interestRate,
         province: this.startState.province
       });
-      this.data = data; // Data received from sibling1
+      this.data = data as any; // Data received from sibling1
       console.log("User test data received 2: ", this.data);
       console.log("USER TEST FORM: ", this.userForm.value);
 
-      this.disableInputsIfZeroBalance(data);
+      this.disableInputsIfZeroBalance();
     });
   }
 
-  private disableInputsIfZeroBalance(data: InputData) {
+  private disableInputsIfZeroBalance() {
     const tfsaWithdraw = this.userForm.get('tfsaWithdraw');
-    if (data.tfsaAmount != null && data.tfsaAmount < 100) {
+    const rrspWithdraw = this.userForm.get('rrspWithdraw');
+    const margWithdraw = this.userForm.get('margWithdraw');
+
+    if (this.startState.tfsaAmount != null && this.startState.tfsaAmount < 100) {
       this.isInputTFSADisabled = true;
       tfsaWithdraw?.disable();
+      tfsaWithdraw?.setValue(0);
     } else {
       this.isInputTFSADisabled = false;
       tfsaWithdraw?.enable();
     }
-    if (data.rrspAmount != null && data.rrspAmount < 100) {
+    if (this.startState.rrspAmount != null && this.startState.rrspAmount < 100) {
       this.isInputRRSPDisabled = true;
+      rrspWithdraw?.disable();
+      rrspWithdraw?.setValue(0);
     } else {
       this.isInputRRSPDisabled = false;
+      rrspWithdraw?.enable();
     }
-    if (data.margAmountPrincipal != null && data.margAmountCapitalGain != null
-      && data.margAmountPrincipal < 100 && data.margAmountCapitalGain < 100) {
+    if (this.startState.margAmountPrincipal != null && this.startState.margAmountCapitalGain != null
+      && this.startState.margAmountPrincipal < 100 && this.startState.margAmountCapitalGain < 100) {
       this.isInputMARGDisabled = true;
+      margWithdraw?.disable();
+      margWithdraw?.setValue(0);
     } else {
       this.isInputMARGDisabled = false;
+      margWithdraw?.enable();
     }
   }
 

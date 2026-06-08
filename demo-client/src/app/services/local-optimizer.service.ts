@@ -215,12 +215,20 @@ export class AccountState {
   accounts: Account[] = [];
   province: string = "Ontario";
   dividendYield: number = 0.0;
+  inflationRate: number = 0.0;
 
-  constructor(postTaxAmountNeeded: number = 0, interestRate: number = 0, income: number = 0, dividendYield: number = 0.0) {
+  constructor(
+    postTaxAmountNeeded: number = 0,
+    interestRate: number = 0,
+    income: number = 0,
+    dividendYield: number = 0.0,
+    inflationRate: number = 0.0
+  ) {
     this.postTaxAmountNeededPerYear = postTaxAmountNeeded;
     this.interestRate = interestRate;
     this.income = income;
     this.dividendYield = dividendYield;
+    this.inflationRate = inflationRate;
   }
 
   get accountsList(): string[] {
@@ -228,7 +236,13 @@ export class AccountState {
   }
 
   cloneAccountState(): AccountState {
-    const clone = new AccountState(this.postTaxAmountNeededPerYear, this.interestRate, this.income, this.dividendYield);
+    const clone = new AccountState(
+      this.postTaxAmountNeededPerYear,
+      this.interestRate,
+      this.income,
+      this.dividendYield,
+      this.inflationRate
+    );
     clone.accounts = this.accounts.map(acc => acc.clone());
     clone.province = this.province;
     return clone;
@@ -383,22 +397,29 @@ export class ScenarioNode {
 
 // --- Finance Compounding Helpers ---
 
-function calcYearsUntilDepletion(balance: number, annualWithdrawal: number, annualReturnRate: number): number {
+function calcYearsUntilDepletion(
+  balance: number,
+  annualWithdrawal: number,
+  annualReturnRate: number,
+  inflationRate: number = 0.0
+): number {
   let tempBalance = balance;
   let years = 0.0;
   const MAX_YEARS = 150.0;
-  while (tempBalance > 0) {
-    let yearEndBalance = tempBalance * (1 + annualReturnRate) - annualWithdrawal;
+  let currentWithdrawal = annualWithdrawal;
+  while (tempBalance > 0.01) {
+    let yearEndBalance = tempBalance * (1 + annualReturnRate) - currentWithdrawal;
     if (yearEndBalance >= tempBalance || years > MAX_YEARS) {
       years = Infinity;
       break;
     }
     if (yearEndBalance > 0) {
       years += 1.0;
+      currentWithdrawal *= (1 + inflationRate);
     } else {
-      let partial = tempBalance / annualWithdrawal;
+      let partial = tempBalance / currentWithdrawal;
       tempBalance *= 1 + annualReturnRate * partial;
-      years += tempBalance / annualWithdrawal;
+      years += tempBalance / currentWithdrawal;
     }
     tempBalance = yearEndBalance;
   }
@@ -498,9 +519,13 @@ function calculatePostTaxAmount(
   return amount - taxProvincial - taxFederal;
 }
 
-function calculatePreTaxAmountNode(node: ScenarioNode, scenarioPercentages: number[], useRealBrackets: boolean) {
-  let income = node.startingAccountState.income;
-  let totalWithdrawal = node.startingAccountState.postTaxAmountNeededPerYear;
+function getPreTaxWithdrawals(
+  state: AccountState,
+  targetPercentages: number[],
+  useRealBrackets: boolean
+): number[] {
+  let income = state.income;
+  let totalWithdrawal = state.postTaxAmountNeededPerYear;
 
   let accountRrsp: Account | null = null;
   let accountMarg: Account | null = null;
@@ -509,9 +534,9 @@ function calculatePreTaxAmountNode(node: ScenarioNode, scenarioPercentages: numb
   let targetTfsaPct = 0.0;
   let targetMargPct = 0.0;
 
-  for (let i = 0; i < node.startingAccountState.accounts.length; i++) {
-    let account = node.startingAccountState.accounts[i];
-    let percentage = node.scenario.calculationPoint[i];
+  for (let i = 0; i < state.accounts.length; i++) {
+    let account = state.accounts[i];
+    let percentage = targetPercentages[i];
     if (account.accountName === "RRSP") {
       targetRrspPct = percentage;
       accountRrsp = account;
@@ -539,7 +564,7 @@ function calculatePreTaxAmountNode(node: ScenarioNode, scenarioPercentages: numb
 
   let dividends = 0.0;
   if (accountMarg !== null) {
-    dividends = accountMarg.totalValue * node.startingAccountState.dividendYield;
+    dividends = accountMarg.totalValue * state.dividendYield;
   }
   let grossedUpDividends = dividends * 1.38;
 
@@ -564,7 +589,7 @@ function calculatePreTaxAmountNode(node: ScenarioNode, scenarioPercentages: numb
       let taxableMargin = preTaxGuessMarg * ratioCg2P * ratioCg;
       let preTaxTotal = income + taxableRrsp + taxableMargin + grossedUpDividends;
 
-      let postTaxTotal = calculatePostTaxAmount(preTaxTotal, useRealBrackets, node.startingAccountState.province, grossedUpDividends);
+      let postTaxTotal = calculatePostTaxAmount(preTaxTotal, useRealBrackets, state.province, grossedUpDividends);
 
       let effectiveRate = 0.0;
       if (preTaxTotal !== 0) {
@@ -575,7 +600,7 @@ function calculatePreTaxAmountNode(node: ScenarioNode, scenarioPercentages: numb
       let effectiveRrsp = preTaxGuessRrsp * (1.0 - effectiveRate);
 
       let effectiveMarginP = preTaxGuessMarg * (1.0 - ratioCg2P);
-      let effectiveMarginCgNontaxable = preTaxGuessMarg * ratioCg2P * ratioCg;
+      let effectiveMarginCgNontaxable = preTaxGuessMarg * ratioCg2P * (1.0 - ratioCg);
       let effectiveMarginCgTaxable = preTaxGuessMarg * ratioCg2P * (ratioCg * (1.0 - effectiveRate));
 
       let effectiveMarg = effectiveMarginP + effectiveMarginCgNontaxable + effectiveMarginCgTaxable;
@@ -596,7 +621,7 @@ function calculatePreTaxAmountNode(node: ScenarioNode, scenarioPercentages: numb
     }
   } else {
     let preTaxTotal = income + grossedUpDividends;
-    let postTaxTotal = calculatePostTaxAmount(preTaxTotal, useRealBrackets, node.startingAccountState.province, grossedUpDividends);
+    let postTaxTotal = calculatePostTaxAmount(preTaxTotal, useRealBrackets, state.province, grossedUpDividends);
     let effectiveRate = 0.0;
     if (preTaxTotal !== 0) {
       effectiveRate = 1.0 - postTaxTotal / preTaxTotal;
@@ -606,18 +631,24 @@ function calculatePreTaxAmountNode(node: ScenarioNode, scenarioPercentages: numb
     preTaxGuessTfsa = totalWithdrawal - effectiveIncome - effectiveDividends;
   }
 
-  node.scenario.preTaxAmounts = [];
-  for (let i = 0; i < node.startingAccountState.accounts.length; i++) {
-    let account = node.startingAccountState.accounts[i];
+  let result: number[] = [];
+  for (let i = 0; i < state.accounts.length; i++) {
+    let account = state.accounts[i];
     if (account.accountName === "RRSP") {
-      node.scenario.preTaxAmounts.push(preTaxGuessRrsp);
+      result.push(preTaxGuessRrsp);
     } else if (account.accountName === "TFSA") {
-      node.scenario.preTaxAmounts.push(preTaxGuessTfsa);
-    } else if (account.accountName === "MARG") {
-      node.scenario.preTaxAmounts.push(preTaxGuessMarg);
+      result.push(preTaxGuessTfsa);
+    } else if (account.accountName === "MARG" || account.accountName === "NON-REG") {
+      result.push(preTaxGuessMarg);
     }
   }
+  return result;
 }
+
+function calculatePreTaxAmountNode(node: ScenarioNode, scenarioPercentages: number[], useRealBrackets: boolean) {
+  node.scenario.preTaxAmounts = getPreTaxWithdrawals(node.startingAccountState, scenarioPercentages, useRealBrackets);
+}
+
 
 // --- Permutations & Grid Calculations ---
 
@@ -683,8 +714,9 @@ function calculateYearsUntilFirstAccountDepletes(node: ScenarioNode) {
     let account = node.startingAccountState.accounts[i];
     let annualWithdrawal = node.scenario.preTaxAmounts[i];
     let interestRate = node.startingAccountState.interestRate;
+    let inflationRate = node.startingAccountState.inflationRate;
 
-    let years = calcYearsUntilDepletion(account.totalValue, annualWithdrawal, interestRate);
+    let years = calcYearsUntilDepletion(account.totalValue, annualWithdrawal, interestRate, inflationRate);
 
     if (years < minYears) {
       minYears = years;
@@ -705,36 +737,43 @@ function calculateEndingAccount(parent: ScenarioNode, i: number): Account {
   let yearsToDeplete = parent.scenario.yearsToFirstAccountDepletion;
   let interestRate = parent.startingAccountState.interestRate;
   let dividendYield = parent.startingAccountState.dividendYield || 0.0;
+  let inflationRate = parent.startingAccountState.inflationRate;
 
   let futureValuePrincipal = startingAccount.principalAmount;
   let futureValueCapitalGains = startingAccount.capitalGainsAmount;
 
+  let currentWithdrawal = preTaxAmount;
   let year = 1;
   while (year < yearsToDeplete) {
     let totalValue = futureValuePrincipal + futureValueCapitalGains;
     if (totalValue > 0) {
-      let effectiveGrowth = interestRate;
-      if (startingAccount.accountName === "MARG" || startingAccount.accountName === "NON-REG") {
-        effectiveGrowth = interestRate - dividendYield;
-      }
+      let effectiveGrowth = interestRate - dividendYield;
       futureValueCapitalGains += (futureValuePrincipal + futureValueCapitalGains) * effectiveGrowth;
+      if (startingAccount.accountName === "TFSA" || startingAccount.accountName === "RRSP") {
+        // Reinvest dividends inside tax-sheltered accounts (net growth rate remains interestRate)
+        futureValueCapitalGains += (futureValuePrincipal + futureValueCapitalGains) * dividendYield;
+      }
       totalValue = futureValuePrincipal + futureValueCapitalGains;
-      futureValuePrincipal -= preTaxAmount * futureValuePrincipal / totalValue;
-      futureValueCapitalGains -= preTaxAmount * futureValueCapitalGains / totalValue;
+      futureValuePrincipal -= currentWithdrawal * futureValuePrincipal / totalValue;
+      futureValueCapitalGains -= currentWithdrawal * futureValueCapitalGains / totalValue;
     }
     year += 1;
+    currentWithdrawal *= (1 + inflationRate);
   }
 
   let partialYear = yearsToDeplete - Math.floor(yearsToDeplete);
-  let effectiveGrowth = interestRate;
-  if (startingAccount.accountName === "MARG" || startingAccount.accountName === "NON-REG") {
-    effectiveGrowth = interestRate - dividendYield;
-  }
-  futureValueCapitalGains += (futureValuePrincipal + futureValueCapitalGains) * effectiveGrowth * partialYear;
-  let totalValue = futureValuePrincipal + futureValueCapitalGains;
-  if (totalValue > 0) {
-    futureValuePrincipal -= preTaxAmount * (futureValuePrincipal / totalValue) * partialYear;
-    futureValueCapitalGains -= preTaxAmount * (futureValueCapitalGains / totalValue) * partialYear;
+  if (partialYear > 0) {
+    let effectiveGrowth = interestRate - dividendYield;
+    futureValueCapitalGains += (futureValuePrincipal + futureValueCapitalGains) * effectiveGrowth * partialYear;
+    if (startingAccount.accountName === "TFSA" || startingAccount.accountName === "RRSP") {
+      // Reinvest dividends inside tax-sheltered accounts for partial year
+      futureValueCapitalGains += (futureValuePrincipal + futureValueCapitalGains) * dividendYield * partialYear;
+    }
+    let totalValue = futureValuePrincipal + futureValueCapitalGains;
+    if (totalValue > 0) {
+      futureValuePrincipal -= currentWithdrawal * (futureValuePrincipal / totalValue) * partialYear;
+      futureValueCapitalGains -= currentWithdrawal * (futureValueCapitalGains / totalValue) * partialYear;
+    }
   }
 
   let endingAccount = new Account(futureValuePrincipal, futureValueCapitalGains, startingAccount.accountName);
@@ -744,17 +783,103 @@ function calculateEndingAccount(parent: ScenarioNode, i: number): Account {
   return endingAccount;
 }
 
-function calculateEndingAccountState(parent: ScenarioNode) {
-  parent.endingAccountState = new AccountState(
-    parent.startingAccountState.postTaxAmountNeededPerYear,
-    parent.startingAccountState.interestRate,
-    parent.startingAccountState.income
-  );
+function calculateEndingAccountState(parent: ScenarioNode, useRealBrackets: boolean = true) {
+  let targetPercentages = parent.scenario.calculationPoint;
+  let hasPercentages = targetPercentages && targetPercentages.length > 0;
 
-  for (let i = 0; i < parent.getNumAccounts(); i++) {
-    if (i !== parent.scenario.indexOfFirstAccountDepletion && parent.startingAccountState.accounts[i].getTotalValue() > 0) {
-      let endingAccount = calculateEndingAccount(parent, i);
-      parent.endingAccountState.accounts.push(endingAccount);
+  let endingTarget = parent.startingAccountState.postTaxAmountNeededPerYear;
+
+  if (hasPercentages) {
+    let currentState = parent.startingAccountState.cloneAccountState();
+    let yearsToDeplete = parent.scenario.yearsToFirstAccountDepletion;
+    let interestRate = parent.startingAccountState.interestRate;
+    let dividendYield = parent.startingAccountState.dividendYield || 0.0;
+
+    let year = 1;
+    while (year < yearsToDeplete) {
+      let preTaxWithdrawals = getPreTaxWithdrawals(currentState, targetPercentages, useRealBrackets);
+      for (let account = 0; account < currentState.accounts.length; account++) {
+        let acc = currentState.accounts[account];
+        let totalValue = acc.totalValue;
+        if (totalValue > 0) {
+          let effectiveGrowth = interestRate - dividendYield;
+          acc.capitalGainsAmount += (acc.principalAmount + acc.capitalGainsAmount) * effectiveGrowth;
+          if (acc.accountName === "TFSA" || acc.accountName === "RRSP") {
+            // Reinvest dividends inside tax-sheltered accounts (net growth rate remains interestRate)
+            acc.capitalGainsAmount += (acc.principalAmount + acc.capitalGainsAmount) * dividendYield;
+          }
+          totalValue = acc.principalAmount + acc.capitalGainsAmount;
+          
+          let withdrawAmount = preTaxWithdrawals[account];
+          acc.principalAmount -= withdrawAmount * acc.principalAmount / totalValue;
+          acc.capitalGainsAmount -= withdrawAmount * acc.capitalGainsAmount / totalValue;
+        }
+      }
+      year += 1;
+      if (currentState.inflationRate > 0) {
+        currentState.postTaxAmountNeededPerYear *= (1 + currentState.inflationRate);
+      }
+    }
+
+    let partialYear = yearsToDeplete - Math.floor(yearsToDeplete);
+    if (partialYear > 0) {
+      let preTaxWithdrawals = getPreTaxWithdrawals(currentState, targetPercentages, useRealBrackets);
+      for (let account = 0; account < currentState.accounts.length; account++) {
+        let acc = currentState.accounts[account];
+        let totalValue = acc.totalValue;
+        if (totalValue > 0) {
+          let effectiveGrowth = interestRate - dividendYield;
+          acc.capitalGainsAmount += (acc.principalAmount + acc.capitalGainsAmount) * effectiveGrowth * partialYear;
+          if (acc.accountName === "TFSA" || acc.accountName === "RRSP") {
+            // Reinvest dividends inside tax-sheltered accounts for partial year
+            acc.capitalGainsAmount += (acc.principalAmount + acc.capitalGainsAmount) * dividendYield * partialYear;
+          }
+          totalValue = acc.principalAmount + acc.capitalGainsAmount;
+          
+          let withdrawAmount = preTaxWithdrawals[account] * partialYear;
+          acc.principalAmount -= withdrawAmount * acc.principalAmount / totalValue;
+          acc.capitalGainsAmount -= withdrawAmount * acc.capitalGainsAmount / totalValue;
+        }
+      }
+    }
+
+    endingTarget = currentState.postTaxAmountNeededPerYear;
+
+    parent.endingAccountState = new AccountState(
+      endingTarget,
+      parent.startingAccountState.interestRate,
+      parent.startingAccountState.income,
+      parent.startingAccountState.dividendYield,
+      parent.startingAccountState.inflationRate
+    );
+    parent.endingAccountState.province = parent.startingAccountState.province;
+
+    for (let i = 0; i < parent.getNumAccounts(); i++) {
+      let acc = currentState.accounts[i];
+      if (i !== parent.scenario.indexOfFirstAccountDepletion && acc.getTotalValue() > 0.02) {
+        parent.endingAccountState.accounts.push(acc.clone());
+      }
+    }
+  } else {
+    let yearsToDeplete = parent.scenario.yearsToFirstAccountDepletion;
+    if (parent.startingAccountState.inflationRate > 0 && yearsToDeplete !== Infinity) {
+      endingTarget = parent.startingAccountState.postTaxAmountNeededPerYear * Math.pow(1 + parent.startingAccountState.inflationRate, Math.floor(yearsToDeplete));
+    }
+
+    parent.endingAccountState = new AccountState(
+      endingTarget,
+      parent.startingAccountState.interestRate,
+      parent.startingAccountState.income,
+      parent.startingAccountState.dividendYield,
+      parent.startingAccountState.inflationRate
+    );
+    parent.endingAccountState.province = parent.startingAccountState.province;
+
+    for (let i = 0; i < parent.getNumAccounts(); i++) {
+      if (i !== parent.scenario.indexOfFirstAccountDepletion && parent.startingAccountState.accounts[i].getTotalValue() > 0) {
+        let endingAccount = calculateEndingAccount(parent, i);
+        parent.endingAccountState.accounts.push(endingAccount);
+      }
     }
   }
 }
@@ -806,7 +931,7 @@ function calculateChildren(parent: ScenarioNode, useRealBrackets: boolean) {
 function calculateYearsUntilAccountsAreEmpty(parentNode: ScenarioNode, useRealBrackets: boolean): number {
   calculateYearsUntilFirstAccountDepletes(parentNode);
   if (parentNode.scenario.yearsToFirstAccountDepletion !== Infinity) {
-    calculateEndingAccountState(parentNode);
+    calculateEndingAccountState(parentNode, useRealBrackets);
     generateChildrenAndCalculate(parentNode, useRealBrackets);
   }
   return parentNode.scenario.yearsToDepletion;
@@ -888,7 +1013,7 @@ function calculateYearsUntilFirstAccountDepletesForPostprocessor(startingAccount
     let account = startingAccountState.accounts[i];
     let annualWithdrawal = withdrawalsPerYear[i];
     let interestRate = startingAccountState.interestRate;
-    let years = calcYearsUntilDepletion(account.totalValue, annualWithdrawal, interestRate);
+    let years = calcYearsUntilDepletion(account.totalValue, annualWithdrawal, interestRate, startingAccountState.inflationRate);
     if (years < minYears) {
       minYears = years;
     }
@@ -898,9 +1023,11 @@ function calculateYearsUntilFirstAccountDepletesForPostprocessor(startingAccount
 
 function calculateResultStatePerYear(
   startingAccountState: AccountState,
-  withdrawalsPerYear: number[],
+  targetPercentagesOrWithdrawals: number[],
   burndown: BurndownTimeEvent[],
-  yearsToFirstAccountDepletion: number
+  yearsToFirstAccountDepletion: number,
+  useRealBrackets: boolean = true,
+  isOptimization: boolean = false
 ) {
   let currentState = startingAccountState.cloneAccountState();
 
@@ -911,102 +1038,131 @@ function calculateResultStatePerYear(
   let partialYear = Math.ceil(burndown[0].year) - burndown[0].year;
   let willItFillToNextYear = (yearsToFirstAccountDepletion - partialYear) > 0;
   let dividendYield = currentState.dividendYield || 0.0;
+  let interestRate = currentState.interestRate;
 
   if (burndown[0] !== null && burndown[0].year !== 0.0 && willItFillToNextYear) {
     let yearEndState = currentState.cloneAccountState();
+    let preTaxWithdrawals = isOptimization
+      ? getPreTaxWithdrawals(currentState, targetPercentagesOrWithdrawals, useRealBrackets)
+      : targetPercentagesOrWithdrawals;
+
     for (let account = 0; account < startingAccountState.accounts.length; account++) {
-      let totalValue = currentState.accounts[account].totalValue;
-      let capitalGains = currentState.accounts[account].capitalGainsAmount;
-      let principal = currentState.accounts[account].principalAmount;
+      let acc = yearEndState.accounts[account];
+      let totalValue = acc.totalValue;
 
-      let effectiveGrowth = currentState.interestRate;
-      if (startingAccountState.accounts[account].accountName === "MARG" || startingAccountState.accounts[account].accountName === "NON-REG") {
-        effectiveGrowth = currentState.interestRate - dividendYield;
+      let effectiveGrowth = interestRate - dividendYield;
+      acc.capitalGainsAmount += (acc.principalAmount + acc.capitalGainsAmount) * effectiveGrowth * partialYear;
+      if (acc.accountName === "TFSA" || acc.accountName === "RRSP") {
+        // Reinvest dividends inside tax-sheltered accounts for partial year
+        acc.capitalGainsAmount += (acc.principalAmount + acc.capitalGainsAmount) * dividendYield * partialYear;
       }
-
-      yearEndState.accounts[account].capitalGainsAmount += (principal + capitalGains) * effectiveGrowth * partialYear;
-      totalValue = yearEndState.accounts[account].capitalGainsAmount + yearEndState.accounts[account].principalAmount;
-      capitalGains = yearEndState.accounts[account].capitalGainsAmount;
+      totalValue = acc.principalAmount + acc.capitalGainsAmount;
 
       if (totalValue > 0) {
-        yearEndState.accounts[account].principalAmount -= withdrawalsPerYear[account] * principal / totalValue * partialYear;
-        yearEndState.accounts[account].capitalGainsAmount -= withdrawalsPerYear[account] * capitalGains / totalValue * partialYear;
+        let withdrawAmount = preTaxWithdrawals[account] * partialYear;
+        acc.principalAmount -= withdrawAmount * acc.principalAmount / totalValue;
+        acc.capitalGainsAmount -= withdrawAmount * acc.capitalGainsAmount / totalValue;
       }
 
       roundAccountToNearestCent(yearEndState, account);
     }
 
-    burndown.push(new BurndownTimeEvent(yearEndState, Math.ceil(burndown[0].year), [...withdrawalsPerYear]));
+    burndown.push(new BurndownTimeEvent(yearEndState, Math.ceil(burndown[0].year), preTaxWithdrawals));
     currentState = yearEndState;
     yearsToFirstAccountDepletion -= partialYear;
   }
 
   let year = 1;
-  while (year < yearsToFirstAccountDepletion) {
+  const maxSimulationYears = 100;
+  const startYearCeil = Math.ceil(burndown[0].year);
+  while (year < yearsToFirstAccountDepletion && (year + startYearCeil) <= maxSimulationYears) {
+    if (currentState.accounts.every(acc => acc.totalValue < 0.02)) {
+      break;
+    }
     let yearEndState = currentState.cloneAccountState();
+    let preTaxWithdrawals = isOptimization
+      ? getPreTaxWithdrawals(currentState, targetPercentagesOrWithdrawals, useRealBrackets)
+      : targetPercentagesOrWithdrawals;
+
     for (let account = 0; account < startingAccountState.accounts.length; account++) {
-      let totalValue = currentState.accounts[account].totalValue;
-      let capitalGains = currentState.accounts[account].capitalGainsAmount;
-      let principal = currentState.accounts[account].principalAmount;
+      let acc = yearEndState.accounts[account];
+      let totalValue = acc.totalValue;
 
-      let effectiveGrowth = currentState.interestRate;
-      if (startingAccountState.accounts[account].accountName === "MARG" || startingAccountState.accounts[account].accountName === "NON-REG") {
-        effectiveGrowth = currentState.interestRate - dividendYield;
+      let effectiveGrowth = interestRate - dividendYield;
+      acc.capitalGainsAmount += (acc.principalAmount + acc.capitalGainsAmount) * effectiveGrowth;
+      if (acc.accountName === "TFSA" || acc.accountName === "RRSP") {
+        // Reinvest dividends inside tax-sheltered accounts
+        acc.capitalGainsAmount += (acc.principalAmount + acc.capitalGainsAmount) * dividendYield;
       }
-
-      yearEndState.accounts[account].capitalGainsAmount += (principal + capitalGains) * effectiveGrowth;
-      totalValue = yearEndState.accounts[account].capitalGainsAmount + yearEndState.accounts[account].principalAmount;
-      capitalGains = yearEndState.accounts[account].capitalGainsAmount;
+      totalValue = acc.principalAmount + acc.capitalGainsAmount;
 
       if (totalValue > 0) {
-        yearEndState.accounts[account].principalAmount -= withdrawalsPerYear[account] * principal / totalValue;
-        yearEndState.accounts[account].capitalGainsAmount -= withdrawalsPerYear[account] * capitalGains / totalValue;
+        let withdrawAmount = preTaxWithdrawals[account];
+        acc.principalAmount -= withdrawAmount * acc.principalAmount / totalValue;
+        acc.capitalGainsAmount -= withdrawAmount * acc.capitalGainsAmount / totalValue;
       }
 
       roundAccountToNearestCent(yearEndState, account);
     }
 
-    burndown.push(new BurndownTimeEvent(yearEndState.cloneAccountState(), year + Math.ceil(burndown[0].year), [...withdrawalsPerYear]));
+    if (startingAccountState.inflationRate > 0) {
+      yearEndState.postTaxAmountNeededPerYear *= (1 + startingAccountState.inflationRate);
+    }
+
+    burndown.push(new BurndownTimeEvent(yearEndState.cloneAccountState(), year + Math.ceil(burndown[0].year), preTaxWithdrawals));
     currentState = yearEndState;
     year += 1;
   }
 
   let partialYearEnd = yearsToFirstAccountDepletion - Math.floor(yearsToFirstAccountDepletion);
-  let yearEndState = currentState.cloneAccountState();
-  for (let account = 0; account < startingAccountState.accounts.length; account++) {
-    let totalValue = currentState.accounts[account].totalValue;
-    let capitalGains = currentState.accounts[account].capitalGainsAmount;
-    let principal = currentState.accounts[account].principalAmount;
+  if (partialYearEnd > 0.01 && !currentState.accounts.every(acc => acc.totalValue < 0.02)) {
+    let yearEndState = currentState.cloneAccountState();
+    let preTaxWithdrawals = isOptimization
+      ? getPreTaxWithdrawals(currentState, targetPercentagesOrWithdrawals, useRealBrackets)
+      : targetPercentagesOrWithdrawals;
 
-    let effectiveGrowth = currentState.interestRate;
-    if (startingAccountState.accounts[account].accountName === "MARG" || startingAccountState.accounts[account].accountName === "NON-REG") {
-      effectiveGrowth = currentState.interestRate - dividendYield;
+    for (let account = 0; account < startingAccountState.accounts.length; account++) {
+      let acc = yearEndState.accounts[account];
+      let totalValue = acc.totalValue;
+
+      let effectiveGrowth = interestRate - dividendYield;
+      acc.capitalGainsAmount += (acc.principalAmount + acc.capitalGainsAmount) * effectiveGrowth * partialYearEnd;
+      if (acc.accountName === "TFSA" || acc.accountName === "RRSP") {
+        // Reinvest dividends inside tax-sheltered accounts for partial year
+        acc.capitalGainsAmount += (acc.principalAmount + acc.capitalGainsAmount) * dividendYield * partialYearEnd;
+      }
+      totalValue = acc.principalAmount + acc.capitalGainsAmount;
+
+      if (totalValue > 0) {
+        let withdrawAmount = preTaxWithdrawals[account] * partialYearEnd;
+        acc.principalAmount -= withdrawAmount * acc.principalAmount / totalValue;
+        acc.capitalGainsAmount -= withdrawAmount * acc.capitalGainsAmount / totalValue;
+      }
+
+      roundAccountToNearestCent(yearEndState, account);
     }
 
-    yearEndState.accounts[account].capitalGainsAmount += (principal + capitalGains) * effectiveGrowth * partialYearEnd;
-    totalValue = yearEndState.accounts[account].capitalGainsAmount + yearEndState.accounts[account].principalAmount;
-    capitalGains = yearEndState.accounts[account].capitalGainsAmount;
-
-    if (totalValue > 0) {
-      yearEndState.accounts[account].principalAmount -= withdrawalsPerYear[account] * principal / totalValue * partialYearEnd;
-      yearEndState.accounts[account].capitalGainsAmount -= withdrawalsPerYear[account] * capitalGains / totalValue * partialYearEnd;
+    if (willItFillToNextYear) {
+      const targetYear = yearsToFirstAccountDepletion + Math.ceil(burndown[0].year);
+      if (targetYear <= maxSimulationYears) {
+        burndown.push(new BurndownTimeEvent(yearEndState, targetYear, preTaxWithdrawals));
+      }
+    } else {
+      const targetYear = yearsToFirstAccountDepletion + burndown[0].year;
+      if (targetYear <= maxSimulationYears) {
+        burndown.push(new BurndownTimeEvent(yearEndState, targetYear, preTaxWithdrawals));
+      }
     }
-
-    roundAccountToNearestCent(yearEndState, account);
-  }
-
-  if (willItFillToNextYear) {
-    burndown.push(new BurndownTimeEvent(yearEndState, yearsToFirstAccountDepletion + Math.ceil(burndown[0].year), [...withdrawalsPerYear]));
-  } else {
-    burndown.push(new BurndownTimeEvent(yearEndState, yearsToFirstAccountDepletion + burndown[0].year, [...withdrawalsPerYear]));
   }
 }
 
 function generateBurndownUntilFirstAccountDepletes(
   startingAccountState: AccountState,
-  withdrawalsPerYear: number[],
+  targetPercentagesOrWithdrawals: number[],
   currentBurnDown: BurndownTimeEvent[],
-  startingYearOverride: number | null = null
+  startingYearOverride: number | null = null,
+  useRealBrackets: boolean = true,
+  isOptimization: boolean = false
 ): BurndownTimeEvent[] {
   let startingYear = 0.0;
   if (startingYearOverride !== null) {
@@ -1018,25 +1174,50 @@ function generateBurndownUntilFirstAccountDepletes(
     startingYear = lastEvent.year;
   }
 
+  if (startingYear >= 100.0) {
+    return [];
+  }
+
+  let initialPreTax = isOptimization 
+    ? getPreTaxWithdrawals(startingAccountState, targetPercentagesOrWithdrawals, useRealBrackets)
+    : targetPercentagesOrWithdrawals;
+
   let newBurndown: BurndownTimeEvent[] = [];
-  let startingEvent = new BurndownTimeEvent(startingAccountState.cloneAccountState(), startingYear, [...withdrawalsPerYear]);
+  let startingEvent = new BurndownTimeEvent(startingAccountState.cloneAccountState(), startingYear, [...initialPreTax]);
   newBurndown.push(startingEvent);
 
-  let yearsToFirstAccountDepletion = calculateYearsUntilFirstAccountDepletesForPostprocessor(startingAccountState, withdrawalsPerYear);
+  let yearsToFirstAccountDepletion = calculateYearsUntilFirstAccountDepletesForPostprocessor(startingAccountState, initialPreTax);
   if (yearsToFirstAccountDepletion < 1) {
     return newBurndown;
   }
 
-  calculateResultStatePerYear(startingAccountState, withdrawalsPerYear, newBurndown, yearsToFirstAccountDepletion);
+  calculateResultStatePerYear(
+    startingAccountState,
+    targetPercentagesOrWithdrawals,
+    newBurndown,
+    yearsToFirstAccountDepletion,
+    useRealBrackets,
+    isOptimization
+  );
   return newBurndown;
 }
 
-function burndownStageN(currentScenarioNode: ScenarioNode, burndown: BurndownTimeEvent[], startingYear: number | null = null) {
+function burndownStageN(
+  currentScenarioNode: ScenarioNode,
+  burndown: BurndownTimeEvent[],
+  startingYear: number | null = null,
+  useRealBrackets: boolean = true
+) {
+  let isOptimization = currentScenarioNode.scenario.calculationPoint && currentScenarioNode.scenario.calculationPoint.length > 0;
+  let targetPercentagesOrWithdrawals = isOptimization ? currentScenarioNode.scenario.calculationPoint : currentScenarioNode.scenario.preTaxAmounts;
+
   let nextBurnDown = generateBurndownUntilFirstAccountDepletes(
     currentScenarioNode.startingAccountState,
-    currentScenarioNode.scenario.preTaxAmounts,
+    targetPercentagesOrWithdrawals,
     burndown,
-    startingYear
+    startingYear,
+    useRealBrackets,
+    isOptimization
   );
 
   for (let event of nextBurnDown) {
@@ -1069,7 +1250,7 @@ function burndownStageN(currentScenarioNode: ScenarioNode, burndown: BurndownTim
   }
 
   if (currentScenarioNode.optimalChild !== null) {
-    burndownStageN(currentScenarioNode.optimalChild, burndown, startingYear);
+    burndownStageN(currentScenarioNode.optimalChild, burndown, startingYear, useRealBrackets);
   }
 }
 
@@ -1086,13 +1267,7 @@ export function runMinimizationMain(startingState: AccountState, useRealBrackets
   generateChildrenAndCalculate(root, useRealBrackets);
   root.getOptimalChildAndYearsToDepletion();
 
-  if (
-    root.optimalChild !== null &&
-    root.optimalChild.scenario !== null &&
-    root.optimalChild.scenario.yearsToDepletion < 100 &&
-    root.scenario !== null &&
-    root.scenario.yearsToDepletion < 100
-  ) {
+  if (root.optimalChild !== null) {
     burndownStageN(root.optimalChild, []);
     root.getOptimalChildAndYearsToDepletion();
     return root;
@@ -1126,15 +1301,12 @@ export function runSimulationMain(startingState: AccountState, withdrawals: numb
 
   calculateYearsUntilFirstAccountDepletes(root);
   if (root.scenario.yearsToFirstAccountDepletion !== Infinity) {
-    calculateEndingAccountState(root);
+    calculateEndingAccountState(root, true);
   }
 
   root.getOptimalChildAndYearsToDepletion();
 
-  if (root.scenario.yearsToDepletion < 100) {
-    return root;
-  }
-  return null;
+  return root;
 }
 
 export function computeBurndownSimulation(startingState: AccountState, withdrawals: number[], startingYear: number): BurndownTimeEvent[] | null {
@@ -1167,11 +1339,13 @@ export class LocalOptimizerService {
   private createAccountStateFromForm(form: any): AccountState {
     const interestRate = Number(form.interestRate || 0);
     const dividendYield = Number(form.dividendYield || 0) / 100; // convert percentage to decimal e.g. 2.0 -> 0.02
+    const inflationRate = Number(form.inflationRate || 0) / 100; // convert percentage to decimal e.g. 2.0 -> 0.02
     const state = new AccountState(
       Number(form.amountPerYear || 0),
       interestRate,
       Number(form.income || 0),
-      dividendYield
+      dividendYield,
+      inflationRate
     );
     state.province = form.province || "Ontario";
     state.accounts.push(new Account(Number(form.tfsaAmount || 0), 0.0, "TFSA"));
@@ -1183,15 +1357,17 @@ export class LocalOptimizerService {
     return state;
   }
 
-  private serializeEvent(event: BurndownTimeEvent): any {
-    return {
-      accountState: {
-        postTaxAmountNeededPerYear: event.accountState.postTaxAmountNeededPerYear,
-        interestRate: event.accountState.interestRate,
-        income: event.accountState.income,
-        province: event.accountState.province,
-        dividendYield: event.accountState.dividendYield,
-        accounts: event.accountState.accounts.map(acc => ({
+  private serializeEvent(event: BurndownTimeEvent, originalAccounts: Account[]): any {
+    const serializedAccounts: any[] = [];
+    const serializedPreTaxAmounts: number[] = [];
+    const serializedTaxableAmounts: number[] = [];
+
+    for (let i = 0; i < originalAccounts.length; i++) {
+      const origAcc = originalAccounts[i];
+      const matchIdx = event.accountState.accounts.findIndex(acc => acc.accountName === origAcc.accountName);
+      if (matchIdx !== -1) {
+        const acc = event.accountState.accounts[matchIdx];
+        serializedAccounts.push({
           accountName: acc.accountName,
           principalAmount: acc.principalAmount,
           capitalGainsAmount: acc.capitalGainsAmount,
@@ -1200,12 +1376,39 @@ export class LocalOptimizerService {
           isAmountTaxable: acc.isAmountTaxable,
           isCapitalGainsTaxable: acc.isCapitalGainsTaxable,
           capitalGainsTaxablePercentage: acc.capitalGainsTaxablePercentage
-        })),
-        accountsList: event.accountState.accountsList
+        });
+        serializedPreTaxAmounts.push(event.preTaxAmounts[matchIdx] || 0.0);
+        serializedTaxableAmounts.push(event.taxableAmount[matchIdx] || 0.0);
+      } else {
+        serializedAccounts.push({
+          accountName: origAcc.accountName,
+          principalAmount: 0.0,
+          capitalGainsAmount: 0.0,
+          capitalGainAmount: 0.0,
+          totalValue: 0.0,
+          isAmountTaxable: origAcc.isAmountTaxable,
+          isCapitalGainsTaxable: origAcc.isCapitalGainsTaxable,
+          capitalGainsTaxablePercentage: origAcc.capitalGainsTaxablePercentage
+        });
+        serializedPreTaxAmounts.push(0.0);
+        serializedTaxableAmounts.push(0.0);
+      }
+    }
+
+    return {
+      accountState: {
+        postTaxAmountNeededPerYear: event.accountState.postTaxAmountNeededPerYear,
+        interestRate: event.accountState.interestRate,
+        income: event.accountState.income,
+        province: event.accountState.province,
+        dividendYield: event.accountState.dividendYield,
+        inflationRate: event.accountState.inflationRate,
+        accounts: serializedAccounts,
+        accountsList: serializedAccounts.map(acc => acc.accountName)
       },
       year: event.year,
-      preTaxAmounts: event.preTaxAmounts,
-      taxableAmount: event.taxableAmount,
+      preTaxAmounts: serializedPreTaxAmounts,
+      taxableAmount: serializedTaxableAmounts,
       isInfinite: event.isInfinite,
       dividends: event.dividends,
       dividendTaxable: event.dividendTaxable
@@ -1216,7 +1419,7 @@ export class LocalOptimizerService {
     const startingState = this.createAccountStateFromForm(form);
     const events = computeBurndownMinimization(startingState, this.useRealBrackets);
     if (!events) return null;
-    return events.map(e => this.serializeEvent(e));
+    return events.map(e => this.serializeEvent(e, startingState.accounts));
   }
 
   computeBurndownSimulation(form: any): any[] | null {
@@ -1229,6 +1432,6 @@ export class LocalOptimizerService {
     const startingYear = Number(form.startingYear || 0);
     const events = computeBurndownSimulation(startingState, withdrawals, startingYear);
     if (!events) return null;
-    return events.map(e => this.serializeEvent(e));
+    return events.map(e => this.serializeEvent(e, startingState.accounts));
   }
 }

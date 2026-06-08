@@ -1,8 +1,8 @@
 form {
-  background: #262421;
-  border: 1px solid #363532;
-  padding: 20px;
-  border-radius: 12px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
   width: 100%;
   height: 100%;
   box-shadow: none;
@@ -12,68 +12,95 @@ form {
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
+  gap: 8px;
 }
 
-@media (min-width: 768px) {
-  form {
-    justify-content: flex-start;
-    gap: 16px;
-    overflow-y: hidden;
-  }
+/* Custom scrollbar for form when zoomed/resized */
+form::-webkit-scrollbar {
+  width: 6px;
+}
+form::-webkit-scrollbar-track {
+  background: transparent;
+}
+form::-webkit-scrollbar-thumb {
+  background: #363532;
+  border-radius: 3px;
+}
+form::-webkit-scrollbar-thumb:hover {
+  background: #464542;
 }
 
 /* Grouping styles */
 .input-group {
-  border: 1px solid #363532;
-  border-radius: 12px;
-  padding: 14px;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   margin-bottom: 16px;
-  background-color: #1e1c18;
+  background-color: transparent;
 }
 
-.province-group label {
+.you-group label:first-of-type {
   margin-bottom: 8px !important;
+}
+
+.row-income-spend,
+.row-assumptions-three {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  width: 100%;
+}
+
+.row-income-spend .col,
+.row-assumptions-three .col {
+  flex: 1;
+  width: auto;
+}
+
+.row-income-spend .col label,
+.row-assumptions-three .col label {
+  margin-top: 0 !important;
 }
 
 .group-title {
   margin-top: 0;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   color: #bababa;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid #363532;
-  padding-bottom: 6px;
 }
 
-.row {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+.starting-balances-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
   width: 100%;
 }
 
-.col {
-  width: 100%;
+.starting-balances-grid .balance-item {
+  grid-column: span 1;
 }
 
 /* Label styling */
 form label {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  margin-top: 12px;
-  margin-bottom: 4px;
+  margin-top: 6px;
+  margin-bottom: 2px;
   color: #bababa;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  box-sizing: border-box;
 }
 
 .info-icon {
-  font-size: 9px;
+  font-size: 10px;
   color: #8a8a8a;
   cursor: help;
   display: inline-flex;
@@ -87,7 +114,9 @@ form label {
   text-transform: none;
   font-weight: normal;
   letter-spacing: normal;
-  line-height: 1;
+  line-height: 0;
+  padding-bottom: 1px;
+  box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   transition: all 0.15s ease;
   position: relative;
@@ -102,15 +131,15 @@ form label {
 .info-icon::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: 140%;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 155%;
+  left: -20px;
+  transform: translateY(5px);
   background-color: #262421;
   border: 1px solid #363532;
   color: #ffffff;
   padding: 8px 10px;
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-weight: normal;
   text-transform: none;
@@ -125,37 +154,40 @@ form label {
   line-height: 1.3;
 }
 
+.info-icon.tooltip-left::after {
+  left: auto;
+  right: -10px;
+}
+
 .info-icon::before {
   content: "";
   position: absolute;
-  bottom: 120%;
+  bottom: 135%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(5px);
   border-width: 5px;
   border-style: solid;
   border-color: #363532 transparent transparent transparent;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
   z-index: 1000;
 }
 
 .info-icon:hover::after {
   opacity: 1;
-  transform: translateX(-50%) translateY(4px);
+  transform: translateY(0);
 }
 
 .info-icon:hover::before {
   opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .input-group label:first-of-type,
-.col:first-child label {
-  margin-top: 0;
-}
-
-.col:not(:first-child) label {
-  margin-top: 12px;
+.col:first-child label,
+.starting-balances-grid .balance-item label {
+  margin-top: 0 !important;
 }
 
 /* General input and select element styling */
@@ -164,29 +196,30 @@ form input[type="text"] {
   width: 100%;
   height: 36px;
   padding: 6px 10px;
-  margin-bottom: 2px; /* Small gap to group with its slider */
+  margin-bottom: 8px;
   box-sizing: border-box;
   border: 1px solid #363532;
-  border-radius: 8px;
+  border-radius: 9999px;
   background-color: #262421;
   color: #fff;
-  font-size: 13px;
+  font-size: 14px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   outline: none;
   transition: border-color 0.15s ease;
+  text-align: center;
 }
 
 form select {
   width: 100%;
   height: 36px;
   padding: 6px 10px;
-  margin-bottom: 12px; /* Generous gap for select which has no slider */
+  margin-bottom: 8px;
   box-sizing: border-box;
   border: 1px solid #363532;
-  border-radius: 8px;
+  border-radius: 9999px;
   background-color: #262421;
   color: #fff;
-  font-size: 13px;
+  font-size: 14px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   outline: none;
   transition: border-color 0.15s ease;
@@ -194,9 +227,10 @@ form select {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bababa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
-  background-position: right 10px center;
+  background-position: right 14px center;
   background-size: 12px;
   padding-right: 32px;
+  text-align-last: center;
 }
 
 form input[type="number"]:focus,
@@ -207,58 +241,6 @@ form select:focus {
   box-shadow: none;
 }
 
-/* Specific styling for the slider */
-form input[type="range"] {
-  width: 100%;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 6px;
-  background: #363532;
-  outline: none;
-  border-radius: 3px;
-  margin: 2px 0 16px; /* Small top margin, larger bottom margin */
-  border: none;
-}
-
-@media (max-width: 767px) {
-  form input[type="range"] {
-    margin: 2px 0 20px;
-  }
-}
-
-/* Specific styling for the slider thumb */
-form input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  background: #629924;
-  cursor: pointer;
-  border-radius: 50%;
-  border: none;
-  box-shadow: none;
-  transition: background-color 0.15s ease;
-}
-
-form input[type="range"]::-webkit-slider-thumb:hover {
-  background: #548420;
-}
-
-form input[type="range"]::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  background: #629924;
-  cursor: pointer;
-  border-radius: 50%;
-  border: none;
-  box-shadow: none;
-  transition: background-color 0.15s ease;
-}
-
-form input[type="range"]::-moz-range-thumb:hover {
-  background: #548420;
-}
-
 /* Button styling */
 form button {
   width: 100%;
@@ -266,7 +248,7 @@ form button {
   background: #629924;
   color: #fff;
   border: none;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -296,114 +278,345 @@ form button:active {
   box-shadow: none !important;
 }
 
-/* Sizing adjustments for desktop (min-width: 768px) */
-@media (min-width: 768px) {
-  form {
-    padding: 14px;
-  }
-  .input-group {
-    padding: 10px;
-    margin-bottom: 12px;
-  }
-  form label {
-    margin-top: 10px;
-    margin-bottom: 2px;
-  }
-  form input[type="number"],
-  form input[type="text"] {
-    height: 30px;
-    padding: 4px 8px;
-    margin-bottom: 2px; /* Small gap to group with its slider */
-    font-size: 12px;
-  }
-  form select {
-    height: 30px;
-    padding: 4px 8px;
-    margin-bottom: 8px; /* Larger gap for select element */
-    font-size: 12px;
-  }
-  form input[type="range"] {
-    margin: 2px 0 12px; /* Small top, larger bottom margin */
-  }
-  form button {
-    height: 32px;
-    margin-top: 8px;
-    font-size: 12px;
+.percentage-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #262421;
+  border: 1px solid #363532;
+  border-radius: 9999px;
+  height: 36px;
+  padding: 0 4px 0 12px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 96px;
+  margin: 0 auto 8px;
+  transition: border-color 0.15s ease;
+}
+
+.percentage-input-wrap:focus-within {
+  border-color: #629924;
+}
+
+.percentage-input-wrap input {
+  background: transparent !important;
+  border: none !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  width: 36px !important;
+  text-align: right !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 100% !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.percentage-input-wrap input::-webkit-outer-spin-button,
+.percentage-input-wrap input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.percentage-input-wrap input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.percentage-suffix-inline {
+  color: #bababa;
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: 2px;
+  margin-right: 4px;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  user-select: none;
+}
+
+.spinner-arrows {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: calc(100% - 8px);
+  margin-left: auto;
+  border-left: 1px solid #363532;
+  padding-left: 4px;
+  margin-right: 2px;
+}
+
+form button.spinner-arrow {
+  width: auto;
+  height: 12px;
+  background: transparent;
+  border: none;
+  color: #8a8a8a;
+  font-size: 8px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+  outline: none;
+  margin-top: 0;
+  box-shadow: none;
+  border-radius: 0;
+  text-transform: none;
+  font-weight: normal;
+  letter-spacing: normal;
+}
+
+form button.spinner-arrow:hover {
+  background: transparent;
+  color: #e67e22;
+}
+
+form button.spinner-arrow:active {
+  background: transparent;
+}
+
+form button.spinner-arrow.up {
+  margin-bottom: -1px;
+}
+
+form button.spinner-arrow.down {
+  margin-top: -1px;
+}
+
+form::after {
+  content: "";
+  display: block;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.calculate-btn {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .calculate-btn {
+    display: block;
   }
 }
 
-/* Height-based layout overrides on desktop to prevent scrollbars */
-
-/* Stage 1: Collapse Non-reg starting balances side-by-side (max-height: 1060px) */
-@media (min-width: 768px) and (max-height: 1060px) {
-  .starting-balances-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 12px;
-  }
-  .starting-balances-grid .balance-item:nth-child(1),
-  .starting-balances-grid .balance-item:nth-child(2) {
-    grid-column: span 2;
-  }
-  .starting-balances-grid .balance-item:nth-child(3),
-  .starting-balances-grid .balance-item:nth-child(4) {
-    grid-column: span 1;
-  }
-  .starting-balances-grid .balance-item:nth-child(3) label,
-  .starting-balances-grid .balance-item:nth-child(4) label {
-    margin-top: 10px !important;
-  }
+/* Relocated Advanced Portfolio Allocator Styles */
+.mix-panel-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #bababa;
+  letter-spacing: 0.05em;
+  padding: 10px 0 6px;
+  width: fit-content;
+  user-select: none;
+  transition: color 0.15s ease;
+  margin: 8px auto 0;
 }
 
-/* Stage 2: Collapse Post-tax and Dividend parameters side-by-side (max-height: 980px) */
-@media (min-width: 768px) and (max-height: 980px) {
-  .row-spend-dividend {
-    flex-direction: row;
-    gap: 12px;
-  }
-  .row-spend-dividend .col {
-    flex: 1;
-    width: auto;
-  }
-  .row-spend-dividend .col label {
-    margin-top: 0 !important;
-  }
+.mix-panel-toggle:hover {
+  color: #fff;
 }
 
-/* Stage 3: Collapse Additional income and Rate of Return side-by-side (max-height: 900px) */
-@media (min-width: 768px) and (max-height: 900px) {
-  .row-income-return {
-    flex-direction: row;
-    gap: 12px;
-  }
-  .row-income-return .col {
-    flex: 1;
-    width: auto;
-  }
-  .row-income-return .col label {
-    margin-top: 0 !important;
-  }
+.toggle-icon {
+  font-size: 10px;
 }
 
-/* Stage 4: Collapse TFSA/RRSP starting balances side-by-side (max-height: 820px) */
-@media (min-width: 768px) and (max-height: 820px) {
-  .starting-balances-grid .balance-item:nth-child(1),
-  .starting-balances-grid .balance-item:nth-child(2) {
-    grid-column: span 1;
-  }
-  .starting-balances-grid .balance-item:nth-child(1) label,
-  .starting-balances-grid .balance-item:nth-child(2) label {
-    margin-top: 0 !important;
-  }
-  /* Compact spacings for tight viewports */
-  form label {
-    margin-top: 6px !important;
-  }
-  .input-group {
-    margin-bottom: 8px !important;
-    padding: 8px !important;
-  }
-  .group-title {
-    margin-bottom: 8px !important;
-  }
+.mix-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #262421;
+  border: 1px solid #363532;
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 8px;
+  box-sizing: border-box;
 }
+
+.mix-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  gap: 8px;
+}
+
+.info-text {
+  color: #8a8a8a;
+  text-align: left;
+}
+
+.mix-total {
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.mix-total.valid {
+  background: rgba(98, 153, 36, 0.1);
+  color: #629924;
+  border: 1px solid rgba(98, 153, 36, 0.2);
+}
+
+.mix-total.invalid {
+  background: rgba(204, 51, 51, 0.1);
+  color: #cc3333;
+  border: 1px solid rgba(204, 51, 51, 0.2);
+}
+
+.asset-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.asset-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #2e2c29;
+  padding-bottom: 8px;
+}
+
+.asset-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.asset-label-col {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 150px;
+  text-align: left;
+}
+
+.asset-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.asset-sd {
+  font-size: 10px;
+  color: #8a8a8a;
+  margin-top: 2px;
+}
+
+.asset-slider-col {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.asset-slider-col input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #363532;
+  border-radius: 2px;
+  outline: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.asset-slider-col input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #629924;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.asset-slider-col input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: #629924;
+  cursor: pointer;
+  border-radius: 50%;
+  border: none;
+}
+
+.asset-val-col {
+  flex: 0 0 70px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #bababa;
+  justify-content: flex-end;
+}
+
+.mix-input {
+  width: 44px;
+  height: 26px;
+  background: #1e1c18;
+  border: 1px solid #363532;
+  border-radius: 9999px;
+  color: #fff;
+  text-align: center;
+  font-size: 12px;
+  outline: none;
+  margin-bottom: 0 !important;
+  padding: 2px 4px !important;
+}
+
+.mix-input::-webkit-outer-spin-button,
+.mix-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.mix-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.mix-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  justify-content: flex-start;
+}
+
+.mix-btn {
+  height: 28px;
+  background: #2e2c29;
+  border: 1px solid #363532;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: auto !important;
+  margin-top: 0 !important;
+}
+
+.mix-btn:hover {
+  background: #3c3a36;
+}
+
+.mix-btn.reset {
+  background: transparent;
+  color: #8a8a8a;
+}
+
+.mix-btn.reset:hover {
+  color: #ff6666;
+  background: rgba(255, 102, 102, 0.05);
+  border-color: rgba(255, 102, 102, 0.2);
+}
+

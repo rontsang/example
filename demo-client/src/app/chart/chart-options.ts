@@ -15,10 +15,129 @@ const legendMarginPlugin = {
         };
       }
     }
+  },
+  afterDraw(chart: any) {
+    const legend = chart.legend;
+    if (legend && chart.scales && chart.scales.x) {
+      if (chart.lifespan !== undefined) {
+        const lifespan = chart.lifespan;
+        if (lifespan > 0) {
+          const ctx = chart.ctx;
+          ctx.save();
+          ctx.font = '13px sans-serif';
+          ctx.fillStyle = '#ffffff'; // Matches legend text color
+          ctx.textBaseline = 'middle';
+          
+          const lifespanText = lifespan >= 100 ? '100+' : lifespan.toFixed(1);
+          const text = `Portfolio lasts: ${lifespanText} years`;
+          
+          let x = chart.width - 20;
+          let y = legend.top + (legend.height - 25) / 2;
+          
+          if (chart.width < 480) {
+            ctx.textAlign = 'center';
+            x = chart.width / 2;
+            y = legend.bottom - 10;
+          } else {
+            ctx.textAlign = 'right';
+          }
+          
+          ctx.fillText(text, x, y);
+          ctx.restore();
+        }
+      }
+    }
   }
 };
 
-Chart.register(zoomPlugin, legendMarginPlugin);
+
+const hoverLinePlugin = {
+  id: 'hoverLine',
+  beforeDraw(chart: any) {
+    const activeElements = chart.getActiveElements();
+    if (activeElements && activeElements.length) {
+      const activePoint = activeElements[0];
+      const datasetIndex = activePoint.datasetIndex;
+      const index = activePoint.index;
+      const dataset = chart.data.datasets[datasetIndex];
+      const dataPoint: any = dataset.data[index];
+      if (dataPoint) {
+        const xVal = dataPoint.x !== undefined ? dataPoint.x : dataPoint;
+        const hoveredX = Number(xVal);
+        const scale = chart.scales.x;
+        if (scale && scale._labelItems) {
+          for (const item of scale._labelItems) {
+            const tickVal = item.value;
+            if (tickVal !== undefined && Math.abs(tickVal - hoveredX) < 1.5) {
+              item.label = ''; // Hide the overlapped label
+            }
+          }
+        }
+      }
+    }
+  },
+  afterDraw(chart: any) {
+    const activeElements = chart.getActiveElements();
+    if (activeElements && activeElements.length) {
+      const activePoint = activeElements[0];
+      const ctx = chart.ctx;
+      const x = activePoint.element.x;
+      const topY = chart.scales.y.top;
+      const bottomY = chart.scales.y.bottom;
+
+      ctx.save();
+      // Draw vertical line
+      ctx.beginPath();
+      ctx.moveTo(x, topY);
+      ctx.lineTo(x, bottomY);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.stroke();
+
+      // Draw hovered year on X-axis
+      const datasetIndex = activePoint.datasetIndex;
+      const index = activePoint.index;
+      const dataset = chart.data.datasets[datasetIndex];
+      const dataPoint: any = dataset.data[index];
+      if (dataPoint) {
+        const xVal = dataPoint.x !== undefined ? dataPoint.x : dataPoint;
+        const yearText = Math.round(Number(xVal)).toString();
+
+        const scale = chart.scales.x;
+        let textY = bottomY + 4;
+        let fontStr = '12px sans-serif';
+        let fontColor = '#ffffff';
+
+        if (scale) {
+          const tickLength = scale.options.grid?.tickLength ?? 5;
+          const padding = scale.options.ticks?.padding ?? 3;
+          textY = bottomY + tickLength + padding;
+
+          const tickFont = scale.options.ticks?.font;
+          if (tickFont) {
+            const size = tickFont.size || 12;
+            const family = tickFont.family || 'sans-serif';
+            const weight = tickFont.weight || 'normal';
+            const style = tickFont.style || 'normal';
+            fontStr = `${style} ${weight} ${size}px ${family}`;
+          }
+          if (scale.options.ticks?.color) {
+            fontColor = scale.options.ticks.color as string;
+          }
+        }
+
+        ctx.font = fontStr;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = fontColor;
+        ctx.fillText(yearText, x, textY);
+      }
+      ctx.restore();
+    }
+  }
+};
+
+Chart.register(zoomPlugin, legendMarginPlugin, hoverLinePlugin);
 
 // If you need to customize options based on parameters
 export function getChartOptions(
@@ -31,17 +150,34 @@ export function getChartOptions(
   onHoverYear?: (year: number) => void
 ): ChartOptions<'line'> {
   return {
+    clip: false,
+    layout: {
+      padding: {
+        left: 10,
+        right: 15,
+        top: 10,
+        bottom: 0
+      }
+    },
     elements: {
       point: {
-        radius: 3,
+        radius: 0,
         borderWidth: 0,
-        hoverRadius: 10,
+        hoverRadius: 6,
+        hoverBorderWidth: 0
       }
     },
     responsive: true,
     // borderColor: 'black',
     animation: {
       duration: 0, // general animation time
+    },
+    transitions: {
+      active: {
+        animation: {
+          duration: 0
+        }
+      }
     },
     plugins: {
       zoom: {
@@ -113,17 +249,33 @@ export function getChartOptions(
         type: 'linear', // Specify the scale type as linear
         position: 'bottom', // Position can be 'left', 'right', 'top', 'bottom'
         grid: {
-          display: false, // Hide grid lines for x-axis
-          color: 'white', // Grid line color
+          display: true,
+          color: 'rgba(255, 255, 255, 0.05)',
         },
         ticks: {
           color: 'white',
           includeBounds: false,
-          callback: function(value, index, values) {
+          callback: function(this: any, value, index, values) {
             const numVal = Number(value);
             if (Math.round(numVal) !== numVal) {
               return null;
             }
+            
+            // If overlapping with hovered year, do not display the tick
+            const chart = this.chart;
+            const activeElements = chart.getActiveElements();
+            if (activeElements && activeElements.length > 0) {
+              const activePoint = activeElements[0];
+              const dataset = chart.data.datasets[activePoint.datasetIndex];
+              const dataPoint: any = dataset.data[activePoint.index];
+              if (dataPoint) {
+                const hoveredX = Number(dataPoint.x !== undefined ? dataPoint.x : dataPoint);
+                if (Math.abs(numVal - hoveredX) < 1.5) {
+                  return null;
+                }
+              }
+            }
+
             if (index === values.length - 1) {
               return null;
             } else {
@@ -148,18 +300,23 @@ export function getChartOptions(
           color: 'white'
         },
         grid: {
-          display: false, // Hide grid lines for y-axis
-          color: 'white', // Grid line color
+          display: true,
+          color: 'rgba(255, 255, 255, 0.05)',
         },
         ticks: {
           color: 'white', // Ticks text color
           callback: function(value, index, values) {
-            return (Number(value) / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + 'k';
+            const numVal = Number(value);
+            if (numVal >= 1000000) {
+              return (numVal / 1000000).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'M';
+            } else {
+              return (numVal / 1000).toLocaleString('en-US', { maximumFractionDigits: 0 }) + 'k';
+            }
           }
         },
         title: {
           display: true,
-          text: 'Balance',
+          text: 'Balance (Start of Year)',
           color: 'white' // Title text color
         }
       }

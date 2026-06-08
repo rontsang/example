@@ -1,20 +1,28 @@
 :host {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .top-banner {
+  height: 50px;
+  background: linear-gradient(to bottom, #1e1c18 0%, #161512 100%);
+  flex: 0 0 50px;
+  width: 100%;
+}
+
+.header-content {
   display: flex;
   justify-content: space-between;
   align-items: stretch;
-  height: 50px;
-  padding: 0 24px;
-  margin-bottom: 0;
-  background: linear-gradient(to bottom, #1e1c18 0%, #161512 100%);
-  flex: 0 0 50px;
+  height: 100%;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 48px;
+  box-sizing: border-box;
 }
 
 .logo-nav {
@@ -36,7 +44,7 @@
   border-bottom: 3px solid transparent;
   border-top: 3px solid transparent;
   color: #bababa;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   height: 100%;
   padding: 0 16px;
@@ -60,7 +68,7 @@
 }
 
 .site-name {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.02em;
@@ -81,7 +89,7 @@
   background: transparent;
   border: none;
   color: #bababa;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   padding: 6px 12px;
   border-radius: 8px;
@@ -127,12 +135,12 @@
 
 .container {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: stretch;
-  max-width: 1440px;
+  max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  padding: 16px 24px 24px;
+  padding: 16px 48px 24px;
   gap: 24px;
   box-sizing: border-box;
   height: calc(100vh - 50px);
@@ -142,17 +150,21 @@
 app-userinput {
   flex: 0 0 350px;
   height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .output-wrapper {
   flex: 1;
   height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .back-to-input-btn {
@@ -162,16 +174,21 @@ app-userinput {
 app-displaywindow {
   flex: 1;
   height: 100%;
+  min-height: 0;
   overflow-y: auto;
   box-sizing: border-box;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1024px) {
   :host {
     height: 100vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+  }
+
+  .header-content {
+    padding: 0 16px;
   }
 
   .container {
@@ -214,7 +231,7 @@ app-displaywindow {
     border: 1px solid #363532;
     border-radius: 8px;
     padding: 8px 16px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
     margin-bottom: 12px;
@@ -235,16 +252,7 @@ app-displaywindow {
   }
 }
 
-@media (min-width: 768px) and (max-width: 1024px) {
-  .container {
-    gap: 16px;
-    padding: 12px;
-  }
 
-  app-userinput {
-    flex: 0 0 300px; /* Shrunk from 350px to optimize space on iPad-like viewports */
-  }
-}
 
 /* Toast styles */
 .toast-container {
@@ -286,7 +294,7 @@ app-displaywindow {
 .toast-title {
   color: #ffffff;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.4;
   margin-right: 12px;
 }
@@ -295,7 +303,7 @@ app-displaywindow {
   background: transparent;
   border: none;
   color: #bababa;
-  font-size: 18px;
+  font-size: 19px;
   line-height: 1;
   cursor: pointer;
   padding: 0;
@@ -314,7 +322,7 @@ app-displaywindow {
 
 .toast-message {
   color: #bababa;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.4;
   margin: 0;
 }
@@ -329,7 +337,7 @@ app-displaywindow {
 
 .toast-tooltip-text {
   color: #8a8a8a;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 

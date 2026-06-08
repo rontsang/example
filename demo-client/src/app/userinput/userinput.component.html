@@ -15,75 +15,185 @@
 <!--</form>-->
 
 <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-  <!-- Province Selector Group -->
-  <div class="input-group province-group">
+  <!-- You Group -->
+  <div class="input-group you-group">
+    <h3 class="group-title">You</h3>
     <label for="provinceSelect">Province <span class="info-icon" data-tooltip="Select your province of residence to apply correct provincial tax brackets.">i</span></label>
     <select id="provinceSelect" formControlName="province">
       <option *ngFor="let province of provinces" [value]="province">{{ province }}</option>
     </select>
+ 
+    <div class="row row-income-spend">
+      <div class="col">
+        <label for="incomeNumber">Income <span class="info-icon" data-tooltip="Your annual non-portfolio taxable income (e.g. salary, pension, CPP/OAS).">i</span></label>
+        <input appCurrencyFormat type="text" id="incomeNumber" formControlName="income">
+      </div>
+      <div class="col">
+        <label for="amountPerYearNumber">Total Spend <span class="info-icon tooltip-left" data-tooltip="The annual after-tax amount you need to fund your lifestyle. The calculator optimizes withdrawals to meet this.">i</span></label>
+        <input [class.red-border]="updateNeeded" appCurrencyFormat type="text" id="amountPerYearNumber" formControlName="amountPerYear">
+      </div>
+    </div>
   </div>
-
+ 
   <!-- Starting Balances Group -->
   <div class="input-group">
-    <h3 class="group-title">Starting Balances</h3>
+    <h3 class="group-title">Accounts</h3>
     
     <div class="starting-balances-grid">
       <div class="balance-item">
         <label for="tfsaAmountNumber">TFSA <span class="info-icon" data-tooltip="Tax-Free Savings Account. Volatility is 0% inside, and all withdrawals are 100% tax-free.">i</span></label>
         <input appCurrencyFormat type="text" id="tfsaAmountNumber" formControlName="tfsaAmount">
-        <input type="range" id="tfsaAmountRange" formControlName="tfsaAmount" [value]="sliderValueTfsa" (input)="onSliderChange($event, 'tfsaAmount')" min="0" max="2000000" step="10000">
       </div>
-
+ 
       <div class="balance-item">
-        <label for="rrspAmountNumber">RRSP <span class="info-icon" data-tooltip="Registered Retirement Savings Plan. Withdrawals are fully taxable as income. Pension accounts (like RRIF or LIRA) go here.">i</span></label>
+        <label for="rrspAmountNumber">RRSP <span class="info-icon tooltip-left" data-tooltip="Registered Retirement Savings Plan. Withdrawals are fully taxable as income. Pension accounts (like RRIF or LIRA) go here.">i</span></label>
         <input appCurrencyFormat #currencyFormatter="appCurrencyFormat" type="text" id="rrspAmountNumber" formControlName="rrspAmount">
-        <input type="range" id="rrspAmountRange" formControlName="rrspAmount" [value]="sliderValueRrsp" (input)="onSliderChange($event,'rrspAmount')" min="0" max="2000000" step="10000">
       </div>
-
+ 
       <div class="balance-item">
-        <label for="margAmountPrincipalNumber">Non-reg Principal <span class="info-icon" data-tooltip="Non-registered taxable account principal. Withdrawals of original cost basis principal are tax-free.">i</span></label>
+        <label for="margAmountPrincipalNumber">Non-Registered <span class="info-icon" data-tooltip="Non-registered taxable account principal. Withdrawals of original cost basis principal are tax-free.">i</span></label>
         <input appCurrencyFormat type="text" id="margAmountPrincipalNumber" formControlName="margAmountPrincipal">
-        <input type="range" id="margPrincipalAmountRange" formControlName="margAmountPrincipal" [value]="sliderValueMargPrincipal" (input)="onSliderChange($event, 'margAmountPrincipal')" min="0" max="2000000" step="10000">
       </div>
-
+ 
       <div class="balance-item">
-        <label for="margAmountCapitalGain">Non-reg Cap Gain <span class="info-icon" data-tooltip="Accumulated capital gains. Realized capital gains are 50% taxable as income on withdrawal.">i</span></label>
-        <input appCurrencyFormat type="text" id="margAmountCapitalGain" formControlName="margAmountCapitalGain">
-        <input type="range" id="margCapitalGainAmountRange" formControlName="margAmountCapitalGain" [value]="sliderValueMargCapitalGain" (input)="onSliderChange($event, 'margAmountCapitalGain')" min="0" max="2000000" step="10000">
+        <label for="margAmountCapitalGainNumber">Non-reg Cap Gain <span class="info-icon tooltip-left" data-tooltip="Accumulated capital gains. Realized capital gains are 50% taxable as income on withdrawal.">i</span></label>
+        <input appCurrencyFormat type="text" id="margAmountCapitalGainNumber" formControlName="margAmountCapitalGain">
       </div>
     </div>
   </div>
-
-  <!-- Annual Parameters Group -->
-  <div class="input-group">
-    <h3 class="group-title">Annual Parameters</h3>
-
-    <div class="row row-income-return">
+  
+  <!-- Assumptions Group -->
+  <div class="input-group annual-parameters-group">
+    <h3 class="group-title">Assumptions</h3>
+  
+    <div class="row row-assumptions-three">
       <div class="col">
-        <label for="income">Additional Income</label>
-        <input appCurrencyFormat type="text" id="income" formControlName="income">
-        <input type="range" id="incomeRange" formControlName="income" [value]="sliderValueIncome" (input)="onSliderChange($event, 'income')" min="0" [max]="maxAdditionalIncomeSliderValue" step="500">
+        <label for="dividendYieldNumber">Dividend <span class="info-icon" data-tooltip="The annual dividend yield of the portfolio (assumes same investments in all accounts). Non-registered dividends are paid out to reduce other withdrawals and receive dividend tax treatment, while TFSA/RRSP dividends are reinvested inside those accounts.">i</span></label>
+        <div class="percentage-input-wrap">
+          <input type="text" id="dividendYieldNumber" formControlName="dividendYield">
+          <span class="percentage-suffix-inline">%</span>
+          <div class="spinner-arrows">
+            <button type="button" class="spinner-arrow up" (click)="adjustValue('dividendYield', 0.5)">▲</button>
+            <button type="button" class="spinner-arrow down" (click)="adjustValue('dividendYield', -0.5)">▼</button>
+          </div>
+        </div>
       </div>
       <div class="col">
-        <label for="interestRate">Rate of Return (%)</label>
-        <input type="text" id="interestRate" formControlName="interestRate">
-        <input type="range" id="interestRateRange" formControlName="interestRate" [value]="sliderValueInterestRate" (input)="onSliderChange($event, 'interestRate')" min="0" max="15" step="0.5">
+        <label for="interestRateNumber">Return</label>
+        <div class="percentage-input-wrap">
+          <input type="text" id="interestRateNumber" formControlName="interestRate">
+          <span class="percentage-suffix-inline">%</span>
+          <div class="spinner-arrows">
+            <button type="button" class="spinner-arrow up" (click)="adjustValue('interestRate', 0.5)">▲</button>
+            <button type="button" class="spinner-arrow down" (click)="adjustValue('interestRate', -0.5)">▼</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <label for="inflationRateNumber">Inflation <span class="info-icon tooltip-left" data-tooltip="The annual rate of inflation. Your spend target will increase by this percentage compounding each year.">i</span></label>
+        <div class="percentage-input-wrap">
+          <input type="text" id="inflationRateNumber" formControlName="inflationRate">
+          <span class="percentage-suffix-inline">%</span>
+          <div class="spinner-arrows">
+            <button type="button" class="spinner-arrow up" (click)="adjustValue('inflationRate', 0.5)">▲</button>
+            <button type="button" class="spinner-arrow down" (click)="adjustValue('inflationRate', -0.5)">▼</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="row row-spend-dividend">
-      <div class="col">
-        <label for="amountPerYear">Post-Tax Amount Needed Per Year</label>
-        <input [class.red-border]="updateNeeded" appCurrencyFormat type="text" id="amountPerYear" formControlName="amountPerYear">
-        <input type="range" id="amountPerYearRange" formControlName="amountPerYear" [value]="sliderValueAmountPerYear" (input)="onSliderChange($event, 'amountPerYear')" min="10000" max="300000" step="5000">
+    <!-- Advanced Mix Toggle -->
+    <div class="mix-panel-toggle" (click)="toggleAssetMix()">
+      <span class="toggle-icon">{{ isAssetMixExpanded ? '▼' : '►' }}</span>
+      <span>Advanced Portfolio Allocator (HISA, Bonds, Stocks, Crypto)</span>
+    </div>
+
+    <!-- Custom Asset Mix Content -->
+    <div class="mix-panel-content" *ngIf="isAssetMixExpanded">
+      <div class="mix-info">
+        <span class="info-text">Adjust percentages. We'll compute the target SD, Return, and Dividend automatically.</span>
+        <span class="mix-total" [class.valid]="mixTotal === 100" [class.invalid]="mixTotal !== 100">Total: {{ mixTotal }}%</span>
       </div>
-      <div class="col">
-        <label for="dividendYieldNumber">Dividend Yield (%) <span class="info-icon" data-tooltip="The annual dividend yield of the Non-registered account. Paid out cash will reduce other withdrawals and receive dividend tax treatment.">i</span></label>
-        <input type="text" id="dividendYieldNumber" formControlName="dividendYield">
-        <input type="range" id="dividendYieldRange" formControlName="dividendYield" [value]="sliderValueDividendYield" (input)="onSliderChange($event, 'dividendYield')" min="0" max="10" step="0.1">
+
+      <div class="asset-rows">
+        <!-- HISA -->
+        <div class="asset-row">
+          <div class="asset-label-col">
+            <span class="asset-name">HISA / Cash</span>
+            <span class="asset-sd">SD: 0% | Return: 3.0%</span>
+          </div>
+          <div class="asset-slider-col">
+            <input type="range" [(ngModel)]="mix.hisa" [ngModelOptions]="{standalone: true}" min="0" max="100" step="5" (input)="calculateVarianceFromMix()">
+          </div>
+          <div class="asset-val-col">
+            <input class="mix-input" type="number" [(ngModel)]="mix.hisa" [ngModelOptions]="{standalone: true}" min="0" max="100" step="5" (change)="calculateVarianceFromMix()">%
+          </div>
+        </div>
+
+        <!-- Bonds -->
+        <div class="asset-row">
+          <div class="asset-label-col">
+            <span class="asset-name">Fixed Income / Bonds</span>
+            <span class="asset-sd">SD: 5% | Return: 4.5%</span>
+          </div>
+          <div class="asset-slider-col">
+            <input type="range" [(ngModel)]="mix.bonds" [ngModelOptions]="{standalone: true}" min="0" max="100" step="5" (input)="calculateVarianceFromMix()">
+          </div>
+          <div class="asset-val-col">
+            <input class="mix-input" type="number" [(ngModel)]="mix.bonds" [ngModelOptions]="{standalone: true}" min="0" max="100" step="5" (change)="calculateVarianceFromMix()">%
+          </div>
+        </div>
+
+        <!-- US Equity -->
+        <div class="asset-row">
+          <div class="asset-label-col">
+            <span class="asset-name">US Equity (S&P 500)</span>
+            <span class="asset-sd">SD: 15% | Return: 8.5%</span>
+          </div>
+          <div class="asset-slider-col">
+            <input type="range" [(ngModel)]="mix.usEquity" [ngModelOptions]="{standalone: true}" min="0" max="100" step="5" (input)="calculateVarianceFromMix()">
+          </div>
+          <div class="asset-val-col">
+            <input class="mix-input" type="number" [(ngModel)]="mix.usEquity" [ngModelOptions]="{standalone: true}" min="0" max="100" step="5" (change)="calculateVarianceFromMix()">%
+          </div>
+        </div>
+
+        <!-- International Equity -->
+        <div class="asset-row">
+          <div class="asset-label-col">
+            <span class="asset-name">International Equity</span>
+            <span class="asset-sd">SD: 18% | Return: 7.5%</span>
+          </div>
+          <div class="asset-slider-col">
+            <input type="range" [(ngModel)]="mix.intlEquity" [ngModelOptions]="{standalone: true}" min="0" max="100" step="5" (input)="calculateVarianceFromMix()">
+          </div>
+          <div class="asset-val-col">
+            <input class="mix-input" type="number" [(ngModel)]="mix.intlEquity" [ngModelOptions]="{standalone: true}" min="0" max="100" step="5" (change)="calculateVarianceFromMix()">%
+          </div>
+        </div>
+
+        <!-- Speculative -->
+        <div class="asset-row">
+          <div class="asset-label-col">
+            <span class="asset-name">Risky Stocks / Cryptos</span>
+            <span class="asset-sd">SD: 25% | Return: 10.0%</span>
+          </div>
+          <div class="asset-slider-col">
+            <input type="range" [(ngModel)]="mix.speculative" [ngModelOptions]="{standalone: true}" min="0" max="100" step="5" (input)="calculateVarianceFromMix()">
+          </div>
+          <div class="asset-val-col">
+            <input class="mix-input" type="number" [(ngModel)]="mix.speculative" [ngModelOptions]="{standalone: true}" min="0" max="100" step="5" (change)="calculateVarianceFromMix()">%
+          </div>
+        </div>
+      </div>
+
+      <div class="mix-actions">
+        <button type="button" class="mix-btn" (click)="normalizeMix()">Normalize to 100%</button>
+        <button type="button" class="mix-btn reset" (click)="resetMix()">Reset Allocations</button>
       </div>
     </div>
   </div>
-
-  <button type="submit">{{ isSubmitted ? 'Recalculate' : 'Run' }}</button>
+ 
+  <button type="submit" class="calculate-btn">Calculate</button>
 </form>

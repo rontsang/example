@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { HelloService } from './services/HelloService';
 import { DataService } from './data.service';
 import { LineChartComponent } from './line-chart/line-chart.component';
@@ -22,6 +22,16 @@ export class AppComponent implements OnInit {
 
   activeMobileView: 'input' | 'output' = 'input';
 
+  private lastPixelRatio = window.devicePixelRatio;
+
+  @HostListener('window:resize', ['$event'])
+  onWindowResize() {
+    if (window.devicePixelRatio !== this.lastPixelRatio) {
+      this.lastPixelRatio = window.devicePixelRatio;
+      window.location.reload();
+    }
+  }
+
   constructor(
     private helloService: HelloService,
     private sharedService: SharedService
@@ -30,6 +40,7 @@ export class AppComponent implements OnInit {
   switchToInputView() {
     this.activeMobileView = 'input';
   }
+
 
   ngOnInit(): void {
     console.log("got here")

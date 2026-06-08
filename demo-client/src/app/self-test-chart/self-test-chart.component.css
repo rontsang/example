@@ -10,25 +10,147 @@
   margin-bottom: 24px;
 }
 
-.results-container {
-  color: #bababa;
-  font-size: 13px;
-  width: 100%;
-  margin-top: 24px;
-  padding: 12px;
-  border: 1px solid #c33;
-  background-color: rgba(204, 51, 51, 0.1);
+.strategy-comparison-card {
+  background: #1e1c18;
+  border: 1px solid #363532;
   border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-.results-container h3 {
-  color: #ff6666;
-  font-size: 14px;
-  margin-bottom: 6px;
-  font-weight: 700;
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #302e2c;
+  padding-bottom: 16px;
+}
+
+.comparison-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: #262421;
+  border: 1px solid #363532;
+}
+
+.comparison-item.optimized {
+  border-left: 4px solid #2ecc71;
+}
+
+.comparison-item.user {
+  border-left: 4px solid #e67e22;
+}
+
+.comparison-item .label {
+  font-size: 12px;
   text-transform: uppercase;
+  color: #8a8a8a;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
 }
 
-.results-container p {
-  margin-bottom: 4px;
+.comparison-item .value {
+  font-size: 25px;
+  font-weight: 700;
+  color: #ffffff;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.comparison-message {
+  font-size: 14px;
+  color: #bababa;
+  text-align: center;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.comparison-message.completed {
+  background: rgba(46, 204, 113, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.2);
+  color: #ffffff;
+}
+
+.comparison-message strong {
+  color: #ffffff;
+}
+
+.comparison-message.completed strong {
+  color: #2ecc71;
+}
+
+.phases-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.phase-box {
+  background: #1e1c18;
+  border: 1px solid #363532;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  margin-bottom: 20px;
+}
+
+.phase-header {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.phase-year {
+  font-size: 12px;
+  color: #8a8a8a;
+  text-transform: none;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.phase-balances {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.balance-badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: 'Roboto Mono', monospace;
+  font-weight: bold;
+}
+
+.balance-badge.tfsa {
+  background: rgba(52, 152, 219, 0.1);
+  color: #3498db;
+  border: 1px solid rgba(52, 152, 219, 0.2);
+}
+
+.balance-badge.rrsp {
+  background: rgba(155, 89, 182, 0.1);
+  color: #9b59b6;
+  border: 1px solid rgba(155, 89, 182, 0.2);
+}
+
+.balance-badge.marg {
+  background: rgba(241, 196, 15, 0.1);
+  color: #f1c40f;
+  border: 1px solid rgba(241, 196, 15, 0.2);
 }

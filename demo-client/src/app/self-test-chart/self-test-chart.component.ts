@@ -75,11 +75,33 @@ export class SelfTestChartComponent {
     // Do something with the data
   }
 
-  getAllStagesData(): ChartData[] {
-    // Flatten the array of arrays into a single array containing all ChartData
+  optimizedYears: number = 0;
+
+  get customYears(): number {
+    const flat = this.getAllStagesData();
+    if (!flat || flat.length === 0) return 0;
+    return flat[flat.length - 1].year;
+  }
+
+  isFullyDepleted(): boolean {
+    const flat = this.getAllStagesData();
+    if (!flat || flat.length === 0) return false;
+    const lastEvent = flat[flat.length - 1];
+    return lastEvent.accountState.accounts.every((acc: any) => acc.totalValue < 100);
+  }
+
+  getAllStagesData(): any[] {
+    // Flatten the array of arrays into a single array containing all stage data
     return this.stagesData.flat();
   }
+
   ngOnInit(): void {
+    this.sharedDataService.chartData$.subscribe((data) => {
+      if (data && data.length > 0) {
+        this.optimizedYears = data[data.length - 1].year;
+      }
+    });
+
     this.subscription = this.sharedDataService.currentInputData$.subscribe((data) => {
       console.log("GOT HERE 3: ", this.data);
       this.initState.tfsaAmount = data.tfsaAmount;
@@ -91,12 +113,25 @@ export class SelfTestChartComponent {
       this.initState.province = data.province;
       console.log("User test data received 3: ", this.data);
       console.log("USER TEST FORM 3: ", this.initState);
+
+      // Reset stages when initial inputs change
+      this.states = [this.initState];
+      this.stage = 1;
+      this.stagesData = [];
+      this.rawStagesData = [];
+      this.data = [];
+      if (this.chart) {
+        this.chart.data.datasets = [];
+        this.chart.update();
+      }
+      this.tooHighIncome = false;
     });
-    this.states.push(this.initState);
+
     this.subscription  = this.sharedDataService.currentInputData2$.subscribe((data) => {
       this.data = data; // Data received from sibling1
       console.log("User test data received 123: ", data);
     });
+
     this.sharedDataService.chartStage$.subscribe(data => {
       // CONCAT THE DATA FROM OUR OBJECTS
       // REDRAW THE CHART BASED ON STAGE
@@ -121,14 +156,15 @@ export class SelfTestChartComponent {
       this.rawStagesData.push(data);
       this.stagesData.push(data);
       console.log("STAGES DATA: ", this.stagesData);
-      this.data = this.getAllStagesData();
+      
+      const allStages = this.getAllStagesData();
+      this.data = this.transformDataForChart(allStages);
       console.log("DATA: ", this.data);
 
       this.sharedService.notifyUserUpdateNeeded(false);
       this.tooHighIncome = false;
 
       if(this.chart == null){
-        this.data = this.transformDataForChart(data);
         this.createChart(this.data);
       } else {
         this.updateChart(data);
@@ -138,16 +174,19 @@ export class SelfTestChartComponent {
 
   updateChart(data: any[]): void {
     if (this.chart) {
-      this.data = this.transformDataForChart(data);
+      const allStages = this.getAllStagesData();
+      this.data = this.transformDataForChart(allStages);
       console.log("updating chart with new data", this.data);
       
-      let maxYear = 0;
-      data.forEach(item => {
-        if (item.year > maxYear) {
-          maxYear = item.year;
+      let preciseMaxYear = 0;
+      allStages.forEach(item => {
+        if (item.year > preciseMaxYear) {
+          preciseMaxYear = item.year;
         }
       });
-      maxYear = Math.ceil(maxYear || 20);
+      this.chart.lifespan = preciseMaxYear;
+      
+      let maxYear = Math.ceil(preciseMaxYear || 20);
 
       if (this.chart.options.plugins && this.chart.options.plugins.zoom) {
         this.chart.options.plugins.zoom.limits = {
@@ -158,27 +197,31 @@ export class SelfTestChartComponent {
           }
         };
       }
+      if (this.chart.options.scales && this.chart.options.scales['x']) {
+        this.chart.options.scales['x'].min = 0;
+        this.chart.options.scales['x'].max = maxYear;
+      }
 
-      this.chart.data.datasets = this.data.map((dataset: ChartData) => ({
-        label: dataset.name,
-        data: dataset.series.map((seriesItem: SeriesItem) => ({
-          x: Number(seriesItem.name),
-          y: seriesItem.value
-        })),
-        fill: false
-      }));
+      this.chart.data.datasets = this.mapDatasets(this.data);
 
+      this.chart.update();
       if (this.chart.resetZoom) {
         this.chart.resetZoom();
       }
-      this.chart.update();
     }
   }
 
-  private transformDataForChart(rawData: RawDataItem[]): any[] {
+  private transformDataForChart(rawData: any[]): any[] {
     const chartData: ChartData[] = [];
-    rawData.forEach(result => {
-      result.accountState.accounts.forEach(account => {
+    const filteredData = rawData.filter((result, index) => {
+      const isIntegerYear = Math.abs(result.year - Math.round(result.year)) < 1e-6;
+      const isLastItem = index === rawData.length - 1;
+      return isIntegerYear || isLastItem;
+    });
+
+    filteredData.forEach(result => {
+      let totalValue = 0;
+      result.accountState.accounts.forEach((account: any) => {
         let accountName = account.accountName;
         if (accountName === 'MARG') {
           accountName = 'NON-REG';
@@ -190,7 +233,17 @@ export class SelfTestChartComponent {
         }
         const roundedYear = Math.round(result.year * 100) / 100;
         accountData.series.push({ name: `${roundedYear}`, value: account.totalValue });
+        totalValue += account.totalValue;
       });
+
+      // Add to TOTAL
+      let totalData = chartData.find(d => d.name === 'TOTAL');
+      if (!totalData) {
+        totalData = { name: 'TOTAL', series: [] };
+        chartData.push(totalData);
+      }
+      const roundedYear = Math.round(result.year * 100) / 100;
+      totalData.series.push({ name: `${roundedYear}`, value: totalValue });
     });
     return chartData;
   }
@@ -202,16 +255,16 @@ export class SelfTestChartComponent {
     console.log(chartData);
     console.log("dasdsa");
 
-    let maxYear = 0;
+    let preciseMaxYear = 0;
     chartData.forEach(dataset => {
       dataset.series.forEach((s: any) => {
         const y = Number(s.name);
-        if (y > maxYear) {
-          maxYear = y;
+        if (y > preciseMaxYear) {
+          preciseMaxYear = y;
         }
       });
     });
-    maxYear = Math.ceil(maxYear || 20);
+    let maxYear = Math.ceil(preciseMaxYear || 20);
 
     const options = getChartOptions((year) => {
       const flatData = this.rawStagesData.flat();
@@ -244,21 +297,19 @@ export class SelfTestChartComponent {
         }
       };
     }
+    if (options.scales && options.scales['x']) {
+      options.scales['x'].min = 0;
+      options.scales['x'].max = maxYear;
+    }
 
-    this.chart = new Chart("MyChart", {
+    this.chart = new Chart("SelfTestChart", {
       type: 'line',
       data: {
-        datasets: chartData.map((dataset:ChartData) => ({
-          label: dataset.name,
-          data: dataset.series.map((seriesItem: SeriesItem) => ({
-            x: Number(seriesItem.name),
-            y: seriesItem.value
-          })),
-          fill: false
-        }))
+        datasets: this.mapDatasets(chartData)
       },
       options: options,
     });
+    this.chart.lifespan = preciseMaxYear;
   }
 
   private greyOutChart() {
@@ -268,16 +319,69 @@ export class SelfTestChartComponent {
     }
   }
 
-  private restoreChart() {
-    if (this.chart) {
-      this.chart.data.datasets = this.data.map((dataset: ChartData) => ({
+  private mapDatasets(chartData: ChartData[]) {
+    const mapped = chartData.map((dataset: ChartData) => {
+      const name = (dataset.name || '').trim().toUpperCase();
+      let color = '#ffffff';
+      let isTotal = false;
+
+      if (name === 'TFSA') {
+        color = '#ff6384';
+      } else if (name === 'RRSP') {
+        color = '#36a2eb';
+      } else if (name === 'NON-REG' || name === 'MARG') {
+        color = '#ffce56';
+      } else {
+        color = '#2ecc71';
+        isTotal = true;
+      }
+
+      const ds = {
         label: dataset.name,
         data: dataset.series.map((seriesItem: SeriesItem) => ({
-          x: seriesItem.name, // Assuming 'name' is the x-axis value (like a date or category)
-          y: seriesItem.value  // y-axis value
-        })), // Or use a fixed color / existing color
-        fill: false
-      }));
+          x: Number(seriesItem.name),
+          y: seriesItem.value
+        })),
+        fill: false,
+        borderColor: color,
+        backgroundColor: color,
+        pointBackgroundColor: color,
+        pointHoverBackgroundColor: color,
+        pointBorderColor: color,
+        pointHoverBorderColor: color,
+        borderWidth: isTotal ? 3 : 2,
+        pointRadius: 0,
+        pointHoverRadius: isTotal ? 9 : 6,
+        pointBorderWidth: 0,
+        pointHoverBorderWidth: 0
+      };
+
+      if (isTotal) {
+        console.log('%c[CHART SELF TEST DEBUG] TOTAL Dataset Config:', 'color: #2ecc71; font-weight: bold;', {
+          label: ds.label,
+          borderColor: ds.borderColor,
+          backgroundColor: ds.backgroundColor,
+          pointBackgroundColor: ds.pointBackgroundColor,
+          pointHoverBackgroundColor: ds.pointHoverBackgroundColor,
+          pointBorderColor: ds.pointBorderColor,
+          pointHoverBorderColor: ds.pointHoverBorderColor,
+          borderWidth: ds.borderWidth,
+          pointRadius: ds.pointRadius,
+          pointHoverRadius: ds.pointHoverRadius,
+          pointBorderWidth: ds.pointBorderWidth,
+          pointHoverBorderWidth: ds.pointHoverBorderWidth
+        });
+      }
+
+      return ds;
+    });
+
+    return mapped;
+  }
+
+  private restoreChart() {
+    if (this.chart) {
+      this.chart.data.datasets = this.mapDatasets(this.data);
       this.chart.update();
     }
   }

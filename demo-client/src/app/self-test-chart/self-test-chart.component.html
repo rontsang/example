@@ -1,11 +1,42 @@
-<p>SELF chart works!</p>
-<div class="chart-container">
-  <canvas id="MyChart" >{{ chart }}</canvas>
+<div class="strategy-comparison-card" *ngIf="getAllStagesData().length > 0">
+  <div class="comparison-grid">
+    <div class="comparison-item optimized">
+      <span class="label">Optimized Strategy</span>
+      <strong class="value">{{ optimizedYears | number:'1.1-1' }} Years</strong>
+    </div>
+    <div class="comparison-item user">
+      <span class="label">Your Strategy</span>
+      <strong class="value">{{ customYears | number:'1.1-1' }} Years</strong>
+    </div>
+  </div>
+  <div class="comparison-message" [ngClass]="{'completed': isFullyDepleted()}">
+    <span *ngIf="!isFullyDepleted()">
+      🔄 Your strategy currently lasts <strong>{{ customYears | number:'1.1-1' }} years</strong>. 
+      Please configure the next phase below to continue withdrawing your remaining balances.
+    </span>
+    <span *ngIf="isFullyDepleted()">
+      🎉 All accounts are depleted! Your strategy lasted <strong>{{ customYears | number:'1.1-1' }} years</strong> 
+      compared to the optimized strategy of <strong>{{ optimizedYears | number:'1.1-1' }} years</strong> 
+      (Difference: <strong>{{ (optimizedYears - customYears) | number:'1.1-1' }} years</strong>).
+    </span>
+  </div>
 </div>
 
+<div class="chart-container">
+  <canvas id="SelfTestChart">{{ chart }}</canvas>
+</div>
 
-<div *ngFor="let state of states; let i = index">
-  <div *ngIf="i <= stage">
+<div class="phases-container">
+  <div *ngFor="let state of states; let i = index" class="phase-box">
+    <h3 class="phase-header">
+      <span>Phase {{ i + 1 }}</span>
+      <span class="phase-year">Starting Year: {{ state.startingYear | number:'1.0-1' }}</span>
+    </h3>
+    <div class="phase-balances">
+      <span class="balance-badge tfsa" *ngIf="state.tfsaAmount !== undefined && state.tfsaAmount !== null">TFSA: {{ state.tfsaAmount | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+      <span class="balance-badge rrsp" *ngIf="state.rrspAmount !== undefined && state.rrspAmount !== null">RRSP: {{ state.rrspAmount | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+      <span class="balance-badge marg" *ngIf="state.margAmountPrincipal !== undefined && state.margAmountPrincipal !== null">Non-Reg: {{ (state.margAmountPrincipal + (state.margAmountCapitalGain || 0)) | currency:'USD':'symbol-narrow':'1.0-0' }}</span>
+    </div>
     <app-userinput-test [startState]="state" (notifyParent)="handleDataFromChild($event)"></app-userinput-test>
   </div>
 </div>
